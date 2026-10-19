@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- [M6] (Admin) Journal d'activité : à développer -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.JournalController"
+      alignment="CENTER" spacing="10">
+  <Label text="Journal d'activité (à développer par M2)"/>
+</VBox>

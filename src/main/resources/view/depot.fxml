@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- [M3] Dépôt d'un mémoire : à développer -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.DepotController"
+      alignment="CENTER" spacing="10">
+  <Label text="Déposer un mémoire (à développer par M3)"/>
+</VBox>

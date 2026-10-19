@@ -1,0 +1,10 @@
+/* [M1 base, M6 finition] Style JavaFX (propriétés -fx-*). Fichier optionnel : le supprimer rend simplement le thème par défaut. */
+
+.root {
+    -fx-font-family: "Segoe UI", "Arial";
+    -fx-font-size: 13px;
+}
+
+.button {
+    -fx-cursor: hand;
+}

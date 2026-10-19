@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- [M2] Profil et changement de mot de passe : à développer -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.ProfilController"
+      alignment="CENTER" spacing="10">
+  <Label text="Mon profil (à développer par M2)"/>
+</VBox>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- [M2] Inscription d'un tdsien : à développer -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.InscriptionController"
+      alignment="CENTER" spacing="10">
+  <Label text="Inscription tdsien (à développer par M2)"/>
+</VBox>
