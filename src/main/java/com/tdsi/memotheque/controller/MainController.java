@@ -1,25 +1,84 @@
 package com.tdsi.memotheque.controller;
 
+import com.tdsi.memotheque.model.Role;
+import com.tdsi.memotheque.model.Utilisateur;
 import com.tdsi.memotheque.util.SceneNavigator;
 import com.tdsi.memotheque.util.SessionManager;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 
 /**
  * [M1] Cadre principal : menu à gauche, contenu au centre.
- * À faire (M1) : afficher / masquer les boutons du menu selon SessionManager.getRole()
- * (voir le tableau « Navigation et menus par rôle » du document de conception).
+ * Le menu affiché dépend du rôle de l'utilisateur connecté (SessionManager).
+ * ATTENTION : masquer un bouton n'est qu'un confort d'affichage.
+ * La vraie vérification des droits est faite dans les services.
  */
 public class MainController {
 
-    @FXML
-    private StackPane contenu;
+    @FXML private StackPane contenu;
+
+    @FXML private Label lblUtilisateur;
+    @FXML private Label lblRole;
+
+    @FXML private Button btnDashboard;
+    @FXML private Button btnRecherche;
+    @FXML private Button btnDepot;
+    @FXML private Button btnMesMemoires;
+    @FXML private Button btnValidation;
+    @FXML private Button btnComptes;
+    @FXML private Button btnDomaines;
+    @FXML private Button btnJournal;
+    @FXML private Button btnProfil;
 
     @FXML
     private void initialize() {
+        configurerMenu();
         SceneNavigator.definirZoneContenu(contenu);
         SceneNavigator.charger("dashboard");
+    }
+
+    /** Affiche ou masque les boutons selon le rôle (voir le tableau « menus par rôle »). */
+    private void configurerMenu() {
+        Utilisateur u = SessionManager.getUtilisateur();
+
+        // Mode développement : personne n'est connecté, on affiche tout pour pouvoir tester.
+        boolean modeDev = (u == null);
+
+        if (modeDev) {
+            lblUtilisateur.setText("Mode développement");
+            lblRole.setText("(personne n'est connecté)");
+        } else {
+            lblUtilisateur.setText(u.getNomComplet());
+            lblRole.setText(u.getRole() == null ? "" : u.getRole().getLibelle());
+        }
+
+        // Pour tous les rôles
+        afficher(btnDashboard, true);
+        afficher(btnRecherche, true);
+        afficher(btnProfil, true);
+
+        // Étudiant seulement
+        boolean etudiant = modeDev || SessionManager.aLeRole(Role.ETUDIANT);
+        afficher(btnDepot, etudiant);
+        afficher(btnMesMemoires, etudiant);
+
+        // Encadreur et admin
+        afficher(btnValidation, modeDev || SessionManager.aLeRole(Role.ENCADREUR, Role.ADMIN));
+
+        // Admin seulement
+        boolean admin = modeDev || SessionManager.aLeRole(Role.ADMIN);
+        afficher(btnComptes, admin);
+        afficher(btnDomaines, admin);
+        afficher(btnJournal, admin);
+    }
+
+    /** Un bouton masqué ne doit pas non plus laisser de trou dans le menu (setManaged). */
+    private void afficher(Button bouton, boolean visible) {
+        bouton.setVisible(visible);
+        bouton.setManaged(visible);
     }
 
     @FXML private void allerDashboard()   { SceneNavigator.charger("dashboard"); }

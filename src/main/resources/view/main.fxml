@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M1] Cadre principal : menu à gauche, contenu au centre (fx:id="contenu") -->
+<!-- [M1] Cadre principal : menu à gauche (selon le rôle), contenu au centre (fx:id="contenu") -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.tdsi.memotheque.controller.MainController">
   <left>
@@ -17,17 +17,19 @@
         <Insets top="15" right="10" bottom="15" left="10"/>
       </padding>
       <Label text="MémoTDSI" style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+      <Label fx:id="lblUtilisateur" style="-fx-text-fill: #cfd8dc;"/>
+      <Label fx:id="lblRole" style="-fx-text-fill: #90a4ae; -fx-font-size: 11px;"/>
       <Region prefHeight="10"/>
-      <Button text="Tableau de bord" maxWidth="Infinity" onAction="#allerDashboard"/>
-      <Button text="Rechercher un mémoire" maxWidth="Infinity" onAction="#allerRecherche"/>
-      <Button text="Déposer un mémoire" maxWidth="Infinity" onAction="#allerDepot"/>
-      <Button text="Mes mémoires" maxWidth="Infinity" onAction="#allerMesMemoires"/>
-      <Button text="Mémoires à valider" maxWidth="Infinity" onAction="#allerValidation"/>
-      <Button text="Comptes" maxWidth="Infinity" onAction="#allerComptes"/>
-      <Button text="Domaines" maxWidth="Infinity" onAction="#allerDomaines"/>
-      <Button text="Journal d'activité" maxWidth="Infinity" onAction="#allerJournal"/>
+      <Button fx:id="btnDashboard" text="Tableau de bord" maxWidth="Infinity" onAction="#allerDashboard"/>
+      <Button fx:id="btnRecherche" text="Rechercher un mémoire" maxWidth="Infinity" onAction="#allerRecherche"/>
+      <Button fx:id="btnDepot" text="Déposer un mémoire" maxWidth="Infinity" onAction="#allerDepot"/>
+      <Button fx:id="btnMesMemoires" text="Mes mémoires" maxWidth="Infinity" onAction="#allerMesMemoires"/>
+      <Button fx:id="btnValidation" text="Mémoires à valider" maxWidth="Infinity" onAction="#allerValidation"/>
+      <Button fx:id="btnComptes" text="Comptes" maxWidth="Infinity" onAction="#allerComptes"/>
+      <Button fx:id="btnDomaines" text="Domaines" maxWidth="Infinity" onAction="#allerDomaines"/>
+      <Button fx:id="btnJournal" text="Journal d'activité" maxWidth="Infinity" onAction="#allerJournal"/>
       <Region VBox.vgrow="ALWAYS"/>
-      <Button text="Mon profil" maxWidth="Infinity" onAction="#allerProfil"/>
+      <Button fx:id="btnProfil" text="Mon profil" maxWidth="Infinity" onAction="#allerProfil"/>
       <Button text="Déconnexion" maxWidth="Infinity" onAction="#deconnexion"/>
     </VBox>
   </left>
