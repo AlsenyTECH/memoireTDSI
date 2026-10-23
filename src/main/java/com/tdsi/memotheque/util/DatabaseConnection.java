@@ -14,17 +14,35 @@ import java.sql.Statement;
  */
 public final class DatabaseConnection {
 
-    private static final String URL = "jdbc:sqlite:memotdsi.db";
+   private static final String URL_PAR_DEFAUT = "jdbc:sqlite:memotdsi.db";
+   private static String url = URL_PAR_DEFAUT;
 
     private DatabaseConnection() { }
 
     /** Ouvre une connexion (à fermer avec try-with-resources) avec les clés étrangères activées. */
     public static Connection getConnection() throws SQLException {
-        Connection c = DriverManager.getConnection(URL);
+        Connection c = DriverManager.getConnection(url);
         try (Statement st = c.createStatement()) {
             st.execute("PRAGMA foreign_keys = ON");
         }
         return c;
+    }
+
+    /**
+     * Permet aux tests de choisir une base SQLite différente.
+     */
+    public static void utiliserBasePourTests(String urlTest) {
+        if (urlTest == null || !urlTest.startsWith("jdbc:sqlite:")) {
+            throw new IllegalArgumentException(
+                    "URL SQLite invalide pour les tests");
+        }
+
+        url = urlTest;
+    }
+
+    /** Rétablit la base habituelle de l'application. */
+    public static void utiliserBaseParDefaut() {
+        url = URL_PAR_DEFAUT;
     }
 
     /** Crée les tables (schema.sql) puis insère les données de départ (seed.sql). */
