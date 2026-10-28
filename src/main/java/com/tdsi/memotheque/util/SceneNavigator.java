@@ -9,6 +9,10 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import com.tdsi.memotheque.controller.DetailMemoireController;
+import com.tdsi.memotheque.model.Memoire;
+
+
 /**
  * [M1] Navigation entre les écrans.
  * - afficherLogin() / afficherCadrePrincipal() : changent la scène de la fenêtre.
@@ -71,6 +75,43 @@ public final class SceneNavigator {
             AlertUtil.erreur("Écran introuvable", "Impossible de charger la vue « " + vue + " » : " + e.getMessage());
         }
     }
+
+    
+    /**
+     * Affiche la fiche détaillée d'un mémoire.
+     */
+    public static void afficherDetailMemoire(Memoire memoire) {
+        if (zoneContenu == null) {
+            AlertUtil.erreur("Navigation",
+                    "Le cadre principal n'est pas affiché.");
+            return;
+        }
+
+        try {
+            URL fxml = SceneNavigator.class.getResource(
+                    "/view/detail_memoire.fxml");
+
+            if (fxml == null) {
+                throw new IOException(
+                        "Fichier detail_memoire.fxml introuvable.");
+            }
+
+            FXMLLoader loader = new FXMLLoader(fxml);
+            Parent vue = loader.load();
+
+            DetailMemoireController controller = loader.getController();
+            controller.afficherMemoire(memoire);
+
+            zoneContenu.getChildren().setAll(vue);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            AlertUtil.erreur("Erreur de navigation",
+                    "Impossible d'afficher le détail du mémoire : "
+                            + e.getMessage());
+        }
+    }
+
 
     private static Parent chargerFxml(String vue) throws IOException {
         URL fxml = SceneNavigator.class.getResource("/view/" + vue + ".fxml");

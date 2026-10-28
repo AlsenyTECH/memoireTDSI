@@ -1,11 +1,190 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.tdsi.memotheque.controller.RechercheController"
+            prefWidth="1100"
+            prefHeight="700">
 
-<!-- [M4] Recherche multicritères : à développer -->
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.tdsi.memotheque.controller.RechercheController"
-      alignment="CENTER" spacing="10">
-  <Label text="Rechercher un mémoire (à développer par M4)"/>
-</VBox>
+    <top>
+        <VBox spacing="12"
+              style="-fx-background-color: #f4f6f9;">
+
+            <padding>
+                <Insets top="22" right="25" bottom="20" left="25"/>
+            </padding>
+
+            <Label text="Recherche de mémoires"
+                   style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+            <Label text="Retrouvez un mémoire selon plusieurs critères."/>
+
+            <GridPane hgap="12" vgap="12">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="100"/>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="180"/>
+                    <ColumnConstraints minWidth="130"/>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="180"/>
+                </columnConstraints>
+
+                <Label text="Mot-clé :"
+                       GridPane.columnIndex="0"
+                       GridPane.rowIndex="0"/>
+
+                <TextField fx:id="champMotCle"
+                           promptText="Titre, résumé ou mots-clés"
+                           GridPane.columnIndex="1"
+                           GridPane.rowIndex="0"/>
+
+                <Label text="Domaine :"
+                       GridPane.columnIndex="2"
+                       GridPane.rowIndex="0"/>
+
+                <ComboBox fx:id="comboDomaine"
+                          maxWidth="Infinity"
+                          promptText="Tous les domaines"
+                          GridPane.columnIndex="3"
+                          GridPane.rowIndex="0"/>
+
+                <Label text="Niveau :"
+                       GridPane.columnIndex="0"
+                       GridPane.rowIndex="1"/>
+
+                <ComboBox fx:id="comboNiveau"
+                          maxWidth="Infinity"
+                          promptText="Tous les niveaux"
+                          GridPane.columnIndex="1"
+                          GridPane.rowIndex="1"/>
+
+                <Label text="Année académique :"
+                       GridPane.columnIndex="2"
+                       GridPane.rowIndex="1"/>
+
+                <ComboBox fx:id="comboAnnee"
+                          maxWidth="Infinity"
+                          promptText="Toutes les années"
+                          GridPane.columnIndex="3"
+                          GridPane.rowIndex="1"/>
+
+                <Label text="Mention :"
+                       GridPane.columnIndex="0"
+                       GridPane.rowIndex="2"/>
+
+                <ComboBox fx:id="comboMention"
+                          maxWidth="Infinity"
+                          promptText="Toutes les mentions"
+                          GridPane.columnIndex="1"
+                          GridPane.rowIndex="2"/>
+
+                <Label text="Publié du :"
+                       GridPane.columnIndex="2"
+                       GridPane.rowIndex="2"/>
+
+                <DatePicker fx:id="dateDebut"
+                            maxWidth="Infinity"
+                            GridPane.columnIndex="3"
+                            GridPane.rowIndex="2"/>
+
+                <Label text="Publié au :"
+                       GridPane.columnIndex="0"
+                       GridPane.rowIndex="3"/>
+
+                <DatePicker fx:id="dateFin"
+                            maxWidth="Infinity"
+                            GridPane.columnIndex="1"
+                            GridPane.rowIndex="3"/>
+
+                <Label text="Tri :"
+                       GridPane.columnIndex="2"
+                       GridPane.rowIndex="3"/>
+
+                <ComboBox fx:id="comboTri"
+                          maxWidth="Infinity"
+                          GridPane.columnIndex="3"
+                          GridPane.rowIndex="3"/>
+            </GridPane>
+
+            <HBox spacing="10">
+                <Button text="Rechercher"
+                        onAction="#rechercher"
+                        style="-fx-background-color: #2457a7; -fx-text-fill: white;"/>
+
+                <Button text="Réinitialiser"
+                        onAction="#reinitialiser"/>
+            </HBox>
+
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="12">
+            <padding>
+                <Insets top="20" right="25" bottom="15" left="25"/>
+            </padding>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Résultats de recherche"
+                       style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+                <Label fx:id="labelCompteur"
+                       text="0 résultat(s)"/>
+
+                <Label fx:id="labelMessage"
+                       text=""
+                       style="-fx-text-fill: #b42318;"/>
+            </HBox>
+
+            <TableView fx:id="tableMemoires"
+                       VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colTitre"
+                                 text="Titre"
+                                 prefWidth="270"/>
+
+                    <TableColumn fx:id="colDomaine"
+                                 text="Domaine"
+                                 prefWidth="170"/>
+
+                    <TableColumn fx:id="colAuteur"
+                                 text="Auteur"
+                                 prefWidth="150"/>
+
+                    <TableColumn fx:id="colNiveau"
+                                 text="Niveau"
+                                 prefWidth="80"/>
+
+                    <TableColumn fx:id="colAnnee"
+                                 text="Année académique"
+                                 prefWidth="130"/>
+
+                    <TableColumn fx:id="colMention"
+                                 text="Mention"
+                                 prefWidth="110"/>
+                </columns>
+
+                <placeholder>
+                    <Label text="Lancez une recherche pour afficher les mémoires."/>
+                </placeholder>
+            </TableView>
+
+            <HBox spacing="12"
+                  alignment="CENTER_RIGHT">
+                <Button fx:id="boutonPrecedent"
+                        text="Précédent"
+                        onAction="#pagePrecedente"/>
+
+                <Label fx:id="labelPagination"
+                       text="Page 1"/>
+
+                <Button fx:id="boutonSuivant"
+                        text="Suivant"
+                        onAction="#pageSuivante"/>
+            </HBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>
