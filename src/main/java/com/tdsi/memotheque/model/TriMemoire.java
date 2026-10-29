@@ -6,6 +6,8 @@ package com.tdsi.memotheque.model;
  * (protection contre l'injection SQL dans le ORDER BY).
  */
 public enum TriMemoire {
+    /** Pertinence BM25 de la recherche plein texte (sans mot-clé : plus récents). */
+    PERTINENCE("Pertinence", "m.date_publication DESC, m.id DESC"),
     PLUS_RECENTS("Plus récents", "m.date_publication DESC, m.id DESC"),
     PLUS_CONSULTES("Plus consultés", "m.nb_vues DESC, m.id DESC"),
     TITRE_AZ("Titre A → Z", "m.titre COLLATE NOCASE ASC");

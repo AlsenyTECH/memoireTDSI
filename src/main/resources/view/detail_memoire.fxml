@@ -117,6 +117,9 @@
     <Button fx:id="boutonEnregistrer"
             text="Enregistrer sous..."
             onAction="#enregistrerSous"/>
+
+    <Button text="Citer ce mémoire"
+            onAction="#citer"/>
 </HBox>
 
             <Label fx:id="labelMessage"

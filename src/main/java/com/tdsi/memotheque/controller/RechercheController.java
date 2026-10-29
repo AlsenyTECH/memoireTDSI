@@ -13,14 +13,12 @@ import java.sql.SQLException;
 
 import java.util.List;
 
-import com.tdsi.memotheque.dao.impl.MemoireRechercheDAOImpl;
 import com.tdsi.memotheque.model.Domaine;
 import com.tdsi.memotheque.model.Memoire;
 import com.tdsi.memotheque.model.MemoireCritere;
 import com.tdsi.memotheque.model.Mention;
 import com.tdsi.memotheque.model.Niveau;
 import com.tdsi.memotheque.model.TriMemoire;
-import com.tdsi.memotheque.util.DatabaseConnection;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +47,7 @@ public class RechercheController {
     @FXML private DatePicker dateDebut;
     @FXML private DatePicker dateFin;
     @FXML private ComboBox<TriMemoire> comboTri;
+    @FXML private ComboBox<com.tdsi.memotheque.model.Utilisateur> comboEncadreur;
 
     @FXML private TableView<Memoire> tableMemoires;
     @FXML private TableColumn<Memoire, String> colTitre;
@@ -84,6 +83,7 @@ public class RechercheController {
         try {
             chargerDomaines();
             chargerAnnees();
+            chargerEncadreurs();
             rechercher();
         } catch (SQLException e) {
             afficherErreur("Impossible de charger les données : "
@@ -142,7 +142,7 @@ public class RechercheController {
         comboTri.setItems(
                 FXCollections.observableArrayList(TriMemoire.values()));
 
-        comboTri.setValue(TriMemoire.PLUS_RECENTS);
+        comboTri.setValue(TriMemoire.PERTINENCE);
     }
 
     private void chargerDomaines() throws SQLException {
@@ -166,24 +166,13 @@ public class RechercheController {
     }
 
     private List<Domaine> listerDomaines() throws SQLException {
-        List<Domaine> domaines = new java.util.ArrayList<>();
+        // Passe par la couche service (plus de SQL dans le contrôleur).
+        return new com.tdsi.memotheque.service.DomaineService().lister();
+    }
 
-        String sql = "SELECT id, nom, description FROM domaine ORDER BY nom";
-
-        try (var connexion = DatabaseConnection.getConnection();
-             var ps = connexion.prepareStatement(sql);
-             var rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Domaine domaine = new Domaine();
-                domaine.setId(rs.getInt("id"));
-                domaine.setNom(rs.getString("nom"));
-                domaine.setDescription(rs.getString("description"));
-                domaines.add(domaine);
-            }
-        }
-
-        return domaines;
+    private void chargerEncadreurs() throws SQLException {
+        comboEncadreur.setItems(FXCollections.observableArrayList(
+                new com.tdsi.memotheque.service.MemoireService().listerEncadreurs()));
     }
 
     private void chargerAnnees() throws SQLException {
@@ -239,6 +228,7 @@ public class RechercheController {
         critere.setDateDebut(dateDebut.getValue());
         critere.setDateFin(dateFin.getValue());
         critere.setTri(comboTri.getValue());
+        critere.setIdEncadreur(comboEncadreur.getValue() == null ? null : comboEncadreur.getValue().getId());
 
         critere.setPage(1);
         critere.setTaille(TAILLE_PAGE);
@@ -253,7 +243,8 @@ public class RechercheController {
         comboMention.getSelectionModel().clearSelection();
         dateDebut.setValue(null);
         dateFin.setValue(null);
-        comboTri.setValue(TriMemoire.PLUS_RECENTS);
+        comboTri.setValue(TriMemoire.PERTINENCE);
+        comboEncadreur.getSelectionModel().clearSelection();
 
         critere.setPage(1);
         rechercher();
@@ -303,6 +294,39 @@ public class RechercheController {
         }
     }
 
+    /** Exporte TOUS les résultats de la recherche courante (pas seulement la page affichée). */
+    @FXML
+    public void exporterCsv() {
+        javafx.stage.FileChooser choix = new javafx.stage.FileChooser();
+        choix.setTitle("Exporter les résultats");
+        choix.setInitialFileName("recherche-memoires.csv");
+        choix.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV", "*.csv"));
+        java.io.File fichier = choix.showSaveDialog(tableMemoires.getScene().getWindow());
+        if (fichier == null) {
+            return;
+        }
+        try {
+            lireFiltres();
+            critere.setTaille(Math.max(1, Math.min(10_000, rechercheService.compterPublic(critere))));
+            List<Memoire> tous = rechercheService.rechercherPublic(critere);
+            critere.setTaille(TAILLE_PAGE);
+
+            List<Object[]> lignes = new java.util.ArrayList<>();
+            for (Memoire m : tous) {
+                lignes.add(new Object[] {m.getTitre(), m.getAuteurNomComplet(), m.getCoAuteur(),
+                        m.getDomaineNom(), m.getNiveau(), m.getAnneeAcademique(), m.getEncadreurNomComplet(),
+                        m.getMention(), m.getDatePublication(), m.getMotsCles(), m.getNbVues(),
+                        m.getNbTelechargements()});
+            }
+            com.tdsi.memotheque.util.CsvUtil.ecrire(fichier.toPath(), new Object[] {"Titre", "Auteur",
+                    "Co-auteur", "Domaine", "Niveau", "Année", "Encadreur", "Mention", "Publié le", "Mots-clés",
+                    "Vues", "Téléchargements"}, lignes);
+            labelMessage.setText(lignes.size() + " mémoire(s) exporté(s) dans " + fichier.getName());
+        } catch (SQLException | java.io.IOException e) {
+            afficherErreur("Export impossible : " + e.getMessage());
+        }
+    }
+
     private String texteOuNull(String texte) {
         if (texte == null || texte.isBlank()) {
             return null;
@@ -347,6 +371,10 @@ public class RechercheController {
 
         comboTri.setTooltip(
             new javafx.scene.control.Tooltip("Choisir l'ordre de tri des résultats.")
+        );
+
+        comboEncadreur.setTooltip(
+            new javafx.scene.control.Tooltip("Filtrer par encadreur.")
         );
     }
     

@@ -55,7 +55,15 @@ public class MemoireRechercheDAOImpl implements MemoireRechercheDAO {
 
         // La clause ORDER BY vient uniquement de l'enum TriMemoire.
         sql.insert(0, SELECT_BASE);
-        sql.append(" ORDER BY ").append(tri.getClauseSql());
+        String requeteFts = requeteFts(c.getMotCle());
+        if (tri == TriMemoire.PERTINENCE && requeteFts != null) {
+            // bm25 : plus la valeur est basse, plus le document est pertinent.
+            sql.append(" ORDER BY (SELECT bm25(memoire_fts) FROM memoire_fts "
+                    + "WHERE memoire_fts MATCH ? AND memoire_fts.rowid = m.id), m.id DESC");
+            parametres.add(requeteFts);
+        } else {
+            sql.append(" ORDER BY ").append(tri.getClauseSql());
+        }
         sql.append(" LIMIT ? OFFSET ?");
 
         int taille = Math.max(1, c.getTaille());
@@ -115,15 +123,14 @@ public class MemoireRechercheDAOImpl implements MemoireRechercheDAO {
         StringBuilder sql = new StringBuilder(" WHERE 1 = 1 ");
 
         if (c.getMotCle() != null && !c.getMotCle().isBlank()) {
-            sql.append(
-                " AND (m.titre LIKE ? COLLATE NOCASE " +
-                "OR m.resume LIKE ? COLLATE NOCASE " +
-                "OR m.mots_cles LIKE ? COLLATE NOCASE) ");
-
-            String motCle = "%" + c.getMotCle().trim() + "%";
-            parametres.add(motCle);
-            parametres.add(motCle);
-            parametres.add(motCle);
+            String requete = requeteFts(c.getMotCle());
+            if (requete == null) {
+                sql.append(" AND 1 = 0 ");          // que de la ponctuation : aucun résultat
+            } else {
+                // Index plein texte FTS5 (titre, résumé, mots-clés), insensible aux accents.
+                sql.append(" AND m.id IN (SELECT rowid FROM memoire_fts WHERE memoire_fts MATCH ?) ");
+                parametres.add(requete);
+            }
         }
 
         if (c.getIdDomaine() != null) {
@@ -173,6 +180,31 @@ public class MemoireRechercheDAOImpl implements MemoireRechercheDAO {
         }
 
         return sql;
+    }
+
+    /**
+     * Transforme la saisie libre en requête FTS5 sûre : chaque mot (lettres et chiffres)
+     * devient un terme entre guillemets avec recherche par préfixe, tous les mots sont exigés.
+     * « sécu réseau » -> "sécu"* "réseau"*. Les opérateurs FTS (OR, NEAR, *, :) saisis par
+     * l'utilisateur sont neutralisés. Retourne null s'il n'y a aucun mot.
+     */
+    static String requeteFts(String saisie) {
+        if (saisie == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        int n = 0;
+        for (String mot : saisie.split("[^\\p{L}\\p{N}]+")) {
+            if (mot.isEmpty() || n >= 10) {
+                continue;
+            }
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append('"').append(mot.length() > 50 ? mot.substring(0, 50) : mot).append("\"*");
+            n++;
+        }
+        return n == 0 ? null : sb.toString();
     }
 
     private int ajouterParametres(

@@ -105,6 +105,16 @@
                           maxWidth="Infinity"
                           GridPane.columnIndex="3"
                           GridPane.rowIndex="3"/>
+
+                <Label text="Encadreur :"
+                       GridPane.columnIndex="0"
+                       GridPane.rowIndex="4"/>
+
+                <ComboBox fx:id="comboEncadreur"
+                          maxWidth="Infinity"
+                          promptText="Tous les encadreurs"
+                          GridPane.columnIndex="1"
+                          GridPane.rowIndex="4"/>
             </GridPane>
 
             <HBox spacing="10">
@@ -114,6 +124,9 @@
 
                 <Button text="Réinitialiser"
                         onAction="#reinitialiser"/>
+
+                <Button text="Exporter en CSV"
+                        onAction="#exporterCsv"/>
             </HBox>
 
         </VBox>

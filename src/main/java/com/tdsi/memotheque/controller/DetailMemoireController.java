@@ -181,6 +181,46 @@ public class DetailMemoireController {
         }
     }
     
+    /** Références APA et BibTeX, copiables dans le presse-papiers. */
+    @FXML
+    private void citer() {
+        if (memoire == null) {
+            return;
+        }
+        String apa = com.tdsi.memotheque.util.CitationUtil.apa(memoire);
+        String bibtex = com.tdsi.memotheque.util.CitationUtil.bibtex(memoire);
+
+        TextArea zoneApa = new TextArea(apa);
+        zoneApa.setEditable(false);
+        zoneApa.setWrapText(true);
+        zoneApa.setPrefRowCount(3);
+        TextArea zoneBib = new TextArea(bibtex);
+        zoneBib.setEditable(false);
+        zoneBib.setPrefRowCount(10);
+        zoneBib.setStyle("-fx-font-family: monospace;");
+
+        javafx.scene.control.Button copierApa = new javafx.scene.control.Button("Copier APA");
+        copierApa.setOnAction(e -> copier(apa));
+        javafx.scene.control.Button copierBib = new javafx.scene.control.Button("Copier BibTeX");
+        copierBib.setOnAction(e -> copier(bibtex));
+
+        javafx.scene.layout.VBox contenu = new javafx.scene.layout.VBox(8,
+                new Label("APA 7"), zoneApa, copierApa, new Label("BibTeX"), zoneBib, copierBib);
+        contenu.setPrefWidth(620);
+
+        javafx.scene.control.Alert a = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+        a.setTitle("Citer ce mémoire");
+        a.setHeaderText(memoire.getTitre());
+        a.getDialogPane().setContent(contenu);
+        a.showAndWait();
+    }
+
+    private void copier(String texte) {
+        javafx.scene.input.ClipboardContent c = new javafx.scene.input.ClipboardContent();
+        c.putString(texte);
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(c);
+    }
+
     @FXML
     private void retourRecherche() {
         com.tdsi.memotheque.util.SceneNavigator.charger("recherche");
