@@ -126,15 +126,11 @@ public class CompteService {
         String sel = PasswordUtil.genererSel();
         utilisateurDAO.reinitialiserMotDePasse(idCompte, PasswordUtil.hasher(temporaire, sel), sel);
 
-        apresReinitialisation(cible);
+        // L'ancienne clé privée de signature (chiffrée par l'ancien mot de passe) devient inutilisable.
+        new SignatureService().revoquer(idCompte);
         journalService.log(admin.getId(), "REINITIALISATION_MOT_DE_PASSE",
                 "Compte #" + idCompte + " " + cible.getEmail());
         return temporaire;
-    }
-
-    /** Point d'extension appelé après une réinitialisation (révocation des clés de signature). */
-    protected void apresReinitialisation(Utilisateur cible) throws SQLException {
-        // Rien par défaut.
     }
 
     /** L'utilisateur connecté change SON mot de passe (l'ancien est exigé). */
@@ -160,6 +156,8 @@ public class CompteService {
         String sel = PasswordUtil.genererSel();
         String hash = PasswordUtil.hasher(nouveau, sel);
         utilisateurDAO.changerMotDePasse(u.getId(), hash, sel);
+        // La clé privée de signature suit le mot de passe (re-chiffrement).
+        new SignatureService().rechiffrer(u.getId(), ancien, nouveau);
 
         session.setSel(sel);
         session.setMotDePasseHash(hash);

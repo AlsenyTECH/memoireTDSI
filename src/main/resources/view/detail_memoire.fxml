@@ -29,6 +29,8 @@
                    wrapText="true"
                    style="-fx-font-size: 19px; -fx-font-weight: bold;"/>
 
+            <Label fx:id="labelSignature" wrapText="true" maxWidth="Infinity"/>
+
             <Label text="Informations générales"
                    style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
 

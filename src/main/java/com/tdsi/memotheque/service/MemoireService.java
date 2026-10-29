@@ -180,6 +180,8 @@ public class MemoireService {
         existant.setMotifRefus(null);
         existant.setValidateur(null);
         existant.setDatePublication(null);
+        existant.setSignature(null);
+        existant.setIdCleSignature(null);
 
         boolean fichierRemplace = nouveauPdf != null;
 

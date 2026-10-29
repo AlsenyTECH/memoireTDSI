@@ -103,7 +103,7 @@ class ValidationTest {
 
         SessionManager.ouvrir(encadreur);
         assertEquals(1, service.listerEnAttente().size());
-        service.valider(memoire.getId());
+        service.valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE);
 
         assertEquals(StatutMemoire.VALIDE, memoireDAO.findById(memoire.getId()).getStatut());
         assertEquals(1, recherche.compterPublic(new MemoireCritere()));
@@ -114,7 +114,7 @@ class ValidationTest {
     void unEtudiantNePeutPasValiderNiRefuser() throws Exception {
         SessionManager.ouvrir(etudiant);
 
-        assertThrows(SecurityException.class, () -> service.valider(memoire.getId()));
+        assertThrows(SecurityException.class, () -> service.valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE));
         assertThrows(SecurityException.class,
                 () -> service.refuser(memoire.getId(), "Motif quelconque"));
         assertThrows(SecurityException.class, () -> service.listerEnAttente());
@@ -123,7 +123,7 @@ class ValidationTest {
 
     @Test
     void sansConnexionAucuneValidation() {
-        assertThrows(SecurityException.class, () -> service.valider(memoire.getId()));
+        assertThrows(SecurityException.class, () -> service.valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE));
     }
 
     @Test
@@ -131,7 +131,7 @@ class ValidationTest {
         SessionManager.ouvrir(autreEncadreur);
 
         assertTrue(service.listerEnAttente().isEmpty());
-        assertThrows(SecurityException.class, () -> service.valider(memoire.getId()));
+        assertThrows(SecurityException.class, () -> service.valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE));
         assertEquals(StatutMemoire.EN_ATTENTE, memoireDAO.findById(memoire.getId()).getStatut());
     }
 
@@ -139,7 +139,7 @@ class ValidationTest {
     void ladminPeutToutValider() throws Exception {
         SessionManager.ouvrir(admin);
         assertEquals(1, service.listerEnAttente().size());
-        service.valider(memoire.getId());
+        service.valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE);
         assertEquals(admin.getId(), memoireDAO.findById(memoire.getId()).getValidateur().getId());
     }
 
@@ -166,7 +166,7 @@ class ValidationTest {
         assertEquals(1, Journal.compter("REFUS"));
 
         // Un mémoire déjà traité ne peut plus être validé.
-        assertThrows(IllegalStateException.class, () -> service.valider(memoire.getId()));
+        assertThrows(IllegalStateException.class, () -> service.valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE));
     }
 
     @Test
@@ -175,7 +175,7 @@ class ValidationTest {
                 StandardOpenOption.APPEND);
 
         SessionManager.ouvrir(encadreur);
-        assertThrows(SecurityException.class, () -> service.valider(memoire.getId()));
+        assertThrows(SecurityException.class, () -> service.valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE));
         assertThrows(SecurityException.class, () -> service.preparerLecture(memoire.getId()));
         assertEquals(StatutMemoire.EN_ATTENTE, memoireDAO.findById(memoire.getId()).getStatut());
     }

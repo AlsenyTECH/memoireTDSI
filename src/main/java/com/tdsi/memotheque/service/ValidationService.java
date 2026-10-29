@@ -3,6 +3,7 @@ package com.tdsi.memotheque.service;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,18 +33,21 @@ public class ValidationService {
     private final MemoireDAO memoireDAO;
     private final JournalService journalService;
     private final FichierService fichierService;
+    private final SignatureService signatureService;
 
     public ValidationService() {
-        this(new ValidationDAOImpl(), new MemoireDAOImpl(), new JournalService(), new FichierService());
+        this(new ValidationDAOImpl(), new MemoireDAOImpl(), new JournalService(), new FichierService(),
+                new SignatureService());
     }
 
     // Constructeur utile pour les tests.
     public ValidationService(ValidationDAO validationDAO, MemoireDAO memoireDAO,
-            JournalService journalService, FichierService fichierService) {
+            JournalService journalService, FichierService fichierService, SignatureService signatureService) {
         this.validationDAO = Objects.requireNonNull(validationDAO);
         this.memoireDAO = Objects.requireNonNull(memoireDAO);
         this.journalService = Objects.requireNonNull(journalService);
         this.fichierService = Objects.requireNonNull(fichierService);
+        this.signatureService = Objects.requireNonNull(signatureService);
     }
 
     /** Encadreur : ses mémoires en attente. Admin : tous les mémoires en attente. */
@@ -52,16 +56,34 @@ public class ValidationService {
         return validationDAO.findEnAttente(u.getRole() == Role.ADMIN ? null : u.getId());
     }
 
-    public void valider(int idMemoire) throws SQLException, IOException {
+    /**
+     * Valide, publie et SIGNE (Ed25519) un mémoire. Le mot de passe du validateur est exigé :
+     * il re-confirme son identité et déchiffre sa clé privée de signature.
+     */
+    public void valider(int idMemoire, String motDePasse) throws SQLException, IOException {
         Utilisateur u = exigerValidateur();
+        if (motDePasse == null || motDePasse.isEmpty()) {
+            throw new IllegalArgumentException("Confirmez votre mot de passe pour signer la validation.");
+        }
         Memoire m = chargerTraitable(idMemoire, u);
 
-        // On ne publie pas un fichier dont l'intégrité n'est pas vérifiée.
-        verifierIntegrite(m);
+        // On ne publie pas un fichier dont l'intégrité n'est pas vérifiée (tag GCM + SHA-256).
+        fichierService.lireContenuVerifie(m);
 
-        validationDAO.valider(idMemoire, u.getId());
+        LocalDate datePublication = LocalDate.now();
+        SignatureService.SignatureCalculee signature;
+        try {
+            signature = signatureService.signer(u, motDePasse, m, datePublication);
+        } catch (SecurityException e) {
+            journalService.log(u.getId(), "ECHEC_SIGNATURE", "Mémoire #" + idMemoire + " : mot de passe incorrect");
+            throw e;
+        }
+
+        validationDAO.validerEtSigner(idMemoire, u.getId(), datePublication,
+                signature.signature(), signature.idCle());
         journalService.log(u.getId(), "VALIDATION",
-                "Mémoire #" + idMemoire + " « " + m.getTitre() + " »");
+                "Mémoire #" + idMemoire + " « " + m.getTitre() + " » signé (clé Ed25519 "
+                        + signature.empreinteCle() + ")");
     }
 
     public void refuser(int idMemoire, String motif) throws SQLException {

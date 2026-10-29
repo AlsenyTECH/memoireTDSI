@@ -134,7 +134,7 @@ class SecuriteTest {
         Utilisateur connecte = auth.connecter("etu@test.sn", BaseDeTest.MOT_DE_PASSE);
         assertEquals(Role.ETUDIANT, connecte.getRole());
 
-        assertThrows(SecurityException.class, () -> new ValidationService().valider(memoire.getId()));
+        assertThrows(SecurityException.class, () -> new ValidationService().valider(memoire.getId(), BaseDeTest.MOT_DE_PASSE));
         assertThrows(SecurityException.class, () -> new CompteService().listerComptes());
         assertThrows(SecurityException.class, () -> new CompteService().activer(etudiant.getId()));
         assertEquals(StatutMemoire.EN_ATTENTE, new MemoireDAOImpl().findById(memoire.getId()).getStatut());

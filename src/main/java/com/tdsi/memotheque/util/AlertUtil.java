@@ -29,6 +29,20 @@ public final class AlertUtil {
         return a.showAndWait().filter(b -> b == ButtonType.OK).isPresent();
     }
 
+    /** Demande un mot de passe (champ masqué). Vide si l'utilisateur annule. */
+    public static java.util.Optional<String> demanderMotDePasse(String titre, String message) {
+        javafx.scene.control.Dialog<String> d = new javafx.scene.control.Dialog<>();
+        d.setTitle(titre);
+        d.setHeaderText(message);
+        javafx.scene.control.PasswordField champ = new javafx.scene.control.PasswordField();
+        champ.setPromptText("Mot de passe");
+        d.getDialogPane().setContent(champ);
+        d.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        d.setResultConverter(b -> b == ButtonType.OK ? champ.getText() : null);
+        javafx.application.Platform.runLater(champ::requestFocus);
+        return d.showAndWait().filter(s -> !s.isEmpty());
+    }
+
     /** Petit tableau en lecture seule dans une boîte de dialogue (historique, détails...). */
     public static void afficherTableau(String titre, String[] colonnes, java.util.List<String[]> lignes) {
         javafx.scene.control.TableView<String[]> table = new javafx.scene.control.TableView<>();

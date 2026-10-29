@@ -114,14 +114,19 @@ public class ValidationController {
     @FXML
     private void valider() {
         Memoire m = tableMemoires.getSelectionModel().getSelectedItem();
-        if (m == null || !AlertUtil.confirmer("Validation",
-                "Valider et publier le mémoire « " + m.getTitre() + " » ?")) {
+        if (m == null) {
+            return;
+        }
+        java.util.Optional<String> motDePasse = AlertUtil.demanderMotDePasse("Valider et signer",
+                "Valider, publier et signer numériquement « " + m.getTitre() + " ».\n"
+                + "Confirmez votre mot de passe (il déverrouille votre clé de signature Ed25519).");
+        if (motDePasse.isEmpty()) {
             return;
         }
         try {
-            validationService.valider(m.getId());
+            validationService.valider(m.getId(), motDePasse.get());
             charger();
-            labelMessage.setText("Mémoire validé et publié.");
+            labelMessage.setText("Mémoire validé, publié et signé numériquement.");
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             labelMessage.setText(e.getMessage());
         } catch (SQLException | IOException e) {

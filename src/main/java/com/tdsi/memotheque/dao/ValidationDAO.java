@@ -9,5 +9,8 @@ import com.tdsi.memotheque.model.Memoire;
 public interface ValidationDAO {
     List<Memoire> findEnAttente(Integer idEncadreur) throws SQLException;   // null = tous (admin)
     void valider(int idMemoire, int idValidateur) throws SQLException;
+    /** Validation et signature en une seule mise à jour (atomique). */
+    void validerEtSigner(int idMemoire, int idValidateur, java.time.LocalDate datePublication,
+            String signature, int idCle) throws SQLException;
     void refuser(int idMemoire, int idValidateur, String motif) throws SQLException;
 }

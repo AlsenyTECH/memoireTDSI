@@ -38,6 +38,7 @@ public class DetailMemoireController {
     @FXML private Label labelVues;
     @FXML private Label labelTelechargements;
     @FXML private Label labelMessage;
+    @FXML private Label labelSignature;
 
     private Memoire memoire;
     
@@ -79,6 +80,30 @@ public class DetailMemoireController {
                 "Téléchargements : " + memoire.getNbTelechargements());
 
         afficherMessage("");
+        afficherSignature(memoire);
+    }
+
+    /** Vérifie la signature Ed25519 en relisant le mémoire en base. */
+    private void afficherSignature(Memoire memoire) {
+        try {
+            com.tdsi.memotheque.service.SignatureService.Verification v =
+                    new com.tdsi.memotheque.service.SignatureService().verifier(memoire.getId());
+            String style = switch (v.etat()) {
+                case VALIDE -> "bandeau-succes";
+                case INVALIDE -> "bandeau-danger";
+                case ABSENTE -> "bandeau-alerte";
+            };
+            String icone = switch (v.etat()) {
+                case VALIDE -> "✔ ";
+                case INVALIDE -> "✖ ";
+                case ABSENTE -> "ⓘ ";
+            };
+            labelSignature.setText(icone + v.message());
+            labelSignature.getStyleClass().setAll("label", style);
+        } catch (SQLException | IllegalArgumentException | IllegalStateException e) {
+            labelSignature.setText("Vérification de la signature impossible : " + e.getMessage());
+            labelSignature.getStyleClass().setAll("label", "bandeau-alerte");
+        }
     }
 
     private String valeurOuTiret(String valeur) {

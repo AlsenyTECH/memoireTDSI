@@ -47,8 +47,8 @@ public class MemoireDAOImpl implements MemoireDAO {
                 (titre, resume, mots_cles, annee_academique, niveau, id_domaine, id_auteur,
                  co_auteur, id_encadreur, date_soutenance, mention, date_depot, date_publication,
                  chemin_fichier, nom_original, taille_octets, empreinte_sha256, statut,
-                 motif_refus, id_validateur, nb_vues, nb_telechargements)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 motif_refus, id_validateur, signature, id_cle_signature, nb_vues, nb_telechargements)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection c = DatabaseConnection.getConnection();
@@ -78,7 +78,8 @@ public class MemoireDAOImpl implements MemoireDAO {
                     id_domaine = ?, id_auteur = ?, co_auteur = ?, id_encadreur = ?,
                     date_soutenance = ?, mention = ?, date_depot = ?, date_publication = ?,
                     chemin_fichier = ?, nom_original = ?, taille_octets = ?, empreinte_sha256 = ?,
-                    statut = ?, motif_refus = ?, id_validateur = ?
+                    statut = ?, motif_refus = ?, id_validateur = ?,
+                    signature = ?, id_cle_signature = ?
                 WHERE id = ?
                 """;
 
@@ -201,7 +202,7 @@ public class MemoireDAOImpl implements MemoireDAO {
         return memoires;
     }
 
-    /** Remplit les 20 premières colonnes communes à INSERT et UPDATE. Retourne l'index suivant. */
+    /** Remplit les 22 premières colonnes communes à INSERT et UPDATE. Retourne l'index suivant. */
     private int remplirChamps(PreparedStatement ps, Memoire m) throws SQLException {
         int i = 1;
         ps.setString(i++, m.getTitre());
@@ -224,6 +225,12 @@ public class MemoireDAOImpl implements MemoireDAO {
         ps.setString(i++, (m.getStatut() == null ? StatutMemoire.EN_ATTENTE : m.getStatut()).name());
         ps.setString(i++, m.getMotifRefus());
         setIdOuNull(ps, i++, m.getValidateur());
+        ps.setString(i++, m.getSignature());
+        if (m.getIdCleSignature() == null) {
+            ps.setNull(i++, Types.INTEGER);
+        } else {
+            ps.setInt(i++, m.getIdCleSignature());
+        }
         return i;
     }
 
@@ -262,6 +269,9 @@ public class MemoireDAOImpl implements MemoireDAO {
         m.setMotifRefus(rs.getString("motif_refus"));
         m.setNbVues(rs.getInt("nb_vues"));
         m.setNbTelechargements(rs.getInt("nb_telechargements"));
+        m.setSignature(rs.getString("signature"));
+        int idCle = rs.getInt("id_cle_signature");
+        m.setIdCleSignature(rs.wasNull() ? null : idCle);
 
         int idDomaine = rs.getInt("id_domaine");
         if (!rs.wasNull()) {

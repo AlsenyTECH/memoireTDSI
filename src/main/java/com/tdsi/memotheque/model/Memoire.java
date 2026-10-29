@@ -29,6 +29,8 @@ public class Memoire {
     private Utilisateur validateur;
     private int nbVues;
     private int nbTelechargements;
+    private String signature;              // Ed25519 du validateur (Base64), null si non signé
+    private Integer idCleSignature;
 
     public Memoire() { }
 
@@ -78,6 +80,10 @@ public class Memoire {
     public void setNbVues(int nbVues) { this.nbVues = nbVues; }
     public int getNbTelechargements() { return nbTelechargements; }
     public void setNbTelechargements(int nbTelechargements) { this.nbTelechargements = nbTelechargements; }
+    public String getSignature() { return signature; }
+    public void setSignature(String signature) { this.signature = signature; }
+    public Integer getIdCleSignature() { return idCleSignature; }
+    public void setIdCleSignature(Integer idCleSignature) { this.idCleSignature = idCleSignature; }
 
     // ---- Aides pour les TableView (PropertyValueFactory) : null-safe ----
 
