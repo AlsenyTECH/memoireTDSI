@@ -127,3 +127,14 @@
     -fx-padding: 10;
     -fx-text-fill: #7f1d1d;
 }
+
+/* Bouton de menu signalant des notifications non lues */
+.menu-alerte {
+    -fx-background-color: #f59e0b;
+    -fx-text-fill: #1f2937;
+    -fx-font-weight: bold;
+}
+
+.notification-non-lue {
+    -fx-font-weight: bold;
+}

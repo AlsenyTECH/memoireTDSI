@@ -34,6 +34,7 @@ public class ValidationService {
     private final JournalService journalService;
     private final FichierService fichierService;
     private final SignatureService signatureService;
+    private final NotificationService notifications = new NotificationService();
 
     public ValidationService() {
         this(new ValidationDAOImpl(), new MemoireDAOImpl(), new JournalService(), new FichierService(),
@@ -84,6 +85,8 @@ public class ValidationService {
         journalService.log(u.getId(), "VALIDATION",
                 "Mémoire #" + idMemoire + " « " + m.getTitre() + " » signé (clé Ed25519 "
                         + signature.empreinteCle() + ")");
+        notifications.notifier(m.getAuteur().getId(), "Félicitations ! Votre mémoire « " + m.getTitre()
+                + " » a été validé par " + u.getNomComplet() + " et publié.");
     }
 
     public void refuser(int idMemoire, String motif) throws SQLException {
@@ -100,6 +103,8 @@ public class ValidationService {
         validationDAO.refuser(idMemoire, u.getId(), motifNettoye);
         journalService.log(u.getId(), "REFUS",
                 "Mémoire #" + idMemoire + " « " + m.getTitre() + " » : " + motifNettoye);
+        notifications.notifier(m.getAuteur().getId(), "Votre mémoire « " + m.getTitre()
+                + " » a été refusé. Motif : " + motifNettoye + " — corrigez-le depuis « Mes mémoires ».");
     }
 
     /** Retourne le PDF à lire avant décision, après contrôle des droits et de l'intégrité. */

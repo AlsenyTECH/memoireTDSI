@@ -46,6 +46,7 @@ public class CompteService {
 
         utilisateurDAO.changerActivation(idCompte, true);
         journalService.log(admin.getId(), "ACTIVATION_COMPTE", "Compte #" + idCompte + " " + cible.getEmail());
+        new NotificationService().notifier(idCompte, "Bienvenue sur MémoTDSI ! Votre compte a été activé.");
     }
 
     public void desactiver(int idCompte) throws SQLException {
@@ -130,6 +131,8 @@ public class CompteService {
         new SignatureService().revoquer(idCompte);
         journalService.log(admin.getId(), "REINITIALISATION_MOT_DE_PASSE",
                 "Compte #" + idCompte + " " + cible.getEmail());
+        new NotificationService().notifier(idCompte, "Votre mot de passe a été réinitialisé par l'administrateur "
+                + admin.getNomComplet() + ". Si vous n'êtes pas à l'origine de la demande, signalez-le.");
         return temporaire;
     }
 

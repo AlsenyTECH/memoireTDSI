@@ -28,7 +28,9 @@
       <Button fx:id="btnComptes" text="Comptes" maxWidth="Infinity" onAction="#allerComptes"/>
       <Button fx:id="btnDomaines" text="Domaines" maxWidth="Infinity" onAction="#allerDomaines"/>
       <Button fx:id="btnJournal" text="Journal d'activité" maxWidth="Infinity" onAction="#allerJournal"/>
+      <Button fx:id="btnSauvegarde" text="Sauvegarde" maxWidth="Infinity" onAction="#allerSauvegarde"/>
       <Region VBox.vgrow="ALWAYS"/>
+      <Button fx:id="btnNotifications" text="Notifications" maxWidth="Infinity" onAction="#allerNotifications"/>
       <Button fx:id="btnProfil" text="Mon profil" maxWidth="Infinity" onAction="#allerProfil"/>
       <Button text="Déconnexion" maxWidth="Infinity" onAction="#deconnexion"/>
     </VBox>

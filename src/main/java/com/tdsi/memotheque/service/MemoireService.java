@@ -51,6 +51,7 @@ public class MemoireService {
     private final FichierService fichierService;
     private final JournalService journalService;
     private final MemoireVersionDAO versionDAO;
+    private final NotificationService notifications = new NotificationService();
 
     private static final Logger LOG = Logger.getLogger(MemoireService.class.getName());
 
@@ -136,6 +137,8 @@ public class MemoireService {
         journalService.log(etudiant.getId(), "DEPOT",
                 "Mémoire #" + m.getId() + " « " + m.getTitre() + " » (SHA-256 "
                         + m.getEmpreinteSha256() + ")");
+        notifications.notifier(m.getEncadreur().getId(), "Nouveau mémoire à valider : « " + m.getTitre()
+                + " » (" + etudiant.getNomComplet() + ", " + m.getNiveau() + " " + m.getAnneeAcademique() + ").");
         return m;
     }
 
@@ -212,6 +215,8 @@ public class MemoireService {
 
         journalService.log(etudiant.getId(), "MODIFICATION_MEMOIRE",
                 "Mémoire #" + existant.getId() + (fichierRemplace ? " (nouveau PDF)" : ""));
+        notifications.notifier(existant.getEncadreur().getId(), "Mémoire corrigé, à valider de nouveau : « "
+                + existant.getTitre() + " » (" + etudiant.getNomComplet() + ").");
     }
 
     // ---------------------------------------------------------------- suppression

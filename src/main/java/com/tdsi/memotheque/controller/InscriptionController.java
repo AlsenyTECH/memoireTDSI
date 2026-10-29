@@ -50,6 +50,10 @@ public class InscriptionController {
 
             journalService.log(null, "INSCRIPTION",
                     "Compte étudiant créé (inactif) : " + champEmail.getText().trim().toLowerCase());
+            new com.tdsi.memotheque.service.NotificationService().notifierAdmins(
+                    "Nouvelle inscription à activer : " + champPrenom.getText().trim() + " "
+                    + champNom.getText().trim() + " <" + champEmail.getText().trim().toLowerCase() + ">, "
+                    + comboNiveau.getValue() + ".");
 
             AlertUtil.info("Inscription",
                     "Votre compte a été créé. Il sera utilisable après activation par l'administrateur.");
