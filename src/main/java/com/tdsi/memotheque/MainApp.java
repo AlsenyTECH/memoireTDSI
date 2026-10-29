@@ -14,6 +14,12 @@ public class MainApp extends Application {
     public void start(Stage stage) {
         try {
             DatabaseConnection.initialiser();
+            try {
+                // [M2] Comptes par défaut (mots de passe lus dans les variables MEMOTDSI_*_PASSWORD).
+                new com.tdsi.memotheque.service.AuthService().initialiserAdminParDefaut();
+            } catch (IllegalStateException e) {
+                AlertUtil.avertissement("Comptes par défaut", e.getMessage());
+            }
             SceneNavigator.init(stage);
             SceneNavigator.afficherLogin();
             stage.show();

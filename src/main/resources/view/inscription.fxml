@@ -1,11 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M2] Inscription d'un tdsien : à développer -->
+<!-- [M2] Inscription d'un tdsien -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.InscriptionController"
-      alignment="CENTER" spacing="10">
-  <Label text="Inscription tdsien (à développer par M2)"/>
+      alignment="CENTER" spacing="9" styleClass="page">
+  <padding>
+    <Insets top="20" right="50" bottom="20" left="50"/>
+  </padding>
+  <Label text="Inscription tdsien" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+  <Label text="Le compte sera actif après validation par l'administrateur." wrapText="true"/>
+  <TextField fx:id="champMatricule" promptText="Matricule (4 à 20 caractères)"/>
+  <TextField fx:id="champPrenom" promptText="Prénom"/>
+  <TextField fx:id="champNom" promptText="Nom"/>
+  <TextField fx:id="champEmail" promptText="Adresse e-mail"/>
+  <ComboBox fx:id="comboNiveau" promptText="Niveau" maxWidth="Infinity"/>
+  <PasswordField fx:id="champMotDePasse" promptText="Mot de passe (8 caractères minimum)"/>
+  <PasswordField fx:id="champConfirmation" promptText="Confirmer le mot de passe"/>
+  <Button text="S'inscrire" maxWidth="Infinity" defaultButton="true" onAction="#inscrire"
+          styleClass="bouton-principal"/>
+  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
+  <Hyperlink text="Déjà inscrit ? Se connecter" onAction="#retourConnexion"/>
 </VBox>

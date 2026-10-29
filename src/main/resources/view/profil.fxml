@@ -1,11 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M2] Profil et changement de mot de passe : à développer -->
+<!-- [M2] Profil et changement de mot de passe -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.ProfilController"
-      alignment="CENTER" spacing="10">
-  <Label text="Mon profil (à développer par M2)"/>
+      spacing="14" styleClass="page" maxWidth="640">
+  <padding>
+    <Insets top="22" right="30" bottom="22" left="30"/>
+  </padding>
+
+  <Label text="Mon profil" styleClass="titre-page"/>
+
+  <GridPane hgap="12" vgap="8" styleClass="carte">
+    <columnConstraints>
+      <ColumnConstraints minWidth="140"/>
+      <ColumnConstraints hgrow="ALWAYS"/>
+    </columnConstraints>
+    <Label text="Nom :" GridPane.rowIndex="0"/>
+    <Label fx:id="labelNom" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+    <Label text="E-mail :" GridPane.rowIndex="1"/>
+    <Label fx:id="labelEmail" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+    <Label text="Matricule :" GridPane.rowIndex="2"/>
+    <Label fx:id="labelMatricule" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    <Label text="Rôle :" GridPane.rowIndex="3"/>
+    <Label fx:id="labelRole" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    <Label text="Niveau :" GridPane.rowIndex="4"/>
+    <Label fx:id="labelNiveau" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+    <Label text="Compte créé le :" GridPane.rowIndex="5"/>
+    <Label fx:id="labelDateCreation" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+  </GridPane>
+
+  <Label text="Changer mon mot de passe" styleClass="sous-titre"/>
+  <PasswordField fx:id="champAncien" promptText="Mot de passe actuel"/>
+  <PasswordField fx:id="champNouveau" promptText="Nouveau mot de passe (8 caractères minimum)"/>
+  <PasswordField fx:id="champConfirmation" promptText="Confirmer le nouveau mot de passe"/>
+  <Button text="Changer le mot de passe" onAction="#changerMotDePasse" styleClass="bouton-principal"/>
+
+  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
 </VBox>
