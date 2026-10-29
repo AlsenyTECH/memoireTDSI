@@ -20,6 +20,13 @@ public class MainApp extends Application {
             } catch (IllegalStateException e) {
                 AlertUtil.avertissement("Comptes par défaut", e.getMessage());
             }
+            try {
+                // PDF déposés avant l'activation du chiffrement : chiffrés une fois pour toutes.
+                new com.tdsi.memotheque.service.MemoireService().chiffrerAnciensFichiers();
+            } catch (Exception e) {
+                java.util.logging.Logger.getLogger(MainApp.class.getName())
+                        .log(java.util.logging.Level.WARNING, "Chiffrement des anciens PDF interrompu", e);
+            }
             SceneNavigator.init(stage);
             SceneNavigator.afficherLogin();
             stage.show();

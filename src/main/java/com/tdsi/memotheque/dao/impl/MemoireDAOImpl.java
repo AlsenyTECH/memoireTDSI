@@ -158,6 +158,29 @@ public class MemoireDAOImpl implements MemoireDAO {
         }
     }
 
+    @Override
+    public boolean existeEmpreinte(String sha256, int idExclu) throws SQLException {
+        String sql = """
+                SELECT 1 FROM memoire WHERE empreinte_sha256 = ? AND id <> ?
+                UNION ALL
+                SELECT 1 FROM memoire_version WHERE empreinte_sha256 = ? AND id_memoire <> ?
+                LIMIT 1
+                """;
+
+        try (Connection c = DatabaseConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, sha256);
+            ps.setInt(2, idExclu);
+            ps.setString(3, sha256);
+            ps.setInt(4, idExclu);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     private List<Memoire> lister(String sql, Integer parametre) throws SQLException {
         List<Memoire> memoires = new ArrayList<>();
 

@@ -33,6 +33,7 @@ public class MesMemoiresController {
     @FXML private Button boutonModifier;
     @FXML private Button boutonSupprimer;
     @FXML private Button boutonDetail;
+    @FXML private Button boutonHistorique;
     @FXML private Label labelMessage;
 
     private final MemoireService memoireService = new MemoireService();
@@ -84,6 +85,7 @@ public class MesMemoiresController {
         boutonModifier.setDisable(!modifiable);
         boutonSupprimer.setDisable(!modifiable);
         boutonDetail.setDisable(m == null);
+        boutonHistorique.setDisable(m == null);
     }
 
     @FXML
@@ -122,6 +124,29 @@ public class MesMemoiresController {
         Memoire m = tableMemoires.getSelectionModel().getSelectedItem();
         if (m != null) {
             SceneNavigator.afficherDetailMemoire(m);
+        }
+    }
+
+    @FXML
+    private void voirHistorique() {
+        Memoire m = tableMemoires.getSelectionModel().getSelectedItem();
+        if (m == null) {
+            return;
+        }
+        try {
+            java.util.List<com.tdsi.memotheque.model.MemoireVersion> versions = memoireService.historique(m.getId());
+            if (versions.isEmpty()) {
+                AlertUtil.info("Historique", "Aucune version précédente : le PDF n'a jamais été remplacé.");
+                return;
+            }
+            AlertUtil.afficherTableau("Historique des versions — " + m.getTitre(),
+                    new String[] {"Remplacé le", "Fichier", "Taille", "Statut alors", "Motif du refus", "SHA-256"},
+                    versions.stream().map(v -> new String[] {
+                            v.getDateArchivage().toLocalDate().toString(), v.getNomOriginal(), v.getTailleLisible(),
+                            v.getStatut().getLibelle(), v.getMotifRefus() == null ? "-" : v.getMotifRefus(),
+                            v.getEmpreinteSha256().substring(0, 16) + "…"}).toList());
+        } catch (SQLException | SecurityException | IllegalArgumentException e) {
+            labelMessage.setText("Historique indisponible : " + e.getMessage());
         }
     }
 

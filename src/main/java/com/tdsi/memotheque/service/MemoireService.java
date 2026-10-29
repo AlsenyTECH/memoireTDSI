@@ -10,6 +10,11 @@ import java.util.Objects;
 
 import com.tdsi.memotheque.dao.DomaineDAO;
 import com.tdsi.memotheque.dao.MemoireDAO;
+import com.tdsi.memotheque.dao.MemoireVersionDAO;
+import com.tdsi.memotheque.dao.impl.MemoireVersionDAOImpl;
+import com.tdsi.memotheque.model.MemoireVersion;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.tdsi.memotheque.dao.UtilisateurDAO;
 import com.tdsi.memotheque.dao.impl.DomaineDAOImpl;
 import com.tdsi.memotheque.dao.impl.MemoireDAOImpl;
@@ -45,6 +50,9 @@ public class MemoireService {
     private final UtilisateurDAO utilisateurDAO;
     private final FichierService fichierService;
     private final JournalService journalService;
+    private final MemoireVersionDAO versionDAO;
+
+    private static final Logger LOG = Logger.getLogger(MemoireService.class.getName());
 
     public MemoireService() {
         this(new MemoireDAOImpl(), new DomaineDAOImpl(), new UtilisateurDAOImpl(),
@@ -60,6 +68,7 @@ public class MemoireService {
         this.utilisateurDAO = Objects.requireNonNull(utilisateurDAO);
         this.fichierService = Objects.requireNonNull(fichierService);
         this.journalService = Objects.requireNonNull(journalService);
+        this.versionDAO = new MemoireVersionDAOImpl();
     }
 
     // ---------------------------------------------------------------- listes du formulaire
@@ -113,7 +122,9 @@ public class MemoireService {
         m.setNbVues(0);
         m.setNbTelechargements(0);
 
-        fichierService.stocker(pdf, m);
+        FichierService.FichierPrepare fichier = fichierService.lire(pdf);
+        refuserDoublon(fichier, 0);
+        fichierService.stocker(fichier, m);
 
         try {
             memoireDAO.insert(m);
@@ -140,6 +151,7 @@ public class MemoireService {
         Objects.requireNonNull(saisie, "Mémoire absent.");
 
         Memoire existant = chargerModifiable(saisie.getId(), etudiant);
+        Memoire etatAvant = copieFichier(existant);
 
         normaliser(saisie);
         validerChamps(saisie);
@@ -169,11 +181,12 @@ public class MemoireService {
         existant.setValidateur(null);
         existant.setDatePublication(null);
 
-        String ancienFichier = existant.getCheminFichier();
         boolean fichierRemplace = nouveauPdf != null;
 
         if (fichierRemplace) {
-            fichierService.stocker(nouveauPdf, existant);
+            FichierService.FichierPrepare fichier = fichierService.lire(nouveauPdf);
+            refuserDoublon(fichier, existant.getId());
+            fichierService.stocker(fichier, existant);
             existant.setDateDepot(LocalDate.now());
         }
 
@@ -186,8 +199,13 @@ public class MemoireService {
             throw e;
         }
 
+        // L'ancien PDF n'est pas supprimé : il rejoint l'historique des versions.
         if (fichierRemplace) {
-            fichierService.supprimer(ancienFichier);
+            try {
+                versionDAO.archiver(etatAvant);
+            } catch (SQLException e) {
+                LOG.log(Level.WARNING, "Version non archivée pour le mémoire #" + existant.getId(), e);
+            }
         }
 
         journalService.log(etudiant.getId(), "MODIFICATION_MEMOIRE",
@@ -213,11 +231,83 @@ public class MemoireService {
             throw new IllegalStateException("Un mémoire validé ne peut plus être supprimé.");
         }
 
-        memoireDAO.delete(idMemoire);
+        List<MemoireVersion> versions = versionDAO.findByMemoire(idMemoire);
+        memoireDAO.delete(idMemoire);   // les lignes de memoire_version suivent (ON DELETE CASCADE)
         fichierService.supprimer(existant.getCheminFichier());
+        for (MemoireVersion v : versions) {
+            fichierService.supprimer(v.getCheminFichier());
+        }
 
         journalService.log(u.getId(), "SUPPRESSION_MEMOIRE",
                 "Mémoire #" + idMemoire + " « " + existant.getTitre() + " »");
+    }
+
+    // ---------------------------------------------------------------- historique
+
+    /** Versions précédentes du PDF : visibles par l'auteur, son encadreur et l'admin. */
+    public List<MemoireVersion> historique(int idMemoire) throws SQLException {
+        Utilisateur u = exigerConnexion();
+        Memoire m = memoireDAO.findById(idMemoire);
+        if (m == null) {
+            throw new IllegalArgumentException("Mémoire introuvable.");
+        }
+        boolean auteur = m.getAuteur() != null && m.getAuteur().getId() == u.getId();
+        boolean encadreur = m.getEncadreur() != null && m.getEncadreur().getId() == u.getId();
+        if (!auteur && !encadreur && u.getRole() != Role.ADMIN) {
+            throw new SecurityException("Historique réservé à l'auteur, à l'encadreur et à l'administrateur.");
+        }
+        return versionDAO.findByMemoire(idMemoire);
+    }
+
+    // ---------------------------------------------------------------- maintenance
+
+    /**
+     * Chiffre les PDF déposés avant l'activation du chiffrement (tâche de démarrage).
+     * Chaque fichier est vérifié (SHA-256) avant d'être chiffré, puis l'original en clair est supprimé.
+     *
+     * @return nombre de fichiers chiffrés
+     */
+    public int chiffrerAnciensFichiers() throws SQLException {
+        int nombre = 0;
+
+        for (Memoire m : memoireDAO.findAll()) {
+            if (!FichierService.estEnClair(m.getCheminFichier())) {
+                continue;
+            }
+            try {
+                String ancien = m.getCheminFichier();
+                byte[] clair = fichierService.lireContenuVerifie(m);
+                fichierService.stocker(new FichierService.FichierPrepare(clair, m.getEmpreinteSha256(),
+                        m.getNomOriginal()), m);
+                memoireDAO.update(m);
+                fichierService.supprimer(ancien);
+                nombre++;
+            } catch (IOException | RuntimeException e) {
+                LOG.log(Level.WARNING, "PDF du mémoire #" + m.getId() + " non chiffré : " + e.getMessage());
+            }
+        }
+
+        for (MemoireVersion v : versionDAO.findAll()) {
+            if (!FichierService.estEnClair(v.getCheminFichier())) {
+                continue;
+            }
+            try {
+                byte[] clair = fichierService.lireContenuVerifie(v.getCheminFichier(), v.getEmpreinteSha256());
+                Memoire temporaire = new Memoire();
+                fichierService.stocker(new FichierService.FichierPrepare(clair, v.getEmpreinteSha256(),
+                        v.getNomOriginal()), temporaire);
+                versionDAO.changerChemin(v.getId(), temporaire.getCheminFichier());
+                fichierService.supprimer(v.getCheminFichier());
+                nombre++;
+            } catch (IOException | RuntimeException e) {
+                LOG.log(Level.WARNING, "Version #" + v.getId() + " non chiffrée : " + e.getMessage());
+            }
+        }
+
+        if (nombre > 0) {
+            journalService.log(null, "CHIFFREMENT_FICHIERS", nombre + " ancien(s) PDF chiffré(s) en AES-256-GCM");
+        }
+        return nombre;
     }
 
     // ---------------------------------------------------------------- règles
@@ -286,6 +376,28 @@ public class MemoireService {
             }
             m.setMotsCles(String.join(", ", mots));
         }
+    }
+
+    /** Un même PDF (même SHA-256) ne peut pas être déposé deux fois (premier niveau anti-plagiat). */
+    private void refuserDoublon(FichierService.FichierPrepare fichier, int idExclu) throws SQLException {
+        if (memoireDAO.existeEmpreinte(fichier.sha256(), idExclu)) {
+            throw new IllegalArgumentException(
+                    "Ce fichier PDF a déjà été déposé sur la plateforme (empreinte SHA-256 identique).");
+        }
+    }
+
+    /** Photographie du fichier actuel avant remplacement (pour l'historique). */
+    private Memoire copieFichier(Memoire m) {
+        Memoire c = new Memoire();
+        c.setId(m.getId());
+        c.setCheminFichier(m.getCheminFichier());
+        c.setNomOriginal(m.getNomOriginal());
+        c.setTailleOctets(m.getTailleOctets());
+        c.setEmpreinteSha256(m.getEmpreinteSha256());
+        c.setDateDepot(m.getDateDepot());
+        c.setStatut(m.getStatut());
+        c.setMotifRefus(m.getMotifRefus());
+        return c;
     }
 
     private String trimOuNull(String s) {

@@ -29,6 +29,27 @@ public final class AlertUtil {
         return a.showAndWait().filter(b -> b == ButtonType.OK).isPresent();
     }
 
+    /** Petit tableau en lecture seule dans une boîte de dialogue (historique, détails...). */
+    public static void afficherTableau(String titre, String[] colonnes, java.util.List<String[]> lignes) {
+        javafx.scene.control.TableView<String[]> table = new javafx.scene.control.TableView<>();
+        for (int i = 0; i < colonnes.length; i++) {
+            final int index = i;
+            javafx.scene.control.TableColumn<String[], String> col = new javafx.scene.control.TableColumn<>(colonnes[i]);
+            col.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue()[index]));
+            col.setPrefWidth(130);
+            table.getColumns().add(col);
+        }
+        table.getItems().setAll(lignes);
+        table.setPrefSize(820, 260);
+
+        Alert a = new Alert(AlertType.INFORMATION);
+        a.setTitle(titre);
+        a.setHeaderText(titre);
+        a.getDialogPane().setContent(table);
+        a.setResizable(true);
+        a.showAndWait();
+    }
+
     private static void afficher(AlertType type, String titre, String message) {
         Alert a = new Alert(type);
         a.setTitle(titre);

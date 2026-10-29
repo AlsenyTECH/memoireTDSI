@@ -36,6 +36,7 @@ final class BaseDeTest {
         DatabaseConnection.utiliserBasePourTests(
                 "jdbc:sqlite:" + dossier.resolve("test.db").toAbsolutePath());
         GestionCles.utiliserPourTests(dossier);
+        FichierService.utiliserDossierParDefaut(dossier.resolve("storage"));
         DatabaseConnection.initialiser();
         SessionManager.fermer();
     }
@@ -45,6 +46,7 @@ final class BaseDeTest {
         SessionManager.fermer();
         DatabaseConnection.utiliserBaseParDefaut();
         GestionCles.utiliserParDefaut();
+        FichierService.utiliserDossierParDefaut(Path.of("storage"));
     }
 
     static Utilisateur creerUtilisateur(String email, String matricule, Role role,
@@ -74,8 +76,9 @@ final class BaseDeTest {
     /** Un petit PDF valide (commence par %PDF). */
     static Path creerPdf(Path dossier, String nom) throws Exception {
         Path pdf = dossier.resolve(nom);
-        Files.writeString(pdf, "%PDF-1.4\n% fichier de test\n1 0 obj << >> endobj\n%%EOF\n",
-                StandardCharsets.US_ASCII);
+        // Contenu unique : deux PDF de test n'ont jamais la même empreinte (refus des doublons).
+        Files.writeString(pdf, "%PDF-1.4\n% fichier de test " + nom + " " + System.nanoTime()
+                + "\n1 0 obj << >> endobj\n%%EOF\n", StandardCharsets.UTF_8);
         return pdf;
     }
 

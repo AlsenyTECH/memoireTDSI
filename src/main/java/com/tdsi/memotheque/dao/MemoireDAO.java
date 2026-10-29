@@ -10,4 +10,6 @@ import com.tdsi.memotheque.model.Niveau;
 public interface MemoireDAO extends GenericDAO<Memoire> {
     List<Memoire> findByAuteur(int idAuteur) throws SQLException;
     boolean existePourAuteurNiveauAnnee(int idAuteur, Niveau n, String annee) throws SQLException;
+    /** Vrai si ce PDF (même SHA-256) existe déjà, dans un mémoire ou un historique, hors du mémoire idExclu. */
+    boolean existeEmpreinte(String sha256, int idExclu) throws SQLException;
 }

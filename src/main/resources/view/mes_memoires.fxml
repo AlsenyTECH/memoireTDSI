@@ -40,6 +40,7 @@
   <HBox spacing="10">
     <Button text="Déposer un mémoire" onAction="#nouveauDepot" styleClass="bouton-principal"/>
     <Button fx:id="boutonDetail" text="Voir le détail" onAction="#voirDetail"/>
+    <Button fx:id="boutonHistorique" text="Historique des versions" onAction="#voirHistorique"/>
     <Button fx:id="boutonModifier" text="Modifier" onAction="#modifier"/>
     <Button fx:id="boutonSupprimer" text="Supprimer" onAction="#supprimer" styleClass="bouton-danger"/>
   </HBox>

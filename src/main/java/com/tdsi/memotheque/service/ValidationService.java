@@ -1,13 +1,9 @@
 package com.tdsi.memotheque.service;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import com.tdsi.memotheque.dao.MemoireDAO;
@@ -18,7 +14,6 @@ import com.tdsi.memotheque.model.Memoire;
 import com.tdsi.memotheque.model.Role;
 import com.tdsi.memotheque.model.StatutMemoire;
 import com.tdsi.memotheque.model.Utilisateur;
-import com.tdsi.memotheque.util.HashUtil;
 import com.tdsi.memotheque.util.SessionManager;
 
 /**
@@ -36,17 +31,19 @@ public class ValidationService {
     private final ValidationDAO validationDAO;
     private final MemoireDAO memoireDAO;
     private final JournalService journalService;
+    private final FichierService fichierService;
 
     public ValidationService() {
-        this(new ValidationDAOImpl(), new MemoireDAOImpl(), new JournalService());
+        this(new ValidationDAOImpl(), new MemoireDAOImpl(), new JournalService(), new FichierService());
     }
 
     // Constructeur utile pour les tests.
     public ValidationService(ValidationDAO validationDAO, MemoireDAO memoireDAO,
-            JournalService journalService) {
+            JournalService journalService, FichierService fichierService) {
         this.validationDAO = Objects.requireNonNull(validationDAO);
         this.memoireDAO = Objects.requireNonNull(memoireDAO);
         this.journalService = Objects.requireNonNull(journalService);
+        this.fichierService = Objects.requireNonNull(fichierService);
     }
 
     /** Encadreur : ses mémoires en attente. Admin : tous les mémoires en attente. */
@@ -106,26 +103,9 @@ public class ValidationService {
         return m;
     }
 
+    /** Déchiffre et contrôle le PDF (tag AES-GCM + SHA-256) vers un fichier temporaire privé. */
     private Path verifierIntegrite(Memoire m) throws IOException {
-        if (m.getCheminFichier() == null || m.getCheminFichier().isBlank()) {
-            throw new IOException("Le chemin du PDF est absent.");
-        }
-
-        Path fichier = Path.of(m.getCheminFichier()).toAbsolutePath().normalize();
-        if (!Files.isRegularFile(fichier) || !Files.isReadable(fichier)) {
-            throw new IOException("Le fichier PDF est absent ou illisible.");
-        }
-
-        String attendu = m.getEmpreinteSha256() == null ? ""
-                : m.getEmpreinteSha256().trim().toLowerCase(Locale.ROOT);
-        String actuel = HashUtil.sha256(fichier);
-
-        if (!MessageDigest.isEqual(attendu.getBytes(StandardCharsets.US_ASCII),
-                actuel.getBytes(StandardCharsets.US_ASCII))) {
-            throw new SecurityException(
-                    "L'intégrité du PDF n'est pas vérifiée : le fichier a été modifié depuis le dépôt.");
-        }
-        return fichier;
+        return fichierService.extraireVersTemporaire(m);
     }
 
     private Utilisateur exigerValidateur() {

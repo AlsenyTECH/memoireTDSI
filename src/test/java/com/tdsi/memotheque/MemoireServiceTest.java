@@ -185,8 +185,78 @@ class MemoireServiceTest {
         assertNull(lu.getMotifRefus());
         assertNull(lu.getValidateur());
         assertNotEquals(ancienFichier, lu.getCheminFichier());
-        assertFalse(Files.exists(Path.of(ancienFichier)), "l'ancien PDF doit être supprimé");
+        assertTrue(Files.exists(Path.of(ancienFichier)), "l'ancien PDF est conservé dans l'historique");
         assertEquals(1, Journal.compter("MODIFICATION_MEMOIRE"));
+
+        java.util.List<com.tdsi.memotheque.model.MemoireVersion> versions = service.historique(m.getId());
+        assertEquals(1, versions.size());
+        assertEquals(ancienFichier, versions.get(0).getCheminFichier());
+        assertEquals(StatutMemoire.REFUSE, versions.get(0).getStatut());
+        assertEquals("Résumé à revoir", versions.get(0).getMotifRefus());
+    }
+
+    @Test
+    void unMemePdfNePeutPasEtreDeposeDeuxFois() throws Exception {
+        SessionManager.ouvrir(etudiant);
+        service.deposer(valide(), pdf);
+
+        Utilisateur autre = BaseDeTest.creerUtilisateur("copieur@test.sn", "ETU-0003",
+                Role.ETUDIANT, Niveau.M2, true);
+        SessionManager.ouvrir(autre);
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> service.deposer(valide(), pdf));
+        assertTrue(e.getMessage().contains("déjà été déposé"));
+    }
+
+    @Test
+    void historiqueReserveAuxPersonnesConcernees() throws Exception {
+        SessionManager.ouvrir(etudiant);
+        Memoire m = service.deposer(valide(), pdf);
+
+        SessionManager.ouvrir(encadreur);
+        assertTrue(service.historique(m.getId()).isEmpty());
+
+        SessionManager.ouvrir(BaseDeTest.creerUtilisateur("x@test.sn", "ETU-0004", Role.ETUDIANT, Niveau.L1, true));
+        assertThrows(SecurityException.class, () -> service.historique(m.getId()));
+    }
+
+    @Test
+    void suppressionEffaceAussiLesVersions() throws Exception {
+        SessionManager.ouvrir(etudiant);
+        Memoire m = service.deposer(valide(), pdf);
+        Path v1 = Path.of(m.getCheminFichier());
+        Memoire saisie = valide();
+        saisie.setId(m.getId());
+        service.modifier(saisie, BaseDeTest.creerPdf(dossier, "v2.pdf"));
+        Path v2 = Path.of(memoireDAO.findById(m.getId()).getCheminFichier());
+
+        service.supprimer(m.getId());
+
+        assertFalse(Files.exists(v1));
+        assertFalse(Files.exists(v2));
+    }
+
+    @Test
+    void anciensPdfEnClairChiffresAuDemarrage() throws Exception {
+        SessionManager.ouvrir(etudiant);
+        Memoire m = service.deposer(valide(), pdf);
+        SessionManager.fermer();
+
+        // Simulation d'un dépôt d'avant le chiffrement : PDF en clair dans storage/.
+        Path clair = storage.resolve("ancien-depot.pdf");
+        Files.copy(pdf, clair);
+        Memoire ancien = memoireDAO.findById(m.getId());
+        Files.delete(Path.of(ancien.getCheminFichier()));
+        ancien.setCheminFichier(clair.toString());
+        memoireDAO.update(ancien);
+
+        assertEquals(1, service.chiffrerAnciensFichiers());
+
+        Memoire lu = memoireDAO.findById(m.getId());
+        assertTrue(lu.getCheminFichier().endsWith(".pdf.enc"));
+        assertFalse(Files.exists(clair), "l'original en clair est supprimé");
+        assertArrayEquals(Files.readAllBytes(pdf), new FichierService(storage).lireContenuVerifie(lu));
+        assertEquals(0, service.chiffrerAnciensFichiers(), "idempotent");
     }
 
     @Test

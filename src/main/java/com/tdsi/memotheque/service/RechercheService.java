@@ -12,11 +12,8 @@ import com.tdsi.memotheque.model.MemoireCritere;
 import com.tdsi.memotheque.model.StatutMemoire;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
 
-import com.tdsi.memotheque.util.HashUtil;
 
 /**
  * M4 : recherche et consultation des mémoires.
@@ -24,6 +21,7 @@ import com.tdsi.memotheque.util.HashUtil;
 public class RechercheService {
 
     private final MemoireRechercheDAO rechercheDAO;
+    private final FichierService fichierService;
 
     public RechercheService() {
         this(new MemoireRechercheDAOImpl());
@@ -31,7 +29,12 @@ public class RechercheService {
 
     // Constructeur utile pour les tests.
     public RechercheService(MemoireRechercheDAO rechercheDAO) {
+        this(rechercheDAO, new FichierService());
+    }
+
+    public RechercheService(MemoireRechercheDAO rechercheDAO, FichierService fichierService) {
         this.rechercheDAO = Objects.requireNonNull(rechercheDAO);
+        this.fichierService = Objects.requireNonNull(fichierService);
     }
 
     /**
@@ -75,8 +78,8 @@ public class RechercheService {
     
     
     /**
-     * Vérifie qu'un mémoire est validé et que son PDF est intègre.
-     * Ne modifie aucun compteur.
+     * Vérifie qu'un mémoire est validé, puis déchiffre son PDF dans un fichier temporaire
+     * privé après contrôle du tag AES-GCM et du SHA-256. Ne modifie aucun compteur.
      */
     private Path verifierIntegritePdf(Memoire memoire) throws IOException {
 
@@ -88,40 +91,9 @@ public class RechercheService {
             throw new SecurityException("Ce mémoire n'est pas validé.");
         }
 
-        if (memoire.getCheminFichier() == null
-                || memoire.getCheminFichier().isBlank()) {
-            throw new IOException("Le chemin du PDF est absent.");
-        }
-
-        Path fichier = Path.of(memoire.getCheminFichier())
-                .toAbsolutePath()
-                .normalize();
-
-        if (!Files.isRegularFile(fichier) || !Files.isReadable(fichier)) {
-            throw new IOException("Le fichier PDF est absent ou illisible.");
-        }
-
-        String empreinteEnregistree = memoire.getEmpreinteSha256();
-        String empreinteActuelle = HashUtil.sha256(fichier);
-
-        if (empreinteEnregistree == null
-                || empreinteEnregistree.isBlank()
-                || !MessageDigest.isEqual(
-                        empreinteEnregistree.trim()
-                                .toLowerCase(java.util.Locale.ROOT)
-                                .getBytes(java.nio.charset.StandardCharsets.US_ASCII),
-                        empreinteActuelle.getBytes(
-                                java.nio.charset.StandardCharsets.US_ASCII))) {
-
-            throw new SecurityException(
-                    "L'intégrité du PDF n'est pas vérifiée. "
-                    + "Le fichier a peut-être été modifié."
-            );
-        }
-
-        return fichier;
+        return fichierService.extraireVersTemporaire(memoire);
     }
-    
+
     /**
      * Vérifie l'intégrité d'un mémoire avant sa consultation.
      * Retourne le chemin du PDF si toutes les vérifications réussissent.
