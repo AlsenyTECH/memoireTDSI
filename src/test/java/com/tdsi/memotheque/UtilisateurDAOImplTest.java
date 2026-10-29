@@ -6,8 +6,10 @@ import com.tdsi.memotheque.model.Role;
 import com.tdsi.memotheque.model.Utilisateur;
 import com.tdsi.memotheque.util.DatabaseConnection;
 import com.tdsi.memotheque.util.PasswordUtil;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.time.LocalDate;
 
@@ -15,8 +17,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UtilisateurDAOImplTest {
 
+    // Base SQLite temporaire : le test ne touche jamais memotdsi.db.
+    @TempDir
+    java.nio.file.Path dossierTemporaire;
+
+    @AfterEach
+    void restaurerBaseParDefaut() {
+        DatabaseConnection.utiliserBaseParDefaut();
+    }
+
     @BeforeEach
     void initialiserBase() throws Exception {
+        DatabaseConnection.utiliserBasePourTests(
+                "jdbc:sqlite:" + dossierTemporaire.resolve("test.db").toAbsolutePath());
         DatabaseConnection.initialiser();
 
         UtilisateurDAOImpl dao = new UtilisateurDAOImpl();
