@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- (Admin) Sauvegarde et restauration chiffrées -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.SauvegardeController"
+      spacing="12" styleClass="page" maxWidth="760">
+  <padding>
+    <Insets top="22" right="30" bottom="22" left="30"/>
+  </padding>
+
+  <Label text="Sauvegarde et restauration" styleClass="titre-page"/>
+  <Label wrapText="true"
+         text="La sauvegarde contient la base, tous les PDF et le coffre de clés. Elle est chiffrée en AES-256-GCM avec une clé dérivée (PBKDF2) du mot de passe ci-dessous : sans ce mot de passe, elle est illisible. Conservez-la hors de ce poste."/>
+
+  <Label text="Créer une sauvegarde" styleClass="sous-titre"/>
+  <PasswordField fx:id="champMotDePasse" promptText="Mot de passe de la sauvegarde (12 caractères min., lettres et chiffres)"/>
+  <PasswordField fx:id="champConfirmation" promptText="Confirmer le mot de passe"/>
+  <HBox spacing="10" alignment="CENTER_LEFT">
+    <Button fx:id="boutonExporter" text="Créer la sauvegarde..." onAction="#exporter" styleClass="bouton-principal"/>
+    <ProgressIndicator fx:id="indicateur" visible="false" prefWidth="28" prefHeight="28"/>
+  </HBox>
+
+  <Separator/>
+
+  <Label text="Restaurer une sauvegarde" styleClass="sous-titre"/>
+  <Label wrapText="true"
+         text="La sauvegarde est vérifiée (mot de passe, intégrité de chaque fichier) puis extraite dans un dossier vide. L'application en service n'est jamais écrasée : fermez-la, puis remplacez memotdsi.db, storage/ et le coffre par les fichiers extraits."/>
+  <Button fx:id="boutonRestaurer" text="Restaurer une sauvegarde..." onAction="#restaurer"/>
+
+  <Label fx:id="labelResultat" wrapText="true" visible="false" managed="false"/>
+</VBox>
