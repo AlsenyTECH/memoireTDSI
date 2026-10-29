@@ -1,11 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M5] Tableau de bord : à développer -->
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.tdsi.memotheque.controller.DashboardController"
-      alignment="CENTER" spacing="10">
-  <Label text="Tableau de bord (à développer par M5)"/>
-</VBox>
+<!-- [M5] Tableau de bord -->
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.tdsi.memotheque.controller.DashboardController"
+            fitToWidth="true">
+  <content>
+    <VBox spacing="16" styleClass="page">
+      <padding>
+        <Insets top="22" right="25" bottom="20" left="25"/>
+      </padding>
+
+      <Label text="Tableau de bord" styleClass="titre-page"/>
+
+      <HBox spacing="16">
+        <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
+          <Label text="Mémoires publiés" styleClass="carte-stat-titre"/>
+          <Label fx:id="labelTotalValides" text="0" styleClass="carte-stat-valeur"/>
+        </VBox>
+        <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
+          <Label text="Étudiants inscrits" styleClass="carte-stat-titre"/>
+          <Label fx:id="labelTotalEtudiants" text="0" styleClass="carte-stat-valeur"/>
+        </VBox>
+        <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
+          <Label text="En attente de validation" styleClass="carte-stat-titre"/>
+          <Label fx:id="labelEnAttente" text="0" styleClass="carte-stat-valeur"/>
+        </VBox>
+      </HBox>
+
+      <HBox spacing="16">
+        <PieChart fx:id="graphiqueDomaines" title="Mémoires publiés par domaine"
+                  legendVisible="false" prefHeight="300" HBox.hgrow="ALWAYS"/>
+        <BarChart fx:id="graphiqueAnnees" title="Mémoires publiés par année"
+                  legendVisible="false" prefHeight="300" HBox.hgrow="ALWAYS">
+          <xAxis>
+            <CategoryAxis label="Année académique"/>
+          </xAxis>
+          <yAxis>
+            <NumberAxis label="Nombre" minorTickVisible="false" tickUnit="1"/>
+          </yAxis>
+        </BarChart>
+      </HBox>
+
+      <Label text="Les 5 mémoires les plus consultés" styleClass="sous-titre"/>
+      <TableView fx:id="tableTop" prefHeight="190">
+        <columns>
+          <TableColumn fx:id="colTitre" text="Titre" prefWidth="380"/>
+          <TableColumn fx:id="colDomaine" text="Domaine" prefWidth="200"/>
+          <TableColumn fx:id="colVues" text="Vues" prefWidth="80"/>
+          <TableColumn fx:id="colTelechargements" text="Téléchargements" prefWidth="120"/>
+        </columns>
+        <placeholder>
+          <Label text="Aucun mémoire publié pour le moment."/>
+        </placeholder>
+      </TableView>
+
+      <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
+    </VBox>
+  </content>
+</ScrollPane>
