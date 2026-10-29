@@ -12,7 +12,7 @@
 <!-- (Admin) Sauvegarde et restauration chiffrées -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.SauvegardeController"
-      spacing="12" styleClass="page" maxWidth="760">
+      spacing="12" styleClass="page">
   <padding>
     <Insets top="22" right="30" bottom="22" left="30"/>
   </padding>

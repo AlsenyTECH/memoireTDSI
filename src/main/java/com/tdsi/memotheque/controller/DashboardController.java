@@ -26,6 +26,7 @@ public class DashboardController {
     @FXML private Label labelEnAttente;
     @FXML private PieChart graphiqueDomaines;
     @FXML private BarChart<String, Number> graphiqueAnnees;
+    @FXML private javafx.scene.chart.NumberAxis axeNombre;
     @FXML private TableView<Memoire> tableTop;
     @FXML private TableColumn<Memoire, String> colTitre;
     @FXML private TableColumn<Memoire, String> colDomaine;
@@ -77,6 +78,23 @@ public class DashboardController {
         XYChart.Series<String, Number> serie = new XYChart.Series<>();
         serie.setName("Mémoires publiés");
         donnees.forEach((annee, nb) -> serie.getData().add(new XYChart.Data<>(annee, nb)));
+
+        // Axe en nombres entiers : de 0 au maximum arrondi, graduation lisible.
+        int max = donnees.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        int haut = Math.max(5, max + 1);
+        axeNombre.setUpperBound(haut);
+        axeNombre.setTickUnit(Math.max(1, Math.ceil(haut / 10.0)));
+        axeNombre.setTickLabelFormatter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Number n) {
+                return n.doubleValue() == Math.rint(n.doubleValue()) ? String.valueOf(n.intValue()) : "";
+            }
+
+            @Override
+            public Number fromString(String s) {
+                return Integer.valueOf(s);
+            }
+        });
 
         graphiqueAnnees.getData().clear();
         graphiqueAnnees.getData().add(serie);

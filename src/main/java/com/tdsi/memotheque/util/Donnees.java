@@ -23,4 +23,22 @@ public final class Donnees {
     public static Path chemin(String nom) {
         return dossier().resolve(nom);
     }
+
+    /**
+     * Crée le dossier de données. Quand il est configuré (application installée),
+     * il est réservé à son propriétaire (droits 700) : base, PDF et coffre ne sont pas
+     * lisibles par les autres comptes du poste.
+     */
+    public static void preparer() throws java.io.IOException {
+        Path d = dossier().toAbsolutePath();
+        java.nio.file.Files.createDirectories(d);
+        if (System.getProperty(PROPRIETE) != null) {
+            try {
+                java.nio.file.Files.setPosixFilePermissions(d,
+                        java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"));
+            } catch (UnsupportedOperationException e) {
+                // Windows : droits du profil utilisateur
+            }
+        }
+    }
 }

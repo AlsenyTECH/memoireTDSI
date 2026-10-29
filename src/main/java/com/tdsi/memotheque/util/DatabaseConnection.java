@@ -48,7 +48,7 @@ public final class DatabaseConnection {
     /** Crée les tables (schema.sql), insère les données de départ (seed.sql), puis applique les migrations. */
     public static void initialiser() throws SQLException, IOException {
         if (url.equals(URL_PAR_DEFAUT)) {
-            java.nio.file.Files.createDirectories(Donnees.dossier().toAbsolutePath());
+            Donnees.preparer();
         }
         executerScript("/db/schema.sql");
         executerScript("/db/seed.sql");

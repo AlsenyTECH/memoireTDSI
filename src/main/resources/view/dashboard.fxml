@@ -41,14 +41,16 @@
 
       <HBox spacing="16">
         <PieChart fx:id="graphiqueDomaines" title="Mémoires publiés par domaine"
-                  legendVisible="false" prefHeight="300" HBox.hgrow="ALWAYS"/>
+                  legendVisible="true" labelsVisible="false" legendSide="BOTTOM"
+                  prefHeight="300" HBox.hgrow="ALWAYS" animated="false"/>
         <BarChart fx:id="graphiqueAnnees" title="Mémoires publiés par année"
-                  legendVisible="false" prefHeight="300" HBox.hgrow="ALWAYS">
+                  legendVisible="false" prefHeight="300" HBox.hgrow="ALWAYS" animated="false">
           <xAxis>
-            <CategoryAxis label="Année académique"/>
+            <CategoryAxis label="Année académique" animated="false"/>
           </xAxis>
           <yAxis>
-            <NumberAxis label="Nombre" minorTickVisible="false" tickUnit="1"/>
+            <NumberAxis fx:id="axeNombre" label="Nombre" minorTickVisible="false" animated="false"
+                        autoRanging="false" lowerBound="0" upperBound="5" tickUnit="1"/>
           </yAxis>
         </BarChart>
       </HBox>

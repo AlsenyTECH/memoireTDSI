@@ -57,6 +57,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
         <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
             <!-- Tests plus rapides : PBKDF2 à 10 000 itérations (l'application garde 600 000). -->
             <memotdsi.pbkdf2.iterations>10000</memotdsi.pbkdf2.iterations>

@@ -12,7 +12,7 @@
 <!-- [M2] Profil et changement de mot de passe -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.ProfilController"
-      spacing="14" styleClass="page" maxWidth="640">
+      spacing="14" styleClass="page">
   <padding>
     <Insets top="22" right="30" bottom="22" left="30"/>
   </padding>
