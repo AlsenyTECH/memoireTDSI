@@ -1,11 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M6] (Admin) Gestion des comptes : à développer -->
+<!-- [M6] (Admin) Gestion des comptes -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.ComptesController"
-      alignment="CENTER" spacing="10">
-  <Label text="Comptes (à développer par M2)"/>
+      spacing="12" styleClass="page">
+  <padding>
+    <Insets top="22" right="25" bottom="20" left="25"/>
+  </padding>
+
+  <Label text="Gestion des comptes" styleClass="titre-page"/>
+  <Label text="Les inscriptions des tdsiens arrivent inactives : activez-les après vérification du matricule." wrapText="true"/>
+
+  <CheckBox fx:id="caseInactifs" text="Afficher seulement les comptes inactifs ou verrouillés"/>
+
+  <TableView fx:id="tableComptes" VBox.vgrow="ALWAYS">
+    <columns>
+      <TableColumn fx:id="colNom" text="Nom" prefWidth="170"/>
+      <TableColumn fx:id="colEmail" text="E-mail" prefWidth="210"/>
+      <TableColumn fx:id="colMatricule" text="Matricule" prefWidth="100"/>
+      <TableColumn fx:id="colRole" text="Rôle" prefWidth="100"/>
+      <TableColumn fx:id="colNiveau" text="Niveau" prefWidth="60"/>
+      <TableColumn fx:id="colActif" text="Activation" prefWidth="80"/>
+      <TableColumn fx:id="colVerrouille" text="Verrouillage" prefWidth="90"/>
+    </columns>
+  </TableView>
+
+  <HBox spacing="10">
+    <Button fx:id="boutonActiver" text="Activer" onAction="#activer" styleClass="bouton-succes"/>
+    <Button fx:id="boutonDesactiver" text="Désactiver" onAction="#desactiver" styleClass="bouton-danger"/>
+    <Button fx:id="boutonDeverrouiller" text="Déverrouiller" onAction="#deverrouiller"/>
+  </HBox>
+
+  <Label text="Créer un compte encadreur" styleClass="sous-titre"/>
+  <HBox spacing="8">
+    <TextField fx:id="champPrenom" promptText="Prénom"/>
+    <TextField fx:id="champNom" promptText="Nom"/>
+    <TextField fx:id="champEmail" promptText="E-mail" HBox.hgrow="ALWAYS"/>
+    <PasswordField fx:id="champMotDePasse" promptText="Mot de passe (8 caractères min.)"/>
+    <Button text="Créer" onAction="#creerEncadreur" styleClass="bouton-principal"/>
+  </HBox>
+
+  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
 </VBox>
