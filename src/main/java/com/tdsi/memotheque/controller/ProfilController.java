@@ -25,11 +25,14 @@ public class ProfilController {
     @FXML private PasswordField champConfirmation;
     @FXML private Label labelMessage;
     @FXML private Label labelObligation;
+    @FXML private javafx.scene.control.CheckBox caseThemeSombre;
 
     private final CompteService compteService = new CompteService();
 
     @FXML
     private void initialize() {
+        caseThemeSombre.setSelected(com.tdsi.memotheque.util.Theme.estSombre());
+
         Utilisateur u = SessionManager.getUtilisateur();
         if (u == null) {
             labelMessage.setText("Aucun utilisateur connecté.");
@@ -46,6 +49,11 @@ public class ProfilController {
         boolean obligation = u.isDoitChangerMotDePasse();
         labelObligation.setVisible(obligation);
         labelObligation.setManaged(obligation);
+    }
+
+    @FXML
+    private void changerTheme() {
+        com.tdsi.memotheque.util.Theme.choisirSombre(caseThemeSombre.isSelected(), caseThemeSombre.getScene());
     }
 
     @FXML

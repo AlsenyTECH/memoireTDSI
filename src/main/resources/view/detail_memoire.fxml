@@ -15,7 +15,7 @@
             fx:controller="com.tdsi.memotheque.controller.DetailMemoireController">
 
     <content>
-        <VBox spacing="15" style="-fx-background-color: #f5f7fa;">
+        <VBox spacing="15" styleClass="page">
             <padding>
                 <Insets top="25" right="30" bottom="25" left="30"/>
             </padding>

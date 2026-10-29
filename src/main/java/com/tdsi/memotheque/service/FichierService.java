@@ -33,7 +33,7 @@ public class FichierService {
     public static final String EXTENSION_CHIFFREE = ".pdf.enc";
     private static final byte[] SIGNATURE_PDF = "%PDF".getBytes(StandardCharsets.US_ASCII);
 
-    private static Path dossierParDefaut = Path.of("storage");
+    private static Path dossierParDefaut = com.tdsi.memotheque.util.Donnees.chemin("storage");
     private static Path dossierTemporaire;
 
     private final Path dossierStockage;

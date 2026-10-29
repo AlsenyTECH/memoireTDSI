@@ -249,6 +249,46 @@ public class AuthService {
         return hashFactice;
     }
 
+    /** Vrai s'il existe au moins un administrateur actif. */
+    public boolean adminExiste() throws SQLException {
+        return utilisateurDAO.findByRole(Role.ADMIN).stream().anyMatch(Utilisateur::isActif);
+    }
+
+    /**
+     * Premier démarrage d'une installation neuve : création du compte administrateur.
+     * Refusé dès qu'un administrateur existe (impossible de s'en servir pour prendre la main).
+     */
+    public Utilisateur creerPremierAdmin(String nom, String prenom, String email, String motDePasse)
+            throws SQLException {
+        if (adminExiste()) {
+            throw new SecurityException("Un administrateur existe déjà.");
+        }
+        if (Validator.estVide(nom) || Validator.estVide(prenom) || !Validator.emailValide(email)) {
+            throw new IllegalArgumentException("Nom, prénom et adresse e-mail valides obligatoires.");
+        }
+        if (!Validator.motDePasseRobuste(motDePasse) || motDePasse.length() < 12) {
+            throw new IllegalArgumentException("Mot de passe administrateur : au moins 12 caractères, "
+                    + "avec lettres et chiffres.");
+        }
+        String emailNormalise = email.trim().toLowerCase(Locale.ROOT);
+        if (utilisateurDAO.existeEmail(emailNormalise)) {
+            throw new IllegalArgumentException("Cette adresse e-mail est déjà utilisée.");
+        }
+
+        String sel = PasswordUtil.genererSel();
+        Utilisateur admin = new Utilisateur();
+        admin.setNom(nom.trim());
+        admin.setPrenom(prenom.trim());
+        admin.setEmail(emailNormalise);
+        admin.setSel(sel);
+        admin.setMotDePasseHash(PasswordUtil.hasher(motDePasse, sel));
+        admin.setRole(Role.ADMIN);
+        admin.setActif(true);
+        admin.setDateCreation(LocalDate.now());
+        utilisateurDAO.insert(admin);
+        return admin;
+    }
+
     public void initialiserAdminParDefaut() throws SQLException {
         creerCompteDemoSiAbsent(
                 null, "Administrateur", "MémoTDSI",

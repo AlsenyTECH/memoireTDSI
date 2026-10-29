@@ -11,7 +11,7 @@
 
     <top>
         <VBox spacing="12"
-              style="-fx-background-color: #f4f6f9;">
+              styleClass="barre-filtres">
 
             <padding>
                 <Insets top="22" right="25" bottom="20" left="25"/>

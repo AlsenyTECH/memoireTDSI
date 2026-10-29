@@ -37,7 +37,7 @@ public final class GestionCles {
     public static final String ALIAS_HMAC_JOURNAL = "journal-hmac";
     public static final String ALIAS_AES_FICHIERS = "fichiers-aes";
 
-    private static final Path FICHIER_PAR_DEFAUT = Path.of("memotdsi.p12");
+    private static final Path FICHIER_PAR_DEFAUT = Donnees.chemin("memotdsi.p12");
 
     private static Path fichier = FICHIER_PAR_DEFAUT;
     private static char[] motDePasseImpose;     // tests uniquement

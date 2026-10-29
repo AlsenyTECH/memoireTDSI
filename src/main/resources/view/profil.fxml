@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -38,6 +39,9 @@
     <Label text="Compte créé le :" GridPane.rowIndex="5"/>
     <Label fx:id="labelDateCreation" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
   </GridPane>
+
+  <Label text="Apparence" styleClass="sous-titre"/>
+  <CheckBox fx:id="caseThemeSombre" text="Thème sombre" onAction="#changerTheme"/>
 
   <Label text="Changer mon mot de passe" styleClass="sous-titre"/>
   <PasswordField fx:id="champAncien" promptText="Mot de passe actuel"/>

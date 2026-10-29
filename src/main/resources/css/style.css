@@ -138,3 +138,7 @@
 .notification-non-lue {
     -fx-font-weight: bold;
 }
+
+.barre-filtres {
+    -fx-background-color: #f4f6f9;
+}

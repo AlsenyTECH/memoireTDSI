@@ -75,6 +75,7 @@ public final class SceneNavigator {
             if (css != null) {
                 scene.getStylesheets().add(css.toExternalForm());
             }
+            Theme.appliquer(scene);
             stage.setScene(scene);
             stage.setTitle(titre);
             stage.centerOnScreen();

@@ -14,7 +14,7 @@ import java.sql.Statement;
  */
 public final class DatabaseConnection {
 
-   private static final String URL_PAR_DEFAUT = "jdbc:sqlite:memotdsi.db";
+   private static final String URL_PAR_DEFAUT = "jdbc:sqlite:" + Donnees.chemin("memotdsi.db");
    private static String url = URL_PAR_DEFAUT;
 
     private DatabaseConnection() { }
@@ -47,6 +47,9 @@ public final class DatabaseConnection {
 
     /** Crée les tables (schema.sql), insère les données de départ (seed.sql), puis applique les migrations. */
     public static void initialiser() throws SQLException, IOException {
+        if (url.equals(URL_PAR_DEFAUT)) {
+            java.nio.file.Files.createDirectories(Donnees.dossier().toAbsolutePath());
+        }
         executerScript("/db/schema.sql");
         executerScript("/db/seed.sql");
         Migrations.appliquer();

@@ -1,7 +1,6 @@
 package com.tdsi.memotheque.controller;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -156,27 +155,33 @@ public class DepotController {
     @FXML
     private void envoyer() {
         Memoire m = lireFormulaire();
+        boolean nouveau = enModification == null;
 
-        try {
-            if (enModification == null) {
-                if (fichierChoisi == null) {
-                    afficherErreur("Choisissez le fichier PDF du mémoire.");
-                    return;
-                }
-                memoireService.deposer(m, fichierChoisi);
-                AlertUtil.info("Dépôt", "Votre mémoire a été déposé. Il est en attente de validation.");
-            } else {
-                m.setId(enModification.getId());
-                memoireService.modifier(m, fichierChoisi);
-                AlertUtil.info("Modification", "Votre mémoire a été modifié et repasse en attente.");
-            }
-            SceneNavigator.charger("mes_memoires");
-
-        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
-            afficherErreur(e.getMessage());
-        } catch (SQLException | IOException e) {
-            afficherErreur("Erreur lors de l'enregistrement : " + e.getMessage());
+        if (nouveau && fichierChoisi == null) {
+            afficherErreur("Choisissez le fichier PDF du mémoire.");
+            return;
         }
+        if (!nouveau) {
+            m.setId(enModification.getId());
+        }
+        Path pdf = fichierChoisi;
+        afficherErreur("Chiffrement et enregistrement en cours...");
+
+        // Lecture, contrôle, SHA-256 et chiffrement du PDF : en tâche de fond.
+        com.tdsi.memotheque.util.TacheFond.executer(() -> {
+            if (nouveau) {
+                memoireService.deposer(m, pdf);
+            } else {
+                memoireService.modifier(m, pdf);
+            }
+            return null;
+        }, ok -> {
+            afficherErreur("");
+            AlertUtil.info(nouveau ? "Dépôt" : "Modification", nouveau
+                    ? "Votre mémoire a été déposé (chiffré). Il est en attente de validation."
+                    : "Votre mémoire a été modifié et repasse en attente.");
+            SceneNavigator.charger("mes_memoires");
+        }, e -> afficherErreur(com.tdsi.memotheque.util.TacheFond.message(e)), boutonEnvoyer);
     }
 
     @FXML

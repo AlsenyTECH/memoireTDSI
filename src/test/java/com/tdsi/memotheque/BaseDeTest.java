@@ -46,7 +46,7 @@ final class BaseDeTest {
         SessionManager.fermer();
         DatabaseConnection.utiliserBaseParDefaut();
         GestionCles.utiliserParDefaut();
-        FichierService.utiliserDossierParDefaut(Path.of("storage"));
+        FichierService.utiliserDossierParDefaut(com.tdsi.memotheque.util.Donnees.chemin("storage"));
     }
 
     static Utilisateur creerUtilisateur(String email, String matricule, Role role,

@@ -123,15 +123,16 @@ public class ValidationController {
         if (motDePasse.isEmpty()) {
             return;
         }
-        try {
+        labelMessage.setText("Vérification du PDF et signature en cours...");
+        // PBKDF2 (600 000 itérations), déchiffrement et signature : en tâche de fond.
+        com.tdsi.memotheque.util.TacheFond.executer(() -> {
             validationService.valider(m.getId(), motDePasse.get());
+            return null;
+        }, ok -> {
             charger();
             labelMessage.setText("Mémoire validé, publié et signé numériquement.");
-        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
-            labelMessage.setText(e.getMessage());
-        } catch (SQLException | IOException e) {
-            labelMessage.setText("Erreur lors de la validation : " + e.getMessage());
-        }
+        }, e -> labelMessage.setText(com.tdsi.memotheque.util.TacheFond.message(e)),
+                boutonValider, boutonRefuser, boutonOuvrir);
     }
 
     @FXML
