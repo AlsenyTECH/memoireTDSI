@@ -10,6 +10,7 @@ public class JournalActivite {
     private String action;             // CONNEXION, ECHEC_CONNEXION, DEPOT, VALIDATION...
     private String details;
     private LocalDateTime dateHeure;
+    private String hmac;               // maillon de la chaîne HMAC (null pour les lignes anciennes)
 
     public JournalActivite() { }
 
@@ -30,4 +31,6 @@ public class JournalActivite {
     public void setDetails(String details) { this.details = details; }
     public LocalDateTime getDateHeure() { return dateHeure; }
     public void setDateHeure(LocalDateTime dateHeure) { this.dateHeure = dateHeure; }
+    public String getHmac() { return hmac; }
+    public void setHmac(String hmac) { this.hmac = hmac; }
 }

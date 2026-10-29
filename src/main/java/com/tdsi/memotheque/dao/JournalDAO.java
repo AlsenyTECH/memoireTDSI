@@ -9,4 +9,6 @@ import com.tdsi.memotheque.model.JournalActivite;
 public interface JournalDAO {
     void enregistrer(JournalActivite j) throws SQLException;
     List<JournalActivite> derniers(int limite) throws SQLException;
+    /** Recalcule toute la chaîne HMAC et la compare à l'ancre signée. */
+    com.tdsi.memotheque.model.VerificationJournal verifierChaine() throws SQLException;
 }

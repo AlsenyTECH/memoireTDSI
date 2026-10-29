@@ -22,7 +22,11 @@
   <HBox spacing="10">
     <TextField fx:id="champFiltre" promptText="Filtrer (action, utilisateur, détail)" HBox.hgrow="ALWAYS"/>
     <Button text="Actualiser" onAction="#actualiser"/>
+    <Button text="Vérifier l'intégrité" onAction="#verifierIntegrite" styleClass="bouton-principal"/>
+    <Button text="Exporter en CSV" onAction="#exporterCsv"/>
   </HBox>
+
+  <Label fx:id="labelIntegrite" wrapText="true" visible="false" managed="false"/>
 
   <TableView fx:id="tableJournal" VBox.vgrow="ALWAYS">
     <columnResizePolicy>

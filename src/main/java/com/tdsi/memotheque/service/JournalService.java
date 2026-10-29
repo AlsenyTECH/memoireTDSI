@@ -69,5 +69,15 @@ public class JournalService {
         }
         return journalDAO.derniers(limite);
     }
+
+    /** Vérifie la chaîne HMAC complète du journal. Réservé à l'administrateur, et journalisé. */
+    public com.tdsi.memotheque.model.VerificationJournal verifierIntegrite() throws java.sql.SQLException {
+        if (!SessionManager.aLeRole(com.tdsi.memotheque.model.Role.ADMIN)) {
+            throw new SecurityException("Vérification réservée à l'administrateur.");
+        }
+        com.tdsi.memotheque.model.VerificationJournal resultat = journalDAO.verifierChaine();
+        log("VERIFICATION_JOURNAL", (resultat.intact() ? "OK : " : "ALERTE : ") + resultat.message());
+        return resultat;
+    }
 }
 

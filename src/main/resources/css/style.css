@@ -109,3 +109,21 @@
     -fx-padding: 10;
     -fx-text-fill: #78350f;
 }
+
+.bandeau-succes {
+    -fx-background-color: #dcfce7;
+    -fx-border-color: #16a34a;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10;
+    -fx-text-fill: #14532d;
+}
+
+.bandeau-danger {
+    -fx-background-color: #fee2e2;
+    -fx-border-color: #dc2626;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10;
+    -fx-text-fill: #7f1d1d;
+}
