@@ -1,11 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M3] Mes mémoires : à développer -->
+<!-- [M3] Mes mémoires -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.MesMemoiresController"
-      alignment="CENTER" spacing="10">
-  <Label text="Mes mémoires (à développer par M3)"/>
+      spacing="12" styleClass="page">
+  <padding>
+    <Insets top="22" right="25" bottom="20" left="25"/>
+  </padding>
+
+  <Label text="Mes mémoires" styleClass="titre-page"/>
+  <Label text="Un mémoire « En attente » ou « Refusé » peut être modifié ou supprimé. Un mémoire validé est publié." wrapText="true"/>
+
+  <TableView fx:id="tableMemoires" VBox.vgrow="ALWAYS">
+    <columns>
+      <TableColumn fx:id="colTitre" text="Titre" prefWidth="250"/>
+      <TableColumn fx:id="colNiveau" text="Niveau" prefWidth="60"/>
+      <TableColumn fx:id="colAnnee" text="Année" prefWidth="90"/>
+      <TableColumn fx:id="colDomaine" text="Domaine" prefWidth="150"/>
+      <TableColumn fx:id="colDateDepot" text="Déposé le" prefWidth="90"/>
+      <TableColumn fx:id="colStatut" text="Statut" prefWidth="90"/>
+      <TableColumn fx:id="colMotif" text="Motif du refus" prefWidth="200"/>
+    </columns>
+    <placeholder>
+      <Label text="Aucun mémoire déposé."/>
+    </placeholder>
+  </TableView>
+
+  <HBox spacing="10">
+    <Button text="Déposer un mémoire" onAction="#nouveauDepot" styleClass="bouton-principal"/>
+    <Button fx:id="boutonDetail" text="Voir le détail" onAction="#voirDetail"/>
+    <Button fx:id="boutonModifier" text="Modifier" onAction="#modifier"/>
+    <Button fx:id="boutonSupprimer" text="Supprimer" onAction="#supprimer" styleClass="bouton-danger"/>
+  </HBox>
+
+  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
 </VBox>

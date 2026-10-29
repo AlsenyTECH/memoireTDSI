@@ -1,11 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M3] Dépôt d'un mémoire : à développer -->
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.tdsi.memotheque.controller.DepotController"
-      alignment="CENTER" spacing="10">
-  <Label text="Déposer un mémoire (à développer par M3)"/>
-</VBox>
+<!-- [M3] Dépôt (et modification) d'un mémoire -->
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.tdsi.memotheque.controller.DepotController"
+            fitToWidth="true">
+  <content>
+    <VBox spacing="14" styleClass="page">
+      <padding>
+        <Insets top="22" right="30" bottom="22" left="30"/>
+      </padding>
+
+      <Label fx:id="labelTitreEcran" text="Déposer un mémoire" styleClass="titre-page"/>
+      <Label fx:id="labelInfoModification" wrapText="true" styleClass="info"/>
+
+      <GridPane hgap="12" vgap="12">
+        <columnConstraints>
+          <ColumnConstraints minWidth="150"/>
+          <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <Label text="Titre *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="champTitre" promptText="5 à 200 caractères"
+                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Résumé *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextArea fx:id="zoneResume" wrapText="true" prefRowCount="6"
+                  promptText="20 à 5000 caractères"
+                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Mots-clés *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="champMotsCles" promptText="3 à 10 mots-clés séparés par des virgules"
+                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Année académique *" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="champAnnee" promptText="ex. 2025-2026"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Niveau *" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboNiveau" maxWidth="Infinity"
+                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label text="Domaine *" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboDomaine" maxWidth="Infinity" promptText="Choisir un domaine"
+                  GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <Label text="Encadreur *" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboEncadreur" maxWidth="Infinity" promptText="Choisir un encadreur"
+                  GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+        <Label text="Co-auteur" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+        <TextField fx:id="champCoAuteur" promptText="Facultatif"
+                   GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+        <Label text="Date de soutenance" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="dateSoutenance" maxWidth="Infinity"
+                    GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+
+        <Label text="Mention" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="comboMention" maxWidth="Infinity" promptText="Facultatif"
+                  GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+
+        <Label text="Fichier PDF *" GridPane.rowIndex="10" GridPane.columnIndex="0"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="10" GridPane.columnIndex="1">
+          <Button text="Choisir le PDF..." onAction="#choisirFichier"/>
+          <Label fx:id="labelFichier" text="Aucun fichier (PDF, 20 Mo maximum)" wrapText="true"/>
+        </HBox>
+      </GridPane>
+
+      <HBox spacing="10">
+        <Button fx:id="boutonEnvoyer" text="Déposer" onAction="#envoyer" styleClass="bouton-principal"/>
+        <Button text="Annuler" onAction="#annuler"/>
+      </HBox>
+
+      <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
+    </VBox>
+  </content>
+</ScrollPane>
