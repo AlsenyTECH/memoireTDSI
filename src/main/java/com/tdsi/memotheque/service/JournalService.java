@@ -63,5 +63,13 @@ public class JournalService {
             );
         }
     }
+
+    /** [M6] Dernières entrées du journal (au plus 200). Lecture réservée à l'administrateur. */
+    public java.util.List<JournalActivite> derniers(int limite) throws java.sql.SQLException {
+        if (!SessionManager.aLeRole(com.tdsi.memotheque.model.Role.ADMIN)) {
+            throw new SecurityException("Journal réservé à l'administrateur.");
+        }
+        return journalDAO.derniers(limite);
+    }
 }
 
