@@ -1,11 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M6] (Admin) Gestion des domaines : à développer -->
+<!-- [M6] (Admin) Gestion des domaines -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.DomaineController"
-      alignment="CENTER" spacing="10">
-  <Label text="Domaines (à développer par M5)"/>
+      spacing="12" styleClass="page">
+  <padding>
+    <Insets top="22" right="25" bottom="20" left="25"/>
+  </padding>
+
+  <Label text="Domaines" styleClass="titre-page"/>
+  <Label text="Un domaine utilisé par un mémoire ne peut pas être supprimé." wrapText="true"/>
+
+  <TableView fx:id="tableDomaines" VBox.vgrow="ALWAYS">
+    <columns>
+      <TableColumn fx:id="colNom" text="Nom" prefWidth="280"/>
+      <TableColumn fx:id="colDescription" text="Description" prefWidth="480"/>
+    </columns>
+  </TableView>
+
+  <HBox spacing="8">
+    <TextField fx:id="champNom" promptText="Nom du domaine" prefWidth="250"/>
+    <TextField fx:id="champDescription" promptText="Description (facultative)" HBox.hgrow="ALWAYS"/>
+  </HBox>
+
+  <HBox spacing="10">
+    <Button text="Ajouter" onAction="#ajouter" styleClass="bouton-principal"/>
+    <Button fx:id="boutonModifier" text="Enregistrer la modification" onAction="#modifier"/>
+    <Button fx:id="boutonSupprimer" text="Supprimer" onAction="#supprimer" styleClass="bouton-danger"/>
+    <Button text="Vider" onAction="#viderFormulaire"/>
+  </HBox>
+
+  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
 </VBox>
