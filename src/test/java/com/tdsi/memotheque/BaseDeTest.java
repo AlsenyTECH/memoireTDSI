@@ -6,12 +6,16 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 
 import com.tdsi.memotheque.dao.impl.DomaineDAOImpl;
+import com.tdsi.memotheque.dao.impl.MemoireDAOImpl;
 import com.tdsi.memotheque.dao.impl.UtilisateurDAOImpl;
 import com.tdsi.memotheque.model.Domaine;
 import com.tdsi.memotheque.model.Memoire;
 import com.tdsi.memotheque.model.Niveau;
 import com.tdsi.memotheque.model.Role;
 import com.tdsi.memotheque.model.Utilisateur;
+import com.tdsi.memotheque.service.FichierService;
+import com.tdsi.memotheque.service.JournalService;
+import com.tdsi.memotheque.service.MemoireService;
 import com.tdsi.memotheque.util.DatabaseConnection;
 import com.tdsi.memotheque.util.PasswordUtil;
 import com.tdsi.memotheque.util.SessionManager;
@@ -70,6 +74,21 @@ final class BaseDeTest {
         Files.writeString(pdf, "%PDF-1.4\n% fichier de test\n1 0 obj << >> endobj\n%%EOF\n",
                 StandardCharsets.US_ASCII);
         return pdf;
+    }
+
+    /** Dépose un vrai mémoire (PDF stocké dans dossier/storage) au nom de l'étudiant, puis ferme la session. */
+    static Memoire deposer(Path dossier, Utilisateur etudiant, Utilisateur encadreur,
+            String annee, Niveau niveau) throws Exception {
+        MemoireService service = new MemoireService(new MemoireDAOImpl(), new DomaineDAOImpl(),
+                new UtilisateurDAOImpl(), new FichierService(dossier.resolve("storage")),
+                new JournalService());
+        SessionManager.ouvrir(etudiant);
+        try {
+            return service.deposer(memoireValide(premierDomaine(), encadreur, annee, niveau),
+                    creerPdf(dossier, "depot-" + System.nanoTime() + ".pdf"));
+        } finally {
+            SessionManager.fermer();
+        }
     }
 
     /** Mémoire dont tous les champs du formulaire sont valides. */
