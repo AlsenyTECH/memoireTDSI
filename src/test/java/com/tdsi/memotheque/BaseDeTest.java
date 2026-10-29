@@ -17,6 +17,7 @@ import com.tdsi.memotheque.service.FichierService;
 import com.tdsi.memotheque.service.JournalService;
 import com.tdsi.memotheque.service.MemoireService;
 import com.tdsi.memotheque.util.DatabaseConnection;
+import com.tdsi.memotheque.util.GestionCles;
 import com.tdsi.memotheque.util.PasswordUtil;
 import com.tdsi.memotheque.util.SessionManager;
 
@@ -34,6 +35,7 @@ final class BaseDeTest {
     static void ouvrirBaseTemporaire(Path dossier) throws Exception {
         DatabaseConnection.utiliserBasePourTests(
                 "jdbc:sqlite:" + dossier.resolve("test.db").toAbsolutePath());
+        GestionCles.utiliserPourTests(dossier);
         DatabaseConnection.initialiser();
         SessionManager.fermer();
     }
@@ -42,6 +44,7 @@ final class BaseDeTest {
     static void fermer() {
         SessionManager.fermer();
         DatabaseConnection.utiliserBaseParDefaut();
+        GestionCles.utiliserParDefaut();
     }
 
     static Utilisateur creerUtilisateur(String email, String matricule, Role role,

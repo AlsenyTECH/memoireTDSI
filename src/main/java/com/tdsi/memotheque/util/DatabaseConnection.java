@@ -45,10 +45,11 @@ public final class DatabaseConnection {
         url = URL_PAR_DEFAUT;
     }
 
-    /** Crée les tables (schema.sql) puis insère les données de départ (seed.sql). */
+    /** Crée les tables (schema.sql), insère les données de départ (seed.sql), puis applique les migrations. */
     public static void initialiser() throws SQLException, IOException {
         executerScript("/db/schema.sql");
         executerScript("/db/seed.sql");
+        Migrations.appliquer();
     }
 
     private static void executerScript(String ressource) throws SQLException, IOException {

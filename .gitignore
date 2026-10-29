@@ -8,3 +8,7 @@ bin/
 storage/
 .idea/
 *.iml
+# Coffre de clés et sauvegardes (secrets : ne jamais committer)
+*.p12
+*.p12.pass
+*.mtdsave

@@ -57,10 +57,8 @@ public class JournalService {
 
         } catch (Exception e) {
             
-            System.err.println(
-                "Impossible d'enregistrer l'activité : "
-                + e.getMessage()
-            );
+            java.util.logging.Logger.getLogger(JournalService.class.getName()).log(
+                java.util.logging.Level.SEVERE, "Impossible d'enregistrer l'activité « " + action + " »", e);
         }
     }
 

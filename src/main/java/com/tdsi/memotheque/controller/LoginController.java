@@ -54,12 +54,6 @@ public class LoginController {
         SceneNavigator.afficherInscription();
     }
 
-    /** TEMPORAIRE (mode développement) : à remplacer par l'appel à AuthService. */
-    @FXML
-    private void entrerModeDemo() {
-        SceneNavigator.afficherCadrePrincipal();
-    }
-
     private String tronquer(String s) {
         if (s == null) {
             return "";

@@ -35,25 +35,23 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        configurerMenu();
+        Utilisateur u = SessionManager.getUtilisateur();
+
+        // Personne n'est connecté : retour à l'écran de connexion (plus de « mode développement »).
+        if (u == null) {
+            javafx.application.Platform.runLater(SceneNavigator::afficherLogin);
+            return;
+        }
+
+        configurerMenu(u);
         SceneNavigator.definirZoneContenu(contenu);
         SceneNavigator.charger("dashboard");
     }
 
     /** Affiche ou masque les boutons selon le rôle (voir le tableau « menus par rôle »). */
-    private void configurerMenu() {
-        Utilisateur u = SessionManager.getUtilisateur();
-
-        // Mode développement : personne n'est connecté, on affiche tout pour pouvoir tester.
-        boolean modeDev = (u == null);
-
-        if (modeDev) {
-            lblUtilisateur.setText("Mode développement");
-            lblRole.setText("(personne n'est connecté)");
-        } else {
-            lblUtilisateur.setText(u.getNomComplet());
-            lblRole.setText(u.getRole() == null ? "" : u.getRole().getLibelle());
-        }
+    private void configurerMenu(Utilisateur u) {
+        lblUtilisateur.setText(u.getNomComplet());
+        lblRole.setText(u.getRole() == null ? "" : u.getRole().getLibelle());
 
         // Pour tous les rôles
         afficher(btnDashboard, true);
@@ -61,15 +59,15 @@ public class MainController {
         afficher(btnProfil, true);
 
         // Étudiant seulement
-        boolean etudiant = modeDev || SessionManager.aLeRole(Role.ETUDIANT);
+        boolean etudiant = SessionManager.aLeRole(Role.ETUDIANT);
         afficher(btnDepot, etudiant);
         afficher(btnMesMemoires, etudiant);
 
         // Encadreur et admin
-        afficher(btnValidation, modeDev || SessionManager.aLeRole(Role.ENCADREUR, Role.ADMIN));
+        afficher(btnValidation, SessionManager.aLeRole(Role.ENCADREUR, Role.ADMIN));
 
         // Admin seulement
-        boolean admin = modeDev || SessionManager.aLeRole(Role.ADMIN);
+        boolean admin = SessionManager.aLeRole(Role.ADMIN);
         afficher(btnComptes, admin);
         afficher(btnDomaines, admin);
         afficher(btnJournal, admin);

@@ -20,6 +20,9 @@ import com.tdsi.memotheque.model.Memoire;
  */
 public final class SceneNavigator {
 
+    private static final java.util.logging.Logger LOG =
+            java.util.logging.Logger.getLogger(SceneNavigator.class.getName());
+
     private static Stage stage;
     private static StackPane zoneContenu;
 
@@ -55,7 +58,7 @@ public final class SceneNavigator {
         try {
             zoneContenu.getChildren().setAll(chargerFxml(vue));
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.log(java.util.logging.Level.SEVERE, "Erreur de navigation", e);
             AlertUtil.erreur("Écran introuvable", "Impossible de charger la vue « " + vue + " » : " + e.getMessage());
         }
     }
@@ -71,7 +74,7 @@ public final class SceneNavigator {
             stage.setTitle(titre);
             stage.centerOnScreen();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.log(java.util.logging.Level.SEVERE, "Erreur de navigation", e);
             AlertUtil.erreur("Écran introuvable", "Impossible de charger la vue « " + vue + " » : " + e.getMessage());
         }
     }
@@ -105,7 +108,7 @@ public final class SceneNavigator {
             zoneContenu.getChildren().setAll(vue);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.log(java.util.logging.Level.SEVERE, "Erreur de navigation", e);
             AlertUtil.erreur("Erreur de navigation",
                     "Impossible d'afficher le détail du mémoire : "
                             + e.getMessage());

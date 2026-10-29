@@ -24,7 +24,8 @@ public class MainApp extends Application {
             SceneNavigator.afficherLogin();
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            java.util.logging.Logger.getLogger(MainApp.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Démarrage impossible", e);
             AlertUtil.erreur("Démarrage impossible", e.getMessage());
         }
     }
