@@ -8,3 +8,94 @@
 .button {
     -fx-cursor: hand;
 }
+
+/* ---- [M6] Finitions communes aux écrans ---- */
+
+.page {
+    -fx-background-color: #f5f7fa;
+}
+
+.titre-page {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.sous-titre {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #263238;
+}
+
+.info {
+    -fx-text-fill: #1e40af;
+}
+
+.message-erreur {
+    -fx-text-fill: #b42318;
+}
+
+.carte {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e5e7eb;
+    -fx-border-radius: 8;
+    -fx-padding: 12;
+}
+
+/* Cartes de synthèse du tableau de bord */
+.carte-stat {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #e5e7eb;
+    -fx-border-radius: 10;
+    -fx-padding: 14 18 14 18;
+    -fx-spacing: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 6, 0, 0, 2);
+}
+
+.carte-stat-titre {
+    -fx-text-fill: #6b7280;
+}
+
+.carte-stat-valeur {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2457a7;
+}
+
+/* Boutons */
+.bouton-principal {
+    -fx-background-color: #2457a7;
+    -fx-text-fill: white;
+}
+
+.bouton-succes {
+    -fx-background-color: #15803d;
+    -fx-text-fill: white;
+}
+
+.bouton-danger {
+    -fx-background-color: #b42318;
+    -fx-text-fill: white;
+}
+
+.bouton-principal:hover, .bouton-succes:hover, .bouton-danger:hover {
+    -fx-opacity: 0.88;
+}
+
+/* Statut d'un mémoire (et état d'un compte) dans les tableaux */
+.statut-en_attente {
+    -fx-text-fill: #b45309;
+    -fx-font-weight: bold;
+}
+
+.statut-valide {
+    -fx-text-fill: #15803d;
+    -fx-font-weight: bold;
+}
+
+.statut-refuse {
+    -fx-text-fill: #b42318;
+    -fx-font-weight: bold;
+}

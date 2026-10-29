@@ -55,6 +55,9 @@
 
       <Label text="Les 5 mémoires les plus consultés" styleClass="sous-titre"/>
       <TableView fx:id="tableTop" prefHeight="190">
+        <columnResizePolicy>
+          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+        </columnResizePolicy>
         <columns>
           <TableColumn fx:id="colTitre" text="Titre" prefWidth="380"/>
           <TableColumn fx:id="colDomaine" text="Domaine" prefWidth="200"/>

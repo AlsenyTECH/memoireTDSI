@@ -20,6 +20,9 @@
   <Label text="Un mémoire « En attente » ou « Refusé » peut être modifié ou supprimé. Un mémoire validé est publié." wrapText="true"/>
 
   <TableView fx:id="tableMemoires" VBox.vgrow="ALWAYS">
+    <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+    </columnResizePolicy>
     <columns>
       <TableColumn fx:id="colTitre" text="Titre" prefWidth="250"/>
       <TableColumn fx:id="colNiveau" text="Niveau" prefWidth="60"/>

@@ -53,7 +53,6 @@ public class ValidationController {
         tableMemoires.setItems(memoires);
         tableMemoires.getSelectionModel().selectedItemProperty()
                 .addListener((obs, ancien, nouveau) -> afficherSelection(nouveau));
-        afficherSelection(null);
 
         charger();
     }
@@ -64,6 +63,7 @@ public class ValidationController {
         } catch (SQLException | SecurityException e) {
             labelMessage.setText("Impossible de charger les mémoires : " + e.getMessage());
         }
+        afficherSelection(tableMemoires.getSelectionModel().getSelectedItem());
     }
 
     private void afficherSelection(Memoire m) {

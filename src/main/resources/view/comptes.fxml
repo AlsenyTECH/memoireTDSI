@@ -25,6 +25,9 @@
   <CheckBox fx:id="caseInactifs" text="Afficher seulement les comptes inactifs ou verrouillés"/>
 
   <TableView fx:id="tableComptes" VBox.vgrow="ALWAYS">
+    <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+    </columnResizePolicy>
     <columns>
       <TableColumn fx:id="colNom" text="Nom" prefWidth="170"/>
       <TableColumn fx:id="colEmail" text="E-mail" prefWidth="210"/>

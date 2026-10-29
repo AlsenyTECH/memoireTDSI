@@ -21,6 +21,9 @@
   <Label text="Un domaine utilisé par un mémoire ne peut pas être supprimé." wrapText="true"/>
 
   <TableView fx:id="tableDomaines" VBox.vgrow="ALWAYS">
+    <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+    </columnResizePolicy>
     <columns>
       <TableColumn fx:id="colNom" text="Nom" prefWidth="280"/>
       <TableColumn fx:id="colDescription" text="Description" prefWidth="480"/>
