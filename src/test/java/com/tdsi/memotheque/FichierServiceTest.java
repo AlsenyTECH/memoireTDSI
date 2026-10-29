@@ -123,8 +123,11 @@ class FichierServiceTest {
         Path extrait = service().extraireVersTemporaire(m);
         assertArrayEquals(Files.readAllBytes(source), Files.readAllBytes(extrait));
         assertTrue(extrait.getFileName().toString().startsWith("memoire-7-"));
-        assertEquals("rwx------", java.nio.file.attribute.PosixFilePermissions.toString(
-                Files.getPosixFilePermissions(extrait.getParent())));
+        // Droits 700 vérifiables seulement sur Linux / macOS (Windows : droits du profil utilisateur).
+        if (java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            assertEquals("rwx------", java.nio.file.attribute.PosixFilePermissions.toString(
+                    Files.getPosixFilePermissions(extrait.getParent())));
+        }
     }
 
     @Test

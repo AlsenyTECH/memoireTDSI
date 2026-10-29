@@ -35,7 +35,8 @@ Raccourcis : `Ctrl+D` tableau de bord · `Ctrl+F` recherche · `Ctrl+N` notifica
 
 ## Installation sur Ubuntu
 
-Prérequis : Java 21 (JDK) et Maven. JavaFX, SQLite et JUnit sont téléchargés par Maven.
+Prérequis : Java 21 (JDK). Maven est facultatif : `./mvnw` le télécharge (remplacer `mvn` par `./mvnw`).
+JavaFX, SQLite et JUnit sont téléchargés automatiquement.
 
 ```bash
 sudo apt install -y openjdk-21-jdk maven git
@@ -55,6 +56,45 @@ git clone https://github.com/AlsenyTECH/memoireTDSI.git && cd memoireTDSI
 
 ```bash
 mvn test
+```
+
+## Installation sur Windows
+
+Seuls Java 21 et Git sont nécessaires : le Maven Wrapper (`mvnw.cmd`) télécharge Maven tout seul.
+Dans PowerShell :
+
+```powershell
+winget install EclipseAdoptium.Temurin.21.JDK
+```
+
+```powershell
+winget install Git.Git
+```
+
+Fermer puis rouvrir PowerShell, puis :
+
+```powershell
+git clone https://github.com/AlsenyTECH/memoireTDSI.git; cd memoireTDSI
+```
+
+```powershell
+.\mvnw.cmd test
+```
+
+```powershell
+.\mvnw.cmd javafx:run
+```
+
+Comptes de démonstration sous PowerShell (facultatif) :
+
+```powershell
+$env:MEMOTDSI_ADMIN_PASSWORD="AdminDemo2026"; $env:MEMOTDSI_ENCADREUR_PASSWORD="EncadreurDemo2026"; $env:MEMOTDSI_ETUDIANT1_PASSWORD="Etudiant1Demo2026"; $env:MEMOTDSI_ETUDIANT2_PASSWORD="Etudiant2Demo2026"; .\mvnw.cmd javafx:run
+```
+
+Application autonome Windows (`target\paquet\memotdsi\memotdsi.exe`, données dans `%LOCALAPPDATA%\MemoTDSI`) :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\creer-paquet.ps1
 ```
 
 ## Lancer l'application
