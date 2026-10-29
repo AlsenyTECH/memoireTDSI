@@ -99,3 +99,13 @@
     -fx-text-fill: #b42318;
     -fx-font-weight: bold;
 }
+
+/* Bandeau d'avertissement (mot de passe temporaire, signature invalide...) */
+.bandeau-alerte {
+    -fx-background-color: #fef3c7;
+    -fx-border-color: #f59e0b;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10;
+    -fx-text-fill: #78350f;
+}

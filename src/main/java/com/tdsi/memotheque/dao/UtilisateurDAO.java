@@ -15,4 +15,12 @@ public interface UtilisateurDAO extends GenericDAO<Utilisateur> {
     void changerActivation(int id, boolean actif) throws SQLException;
     void mettreAJourTentatives(int id, int tentatives, boolean verrouille) throws SQLException;
     void changerMotDePasse(int id, String hash, String sel) throws SQLException;
+
+    /**
+     * Mot de passe temporaire posé par l'admin : déverrouille le compte et impose
+     * un changement à la prochaine connexion. (Méthode par défaut pour garder les doublures de test.)
+     */
+    default void reinitialiserMotDePasse(int id, String hash, String sel) throws SQLException {
+        throw new UnsupportedOperationException("reinitialiserMotDePasse non implémentée");
+    }
 }

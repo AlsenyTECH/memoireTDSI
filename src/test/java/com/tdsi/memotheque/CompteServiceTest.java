@@ -69,7 +69,7 @@ class CompteServiceTest {
         assertThrows(SecurityException.class, () -> service.desactiver(admin.getId()));
         assertThrows(SecurityException.class, () -> service.deverrouiller(etudiant.getId()));
         assertThrows(SecurityException.class,
-                () -> service.creerEncadreur("Diop", "Awa", "awa@test.sn", "MotDePasse1"));
+                () -> service.creerEncadreur("Diop", "Awa", "awa@test.sn", "Encadrement2026"));
         assertFalse(dao.findById(etudiant.getId()).isActif());
     }
 
@@ -111,21 +111,21 @@ class CompteServiceTest {
     @Test
     void creerEncadreurActifAvecMotDePasseHache() throws Exception {
         SessionManager.ouvrir(admin);
-        Utilisateur u = service.creerEncadreur(" Diop ", "Awa", "Awa.Diop@Test.sn", "MotDePasse1");
+        Utilisateur u = service.creerEncadreur(" Diop ", "Awa", "Awa.Diop@Test.sn", "Encadrement2026");
 
         Utilisateur lu = dao.findById(u.getId());
         assertEquals(Role.ENCADREUR, lu.getRole());
         assertTrue(lu.isActif());
         assertEquals("awa.diop@test.sn", lu.getEmail());
         assertEquals("Diop", lu.getNom());
-        assertNotEquals("MotDePasse1", lu.getMotDePasseHash());
-        assertTrue(PasswordUtil.verifier("MotDePasse1", lu.getSel(), lu.getMotDePasseHash()));
+        assertNotEquals("Encadrement2026", lu.getMotDePasseHash());
+        assertTrue(PasswordUtil.verifier("Encadrement2026", lu.getSel(), lu.getMotDePasseHash()));
         assertEquals(1, Journal.compter("CREATION_COMPTE"));
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.creerEncadreur("X", "Y", "awa.diop@test.sn", "MotDePasse1"));
+                () -> service.creerEncadreur("X", "Y", "awa.diop@test.sn", "Encadrement2026"));
         assertThrows(IllegalArgumentException.class,
-                () -> service.creerEncadreur("X", "Y", "pas-un-email", "MotDePasse1"));
+                () -> service.creerEncadreur("X", "Y", "pas-un-email", "Encadrement2026"));
         assertThrows(IllegalArgumentException.class,
                 () -> service.creerEncadreur("X", "Y", "court@test.sn", "court"));
     }

@@ -43,6 +43,7 @@
     <Button fx:id="boutonActiver" text="Activer" onAction="#activer" styleClass="bouton-succes"/>
     <Button fx:id="boutonDesactiver" text="Désactiver" onAction="#desactiver" styleClass="bouton-danger"/>
     <Button fx:id="boutonDeverrouiller" text="Déverrouiller" onAction="#deverrouiller"/>
+    <Button fx:id="boutonReinitialiser" text="Réinitialiser le mot de passe" onAction="#reinitialiser"/>
   </HBox>
 
   <Label text="Créer un compte encadreur" styleClass="sous-titre"/>

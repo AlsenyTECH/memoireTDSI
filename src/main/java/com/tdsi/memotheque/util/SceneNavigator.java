@@ -51,6 +51,11 @@ public final class SceneNavigator {
 
     /** Charge un écran (nom du fichier FXML sans extension) dans le cadre principal. */
     public static void charger(String vue) {
+        // Garde centrale : un mot de passe temporaire doit être changé avant tout autre écran.
+        if (SessionManager.getUtilisateur() != null
+                && SessionManager.getUtilisateur().isDoitChangerMotDePasse()) {
+            vue = "profil";
+        }
         if (zoneContenu == null) {
             AlertUtil.erreur("Navigation", "Le cadre principal n'est pas affiché.");
             return;

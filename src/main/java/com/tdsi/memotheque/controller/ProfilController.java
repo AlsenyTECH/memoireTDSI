@@ -24,6 +24,7 @@ public class ProfilController {
     @FXML private PasswordField champNouveau;
     @FXML private PasswordField champConfirmation;
     @FXML private Label labelMessage;
+    @FXML private Label labelObligation;
 
     private final CompteService compteService = new CompteService();
 
@@ -41,6 +42,10 @@ public class ProfilController {
         labelNiveau.setText(u.getNiveau() == null ? "-" : u.getNiveau().name());
         labelDateCreation.setText(u.getDateCreation() == null ? "-"
                 : u.getDateCreation().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+
+        boolean obligation = u.isDoitChangerMotDePasse();
+        labelObligation.setVisible(obligation);
+        labelObligation.setManaged(obligation);
     }
 
     @FXML
@@ -52,8 +57,15 @@ public class ProfilController {
                 labelMessage.setText("La confirmation ne correspond pas au nouveau mot de passe.");
                 return;
             }
+            boolean etaitTemporaire = SessionManager.getUtilisateur() != null
+                    && SessionManager.getUtilisateur().isDoitChangerMotDePasse();
             compteService.changerMotDePasse(champAncien.getText(), nouveau);
             labelMessage.setText("Mot de passe modifié.");
+            if (etaitTemporaire) {
+                // Les menus étaient bloqués : on recharge le cadre principal complet.
+                com.tdsi.memotheque.util.AlertUtil.info("Mot de passe", "Mot de passe modifié. Bienvenue !");
+                com.tdsi.memotheque.util.SceneNavigator.afficherCadrePrincipal();
+            }
 
         } catch (IllegalArgumentException | SecurityException e) {
             labelMessage.setText(e.getMessage());

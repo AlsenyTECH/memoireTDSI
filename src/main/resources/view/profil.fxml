@@ -17,6 +17,8 @@
   </padding>
 
   <Label text="Mon profil" styleClass="titre-page"/>
+  <Label fx:id="labelObligation" wrapText="true" styleClass="bandeau-alerte"
+         text="Votre mot de passe a été réinitialisé par l'administrateur. Choisissez un nouveau mot de passe pour accéder à l'application."/>
 
   <GridPane hgap="12" vgap="8" styleClass="carte">
     <columnConstraints>

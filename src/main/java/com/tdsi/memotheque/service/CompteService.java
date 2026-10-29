@@ -110,6 +110,33 @@ public class CompteService {
         return u;
     }
 
+    /**
+     * L'admin pose un mot de passe temporaire (compte oublié ou compromis).
+     * Le compte est déverrouillé et devra changer ce mot de passe à la prochaine connexion.
+     * Le mot de passe temporaire est retourné une seule fois pour être communiqué à l'utilisateur.
+     */
+    public String reinitialiserMotDePasse(int idCompte) throws SQLException {
+        Utilisateur admin = exigerAdmin();
+        if (idCompte == admin.getId()) {
+            throw new IllegalArgumentException("Changez votre propre mot de passe depuis « Mon profil ».");
+        }
+        Utilisateur cible = charger(idCompte);
+
+        String temporaire = PasswordUtil.genererMotDePasseTemporaire();
+        String sel = PasswordUtil.genererSel();
+        utilisateurDAO.reinitialiserMotDePasse(idCompte, PasswordUtil.hasher(temporaire, sel), sel);
+
+        apresReinitialisation(cible);
+        journalService.log(admin.getId(), "REINITIALISATION_MOT_DE_PASSE",
+                "Compte #" + idCompte + " " + cible.getEmail());
+        return temporaire;
+    }
+
+    /** Point d'extension appelé après une réinitialisation (révocation des clés de signature). */
+    protected void apresReinitialisation(Utilisateur cible) throws SQLException {
+        // Rien par défaut.
+    }
+
     /** L'utilisateur connecté change SON mot de passe (l'ancien est exigé). */
     public void changerMotDePasse(String ancien, String nouveau) throws SQLException {
         Utilisateur session = SessionManager.getUtilisateur();
@@ -136,13 +163,17 @@ public class CompteService {
 
         session.setSel(sel);
         session.setMotDePasseHash(hash);
+        session.setDoitChangerMotDePasse(false);
         journalService.log(u.getId(), "CHANGEMENT_MOT_DE_PASSE", u.getEmail());
     }
 
     private void verifierMotDePasse(String motDePasse) {
-        // Même règle que l'inscription (AuthService) : 8 à 128 caractères.
+        // Même règles que l'inscription (AuthService).
         if (!Validator.longueurEntre(motDePasse, 8, 128)) {
             throw new IllegalArgumentException("Le mot de passe doit contenir entre 8 et 128 caractères.");
+        }
+        if (!Validator.motDePasseRobuste(motDePasse)) {
+            throw new IllegalArgumentException(AuthService.MESSAGE_MDP_FAIBLE);
         }
     }
 

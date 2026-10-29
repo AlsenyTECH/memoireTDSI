@@ -27,8 +27,8 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
         String sql = """
                 INSERT INTO utilisateur
                 (matricule, nom, prenom, email, mot_de_passe_hash, sel,
-                 role, niveau, actif, tentatives_echec, verrouille, date_creation)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 role, niveau, actif, tentatives_echec, verrouille, date_creation, doit_changer_mdp)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection c = DatabaseConnection.getConnection();
@@ -53,6 +53,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
             ps.setInt(10, u.getTentativesEchec());
             ps.setInt(11, u.isVerrouille() ? 1 : 0);
             ps.setString(12, u.getDateCreation().toString());
+            ps.setInt(13, u.isDoitChangerMotDePasse() ? 1 : 0);
 
             ps.executeUpdate();
 
@@ -74,7 +75,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
                 SET matricule = ?, nom = ?, prenom = ?, email = ?,
                     mot_de_passe_hash = ?, sel = ?, role = ?, niveau = ?,
                     actif = ?, tentatives_echec = ?, verrouille = ?,
-                    date_creation = ?
+                    date_creation = ?, doit_changer_mdp = ?
                 WHERE id = ?
                 """;
 
@@ -99,7 +100,8 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
             ps.setInt(10, u.getTentativesEchec());
             ps.setInt(11, u.isVerrouille() ? 1 : 0);
             ps.setString(12, u.getDateCreation().toString());
-            ps.setInt(13, u.getId());
+            ps.setInt(13, u.isDoitChangerMotDePasse() ? 1 : 0);
+            ps.setInt(14, u.getId());
 
             ps.executeUpdate();
         }
@@ -144,6 +146,12 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
         if (date != null) {
             u.setDateCreation(LocalDate.parse(date));
         }
+
+        String verrou = rs.getString("date_verrouillage");
+        if (verrou != null) {
+            u.setDateVerrouillage(java.time.LocalDateTime.parse(verrou));
+        }
+        u.setDoitChangerMotDePasse(rs.getInt("doit_changer_mdp") == 1);
 
         return u;
     }
@@ -279,7 +287,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
 
         String sql = """
                 UPDATE utilisateur
-                SET tentatives_echec = ?, verrouille = ?
+                SET tentatives_echec = ?, verrouille = ?, date_verrouillage = ?
                 WHERE id = ?
                 """;
 
@@ -288,7 +296,9 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
 
             ps.setInt(1, tentatives);
             ps.setInt(2, verrouille ? 1 : 0);
-            ps.setInt(3, id);
+            // La date sert au déverrouillage automatique (voir AuthService).
+            ps.setString(3, verrouille ? java.time.LocalDateTime.now().withNano(0).toString() : null);
+            ps.setInt(4, id);
 
             ps.executeUpdate();
         }
@@ -298,7 +308,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
     public void changerMotDePasse(int id, String hash, String sel) throws SQLException {
         String sql = """
                 UPDATE utilisateur
-                SET mot_de_passe_hash = ?, sel = ?
+                SET mot_de_passe_hash = ?, sel = ?, doit_changer_mdp = 0
                 WHERE id = ?
                 """;
 
@@ -313,4 +323,25 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
         }
     }
 
+    @Override
+    public void reinitialiserMotDePasse(int id, String hash, String sel) throws SQLException {
+        String sql = """
+                UPDATE utilisateur
+                SET mot_de_passe_hash = ?, sel = ?, doit_changer_mdp = 1,
+                    tentatives_echec = 0, verrouille = 0, date_verrouillage = NULL
+                WHERE id = ?
+                """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, hash);
+            ps.setString(2, sel);
+            ps.setInt(3, id);
+
+            if (ps.executeUpdate() == 0) {
+                throw new SQLException("Compte introuvable : " + id);
+            }
+        }
+    }
 }

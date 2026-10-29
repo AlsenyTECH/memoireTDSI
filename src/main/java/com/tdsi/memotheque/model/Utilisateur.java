@@ -18,6 +18,8 @@ public class Utilisateur {
     private int tentativesEchec;
     private boolean verrouille;
     private LocalDate dateCreation;
+    private java.time.LocalDateTime dateVerrouillage;   // verrouillage temporaire (null = aucun / manuel)
+    private boolean doitChangerMotDePasse;              // après une réinitialisation par l'admin
 
     public Utilisateur() { }
 
@@ -47,6 +49,11 @@ public class Utilisateur {
     public void setVerrouille(boolean verrouille) { this.verrouille = verrouille; }
     public LocalDate getDateCreation() { return dateCreation; }
     public void setDateCreation(LocalDate dateCreation) { this.dateCreation = dateCreation; }
+
+    public java.time.LocalDateTime getDateVerrouillage() { return dateVerrouillage; }
+    public void setDateVerrouillage(java.time.LocalDateTime dateVerrouillage) { this.dateVerrouillage = dateVerrouillage; }
+    public boolean isDoitChangerMotDePasse() { return doitChangerMotDePasse; }
+    public void setDoitChangerMotDePasse(boolean doitChangerMotDePasse) { this.doitChangerMotDePasse = doitChangerMotDePasse; }
 
     public String getNomComplet() { return prenom + " " + nom; }
 

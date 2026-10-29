@@ -44,6 +44,27 @@ public final class Validator {
         return n >= min && n <= max;
     }
 
+    /** Mots de passe trop courants, refusés même s'ils respectent la longueur. */
+    private static final java.util.Set<String> MOTS_DE_PASSE_COURANTS = java.util.Set.of(
+            "password", "password1", "password123", "motdepasse", "motdepasse1", "azerty123",
+            "azertyuiop", "qwerty123", "qwertyuiop", "12345678", "123456789", "1234567890",
+            "11111111", "00000000", "abcd1234", "admin123", "administrateur", "memotdsi",
+            "memotdsi1", "tdsi2025", "tdsi2026", "senegal1", "dakar2026", "bienvenue1");
+
+    /**
+     * Mot de passe robuste : 8 à 128 caractères, au moins une lettre et un chiffre,
+     * absent de la liste des mots de passe courants.
+     */
+    public static boolean motDePasseRobuste(String motDePasse) {
+        if (!longueurEntre(motDePasse, 8, 128)) {
+            return false;
+        }
+        boolean lettre = motDePasse.chars().anyMatch(Character::isLetter);
+        boolean chiffre = motDePasse.chars().anyMatch(Character::isDigit);
+        return lettre && chiffre
+                && !MOTS_DE_PASSE_COURANTS.contains(motDePasse.trim().toLowerCase(java.util.Locale.ROOT));
+    }
+
     /** Nombre de mots-clés séparés par des virgules (les éléments vides sont ignorés). */
     public static int compterMotsCles(String motsCles) {
         if (estVide(motsCles)) {

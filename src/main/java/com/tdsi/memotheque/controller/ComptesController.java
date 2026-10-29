@@ -35,6 +35,7 @@ public class ComptesController {
     @FXML private Button boutonActiver;
     @FXML private Button boutonDesactiver;
     @FXML private Button boutonDeverrouiller;
+    @FXML private Button boutonReinitialiser;
     @FXML private TextField champNom;
     @FXML private TextField champPrenom;
     @FXML private TextField champEmail;
@@ -99,6 +100,7 @@ public class ComptesController {
         boutonActiver.setDisable(u == null || u.isActif());
         boutonDesactiver.setDisable(u == null || !u.isActif());
         boutonDeverrouiller.setDisable(u == null || (!u.isVerrouille() && u.getTentativesEchec() == 0));
+        boutonReinitialiser.setDisable(u == null);
     }
 
     @FXML
@@ -114,6 +116,44 @@ public class ComptesController {
     @FXML
     private void deverrouiller() {
         executer(u -> compteService.deverrouiller(u.getId()), "Compte déverrouillé.");
+    }
+
+    @FXML
+    private void reinitialiser() {
+        Utilisateur u = tableComptes.getSelectionModel().getSelectedItem();
+        if (u == null || !com.tdsi.memotheque.util.AlertUtil.confirmer("Réinitialisation",
+                "Générer un mot de passe temporaire pour " + u.getNomComplet() + " ?\n"
+                + "Il devra le changer à sa prochaine connexion.")) {
+            return;
+        }
+        try {
+            String temporaire = compteService.reinitialiserMotDePasse(u.getId());
+            charger();
+            afficherMotDePasseTemporaire(u, temporaire);
+            labelMessage.setText("Mot de passe réinitialisé pour " + u.getEmail() + ".");
+        } catch (IllegalArgumentException | SecurityException e) {
+            labelMessage.setText(e.getMessage());
+        } catch (SQLException e) {
+            labelMessage.setText("Erreur : " + e.getMessage());
+        }
+    }
+
+    /** Affiché une seule fois : le mot de passe temporaire n'est stocké nulle part en clair. */
+    private void afficherMotDePasseTemporaire(Utilisateur u, String temporaire) {
+        TextField champ = new TextField(temporaire);
+        champ.setEditable(false);
+        champ.setStyle("-fx-font-family: monospace; -fx-font-size: 16px;");
+
+        javafx.scene.control.Alert alerte = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION);
+        alerte.setTitle("Mot de passe temporaire");
+        alerte.setHeaderText("Communiquez ce mot de passe à " + u.getNomComplet()
+                + " (il ne sera plus affiché) :");
+        alerte.getDialogPane().setContent(champ);
+        javafx.scene.input.ClipboardContent contenu = new javafx.scene.input.ClipboardContent();
+        contenu.putString(temporaire);
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(contenu);
+        alerte.showAndWait();
     }
 
     @FXML

@@ -4,6 +4,7 @@ import com.tdsi.memotheque.model.Role;
 import com.tdsi.memotheque.model.Utilisateur;
 import com.tdsi.memotheque.util.SceneNavigator;
 import com.tdsi.memotheque.util.SessionManager;
+import com.tdsi.memotheque.util.SurveillanceInactivite;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -45,7 +46,16 @@ public class MainController {
 
         configurerMenu(u);
         SceneNavigator.definirZoneContenu(contenu);
-        SceneNavigator.charger("dashboard");
+
+        // Déconnexion automatique après inactivité, dès que la scène existe.
+        contenu.sceneProperty().addListener((obs, ancienne, scene) -> {
+            if (scene != null) {
+                SurveillanceInactivite.demarrer(scene);
+            }
+        });
+
+        // Mot de passe temporaire : seul le profil est accessible tant qu'il n'est pas changé.
+        SceneNavigator.charger(u.isDoitChangerMotDePasse() ? "profil" : "dashboard");
     }
 
     /** Affiche ou masque les boutons selon le rôle (voir le tableau « menus par rôle »). */
@@ -71,6 +81,13 @@ public class MainController {
         afficher(btnComptes, admin);
         afficher(btnDomaines, admin);
         afficher(btnJournal, admin);
+
+        if (u.isDoitChangerMotDePasse()) {
+            for (Button b : new Button[] {btnDashboard, btnRecherche, btnDepot, btnMesMemoires,
+                    btnValidation, btnComptes, btnDomaines, btnJournal}) {
+                b.setDisable(true);
+            }
+        }
     }
 
     /** Un bouton masqué ne doit pas non plus laisser de trou dans le menu (setManaged). */
@@ -91,6 +108,11 @@ public class MainController {
 
     @FXML
     private void deconnexion() {
+        SurveillanceInactivite.arreter();
+        Utilisateur u = SessionManager.getUtilisateur();
+        if (u != null) {
+            new com.tdsi.memotheque.service.JournalService().log(u.getId(), "DECONNEXION", u.getEmail());
+        }
         SessionManager.fermer();
         SceneNavigator.afficherLogin();
     }
