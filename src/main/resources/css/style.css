@@ -1,168 +1,761 @@
-/* [M1 base, M6 finition] Style JavaFX (propriétés -fx-*). Fichier optionnel : le supprimer rend simplement le thème par défaut. */
+/* [M1 base, M6 finition] Système de design de MémoTDSI.
+   Toutes les couleurs sont des « jetons » définis sur .root : theme-sombre.css ne redéfinit que ces jetons.
+   Palette inspirée de l'illustration du campus : nuit de Dakar, or du couchant, bleu académique. */
 
 .root {
-    -fx-font-family: "Segoe UI", "Arial";
-    -fx-font-size: 13px;
+    /* ---- jetons ---- */
+    -c-primaire: #2b59c3;
+    -c-primaire-fonce: #1f4699;
+    -c-primaire-pale: #e8eefc;
+    -c-or: #f2b24c;
+    -c-nuit: #0e1a3a;
+    -c-nuit-2: #18295a;
+    -c-nuit-texte: #c3cde4;
+    -c-nuit-icone: #8794b8;
+    -c-fond: #f4f6fb;
+    -c-surface: #ffffff;
+    -c-surface-2: #f8f9fc;
+    -c-bordure: #e2e7f0;
+    -c-texte: #18213a;
+    -c-texte-doux: #5d6b85;
+    -c-succes: #16794a;
+    -c-succes-pale: #e3f4eb;
+    -c-alerte: #a35a00;
+    -c-alerte-pale: #fff3dc;
+    -c-danger: #c0352b;
+    -c-danger-pale: #fde8e6;
+    -c-ombre: rgba(16, 24, 40, 0.07);
+
+    /* ---- Modena piloté par les jetons ---- */
+    -fx-base: #eef1f7;
+    -fx-background: -c-fond;
+    -fx-control-inner-background: -c-surface;
+    -fx-control-inner-background-alt: -c-surface-2;
+    -fx-accent: -c-primaire;
+    -fx-focus-color: -c-primaire;
+    -fx-faint-focus-color: transparent;
+    -fx-selection-bar: -c-primaire-pale;
+    -fx-selection-bar-non-focused: -c-primaire-pale;
+    -fx-selection-bar-text: -c-texte;
+    -fx-text-base-color: -c-texte;
+    -fx-text-background-color: -c-texte;
+    -fx-prompt-text-fill: derive(-c-texte-doux, 35%);
+
+    -fx-font-family: "Segoe UI", "Ubuntu", "Noto Sans", "Cantarell", "Arial";
+    -fx-font-size: 13.5px;
 }
 
-.button {
-    -fx-cursor: hand;
+.label {
+    -fx-text-fill: -c-texte;
 }
 
-/* ---- [M6] Finitions communes aux écrans ---- */
+/* ================================================================ pages */
 
 .page {
-    -fx-background-color: #f5f7fa;
+    -fx-background-color: -c-fond;
+}
+
+.scroll-pane, .scroll-pane > .viewport {
+    -fx-background-color: -c-fond;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
 
 .titre-page {
-    -fx-font-size: 22px;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1f2937;
+    -fx-text-fill: -c-texte;
 }
 
 .sous-titre {
-    -fx-font-size: 15px;
+    -fx-font-size: 15.5px;
     -fx-font-weight: bold;
-    -fx-text-fill: #263238;
+    -fx-text-fill: -c-texte;
 }
 
 .info {
-    -fx-text-fill: #1e40af;
+    -fx-text-fill: -c-primaire;
 }
 
 .message-erreur {
-    -fx-text-fill: #b42318;
+    -fx-text-fill: -c-danger;
 }
+
+.aide {
+    -fx-text-fill: -c-texte-doux;
+    -fx-font-size: 12.5px;
+}
+
+.valeur-fixe {
+    -fx-font-weight: bold;
+    -fx-text-fill: -c-texte;
+}
+
+.etape-en-cours {
+    -fx-text-fill: -c-alerte;
+}
+
+/* ================================================================ cartes */
 
 .carte {
-    -fx-background-color: white;
-    -fx-background-radius: 8;
-    -fx-border-color: #e5e7eb;
-    -fx-border-radius: 8;
-    -fx-padding: 12;
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -c-bordure;
+    -fx-border-radius: 12;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, -c-ombre, 14, 0, 0, 3);
 }
 
-/* Cartes de synthèse du tableau de bord */
 .carte-stat {
-    -fx-background-color: white;
-    -fx-background-radius: 10;
-    -fx-border-color: #e5e7eb;
-    -fx-border-radius: 10;
-    -fx-padding: 14 18 14 18;
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -c-bordure;
+    -fx-border-radius: 12;
+    -fx-padding: 16 18 16 18;
     -fx-spacing: 4;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 6, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, -c-ombre, 14, 0, 0, 3);
 }
 
 .carte-stat-titre {
-    -fx-text-fill: #6b7280;
+    -fx-text-fill: -c-texte-doux;
+    -fx-font-size: 12.5px;
 }
 
 .carte-stat-valeur {
-    -fx-font-size: 28px;
+    -fx-font-size: 30px;
     -fx-font-weight: bold;
-    -fx-text-fill: #2457a7;
+    -fx-text-fill: -c-texte;
 }
 
-/* Boutons */
-.bouton-principal {
-    -fx-background-color: #2457a7;
+/* Pastille ronde contenant l'icône d'une carte de statistique */
+.pastille-icone {
+    -fx-background-color: -c-primaire-pale;
+    -fx-background-radius: 999;
+    -fx-min-width: 42;
+    -fx-min-height: 42;
+    -fx-max-width: 42;
+    -fx-max-height: 42;
+}
+
+.pastille-icone .icone {
+    -fx-background-color: -c-primaire;
+}
+
+.pastille-icone.or {
+    -fx-background-color: -c-alerte-pale;
+}
+
+.pastille-icone.or .icone {
+    -fx-background-color: -c-alerte;
+}
+
+.pastille-icone.vert {
+    -fx-background-color: -c-succes-pale;
+}
+
+.pastille-icone.vert .icone {
+    -fx-background-color: -c-succes;
+}
+
+/* ================================================================ icônes */
+
+.icone {
+    -fx-background-color: -c-texte-doux;
+}
+
+/* ================================================================ boutons */
+
+.button, .toggle-button, .menu-button {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -c-bordure;
+    -fx-border-radius: 8;
+    -fx-padding: 7 14 7 14;
+    -fx-text-fill: -c-texte;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 8;
+}
+
+.button:hover, .menu-button:hover {
+    -fx-border-color: -c-primaire;
+    -fx-text-fill: -c-primaire;
+}
+
+.button:hover .icone {
+    -fx-background-color: -c-primaire;
+}
+
+.button:pressed {
+    -fx-background-color: -c-primaire-pale;
+}
+
+.button:focused {
+    -fx-border-color: -c-primaire;
+}
+
+.button:disabled {
+    -fx-opacity: 0.45;
+}
+
+.bouton-principal, .bouton-succes, .bouton-danger {
     -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent;
+}
+
+.bouton-principal {
+    -fx-background-color: -c-primaire;
+}
+
+.bouton-principal:hover {
+    -fx-background-color: -c-primaire-fonce;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
 }
 
 .bouton-succes {
-    -fx-background-color: #15803d;
+    -fx-background-color: -c-succes;
+}
+
+.bouton-succes:hover {
+    -fx-background-color: derive(-c-succes, -15%);
     -fx-text-fill: white;
+    -fx-border-color: transparent;
 }
 
 .bouton-danger {
-    -fx-background-color: #b42318;
+    -fx-background-color: -c-danger;
+}
+
+.bouton-danger:hover {
+    -fx-background-color: derive(-c-danger, -15%);
     -fx-text-fill: white;
+    -fx-border-color: transparent;
 }
 
-.bouton-principal:hover, .bouton-succes:hover, .bouton-danger:hover {
-    -fx-opacity: 0.88;
+.bouton-principal .icone, .bouton-succes .icone, .bouton-danger .icone,
+.bouton-principal:hover .icone {
+    -fx-background-color: white;
 }
 
-/* Statut d'un mémoire (et état d'un compte) dans les tableaux */
-.statut-en_attente {
-    -fx-text-fill: #b45309;
+/* Bouton rond ne contenant qu'une icône (cloche, thème) */
+.bouton-icone {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 8;
+}
+
+.bouton-icone:hover {
+    -fx-background-color: -c-fond;
+    -fx-border-color: transparent;
+}
+
+.hyperlink {
+    -fx-text-fill: -c-primaire;
+    -fx-border-color: transparent;
+}
+
+/* ================================================================ champs */
+
+.text-field, .password-field, .text-area, .combo-box, .date-picker, .spinner {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -c-bordure;
+    -fx-border-radius: 8;
+}
+
+.text-field, .password-field {
+    -fx-padding: 8 10 8 10;
+}
+
+.text-area .content {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 8;
+}
+
+.date-picker .text-field {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+.text-field:focused, .password-field:focused, .text-area:focused,
+.combo-box:focused, .date-picker:focused {
+    -fx-border-color: -c-primaire;
+    -fx-effect: dropshadow(gaussian, derive(-c-primaire, 60%), 6, 0.2, 0, 0);
+}
+
+.combo-box .list-cell, .combo-box .list-cell:selected, .combo-box .list-cell:odd {
+    -fx-background-color: transparent;
+    -fx-text-fill: -c-texte;
+    -fx-padding: 4 6 4 6;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(16, 24, 40, 0.18), 16, 0, 0, 6);
+}
+
+.check-box .box {
+    -fx-background-color: -c-surface;
+    -fx-border-color: derive(-c-bordure, -15%);
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.check-box:selected .box {
+    -fx-background-color: -c-primaire;
+    -fx-border-color: -c-primaire;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: white;
+}
+
+/* ================================================================ tableaux */
+
+.table-view, .list-view {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -c-bordure;
+    -fx-border-radius: 12;
+    -fx-padding: 2;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -c-bordure transparent;
+    -fx-size: 38;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -c-texte-doux;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+    -fx-padding: 0 8 0 8;
+}
+
+.table-row-cell {
+    -fx-background-color: -c-surface;
+    -fx-border-color: transparent transparent derive(-c-bordure, 5%) transparent;
+    -fx-cell-size: 38;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: -c-surface-2;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: derive(-c-primaire-pale, 30%);
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -c-primaire-pale;
+}
+
+.table-cell {
+    -fx-text-fill: -c-texte;
+    -fx-padding: 0 8 0 8;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -c-texte;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -c-texte-doux;
+}
+
+.list-cell {
+    -fx-background-color: -c-surface;
+    -fx-padding: 10 12 10 12;
+    -fx-text-fill: -c-texte;
+}
+
+.list-cell:odd {
+    -fx-background-color: -c-surface-2;
+}
+
+.list-cell:selected {
+    -fx-background-color: -c-primaire-pale;
+}
+
+/* ================================================================ statuts */
+
+/* Texte coloré (anciennes cellules) */
+.statut-en_attente { -fx-text-fill: -c-alerte;   -fx-font-weight: bold; }
+.statut-valide     { -fx-text-fill: -c-succes;   -fx-font-weight: bold; }
+.statut-refuse     { -fx-text-fill: -c-danger;   -fx-font-weight: bold; }
+.statut-autorise   { -fx-text-fill: -c-primaire; -fx-font-weight: bold; }
+
+/* Pastilles (étiquettes arrondies) */
+.pastille {
+    -fx-min-width: -fx-pref-width;
+    -fx-background-radius: 999;
+    -fx-padding: 3 10 3 10;
+    -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
 
-.statut-valide {
-    -fx-text-fill: #15803d;
-    -fx-font-weight: bold;
+.pastille.en_attente { -fx-background-color: -c-alerte-pale;   -fx-text-fill: -c-alerte; }
+.pastille.valide     { -fx-background-color: -c-succes-pale;   -fx-text-fill: -c-succes; }
+.pastille.refuse     { -fx-background-color: -c-danger-pale;   -fx-text-fill: -c-danger; }
+.pastille.autorise   { -fx-background-color: -c-primaire-pale; -fx-text-fill: -c-primaire; }
+.pastille.neutre     { -fx-background-color: -c-fond;          -fx-text-fill: -c-texte-doux; }
+
+/* ================================================================ bandeaux */
+
+.bandeau-alerte, .bandeau-succes, .bandeau-danger {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 10 14 10 14;
 }
 
-.statut-refuse {
-    -fx-text-fill: #b42318;
-    -fx-font-weight: bold;
-}
-
-.statut-autorise {
-    -fx-text-fill: #1d4ed8;
-    -fx-font-weight: bold;
-}
-
-/* Bandeau d'avertissement (mot de passe temporaire, signature invalide...) */
 .bandeau-alerte {
-    -fx-background-color: #fef3c7;
-    -fx-border-color: #f59e0b;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-padding: 10;
-    -fx-text-fill: #78350f;
+    -fx-background-color: -c-alerte-pale;
+    -fx-border-color: derive(-c-alerte, 55%);
+    -fx-text-fill: -c-alerte;
 }
 
 .bandeau-succes {
-    -fx-background-color: #dcfce7;
-    -fx-border-color: #16a34a;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-padding: 10;
-    -fx-text-fill: #14532d;
+    -fx-background-color: -c-succes-pale;
+    -fx-border-color: derive(-c-succes, 55%);
+    -fx-text-fill: -c-succes;
 }
 
 .bandeau-danger {
-    -fx-background-color: #fee2e2;
-    -fx-border-color: #dc2626;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-padding: 10;
-    -fx-text-fill: #7f1d1d;
+    -fx-background-color: -c-danger-pale;
+    -fx-border-color: derive(-c-danger, 55%);
+    -fx-text-fill: -c-danger;
 }
 
-/* Bouton de menu signalant des notifications non lues */
-.menu-alerte {
-    -fx-background-color: #f59e0b;
-    -fx-text-fill: #1f2937;
-    -fx-font-weight: bold;
-}
+.label.bandeau-alerte { -fx-text-fill: -c-alerte; }
+.label.bandeau-succes { -fx-text-fill: -c-succes; }
+.label.bandeau-danger { -fx-text-fill: -c-danger; }
 
 .notification-non-lue {
     -fx-font-weight: bold;
 }
 
 .barre-filtres {
-    -fx-background-color: #f4f6f9;
+    -fx-background-color: transparent;
 }
 
-/* ---- Circuit universitaire ---- */
+/* ================================================================ cadre principal */
 
-/* Texte d'aide sous un champ */
-.aide {
-    -fx-text-fill: #6b7280;
-    -fx-font-size: 12px;
+.barre-laterale {
+    -fx-background-color: -c-nuit;
+    -fx-padding: 18 12 14 12;
+    -fx-spacing: 3;
 }
 
-/* Valeur imposée par la scolarité, affichée mais non modifiable */
-.valeur-fixe {
+.logo-titre {
+    -fx-text-fill: white;
+    -fx-font-size: 19px;
     -fx-font-weight: bold;
-    -fx-text-fill: #374151;
 }
 
-/* Étapes du circuit dans les tableaux */
-.etape-en-cours {
-    -fx-text-fill: #b45309;
+.logo-sous-titre {
+    -fx-text-fill: -c-nuit-icone;
+    -fx-font-size: 11px;
+}
+
+.menu-section {
+    -fx-text-fill: -c-nuit-icone;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-padding: 14 10 4 10;
+}
+
+.lien-menu {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8;
+    -fx-text-fill: -c-nuit-texte;
+    -fx-alignment: center-left;
+    -fx-padding: 9 12 9 12;
+    -fx-graphic-text-gap: 12;
+    -fx-font-size: 13.5px;
+}
+
+.lien-menu:focused, .bouton-icone:focused {
+    -fx-border-color: transparent;
+}
+
+.lien-menu .icone {
+    -fx-background-color: -c-nuit-icone;
+}
+
+.lien-menu:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+}
+
+.lien-menu:hover .icone {
+    -fx-background-color: white;
+}
+
+.lien-menu.actif {
+    -fx-background-color: -c-nuit-2;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.lien-menu.actif .icone {
+    -fx-background-color: -c-or;
+}
+
+.carte-utilisateur {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+    -fx-spacing: 10;
+}
+
+.carte-utilisateur .label {
+    -fx-text-fill: white;
+}
+
+.carte-utilisateur .role {
+    -fx-text-fill: -c-nuit-icone;
+    -fx-font-size: 11.5px;
+}
+
+.avatar {
+    -fx-background-color: -c-or;
+    -fx-background-radius: 999;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+    -fx-max-width: 36;
+    -fx-max-height: 36;
+    -fx-alignment: center;
+}
+
+.avatar .label {
+    -fx-text-fill: -c-nuit;
+    -fx-font-weight: bold;
+}
+
+.barre-haut {
+    -fx-background-color: -c-surface;
+    -fx-border-color: transparent transparent -c-bordure transparent;
+    -fx-padding: 10 22 10 26;
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
+
+.fil-ariane {
+    -fx-text-fill: -c-texte-doux;
+    -fx-font-size: 12.5px;
+}
+
+.titre-section {
+    -fx-text-fill: -c-texte;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+.badge {
+    -fx-background-color: -c-danger;
+    -fx-background-radius: 999;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 5 1 5;
+    -fx-border-color: -c-surface;
+    -fx-border-radius: 999;
+    -fx-border-width: 2;
+}
+
+/* ================================================================ connexion */
+
+.panneau-image {
+    -fx-background-color: -c-nuit;
+    -fx-background-image: url("../images/campus-connexion.png");
+    -fx-background-size: cover;
+    -fx-background-position: center bottom;
+}
+
+.voile-image {
+    -fx-background-color: linear-gradient(to bottom, rgba(14, 26, 58, 0.85) 0%, rgba(14, 26, 58, 0.15) 45%, rgba(14, 26, 58, 0) 100%);
+}
+
+.titre-accueil {
+    -fx-text-fill: white;
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+}
+
+.texte-accueil {
+    -fx-text-fill: #dfe5f3;
+    -fx-font-size: 14px;
+}
+
+.etiquette-accueil {
+    -fx-text-fill: -c-or;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+}
+
+.credit-image {
+    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-font-size: 10.5px;
+    -fx-background-color: rgba(10, 17, 40, 0.6);
+    -fx-background-radius: 999;
+    -fx-padding: 3 10 3 10;
+}
+
+.panneau-formulaire {
+    -fx-background-color: -c-surface;
+}
+
+.titre-formulaire {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -c-texte;
+}
+
+.champ-titre {
+    -fx-text-fill: -c-texte;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+}
+
+/* ================================================================ tableau de bord */
+
+.bandeau-accueil {
+    -fx-background-color: -c-nuit;
+    -fx-background-image: url("../images/campus-bandeau.png");
+    -fx-background-size: cover;
+    -fx-background-position: right center;
+    -fx-background-radius: 14;
+    -fx-min-height: 150;
+    -fx-pref-height: 150;
+}
+
+.bandeau-accueil-voile {
+    -fx-background-color: linear-gradient(to right, rgba(14, 26, 58, 0.92) 0%, rgba(14, 26, 58, 0.55) 50%, rgba(14, 26, 58, 0) 80%);
+    -fx-background-radius: 14;
+    -fx-padding: 22 28 22 28;
+    -fx-spacing: 4;
+}
+
+.bonjour {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.bonjour-sous {
+    -fx-text-fill: #dfe5f3;
+    -fx-font-size: 13.5px;
+}
+
+/* ================================================================ graphiques */
+
+.chart {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -c-bordure;
+    -fx-border-radius: 12;
+    -fx-padding: 12;
+}
+
+.chart-title {
+    -fx-text-fill: -c-texte;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
+    -fx-stroke: -c-bordure;
+}
+
+.axis, .axis-label {
+    -fx-tick-label-fill: -c-texte-doux;
+    -fx-text-fill: -c-texte-doux;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart-legend-item {
+    -fx-text-fill: -c-texte-doux;
+}
+
+.default-color0.chart-bar { -fx-bar-fill: -c-primaire; -fx-background-radius: 6 6 0 0; }
+.default-color0.chart-pie { -fx-pie-color: #2b59c3; }
+.default-color1.chart-pie { -fx-pie-color: #f2b24c; }
+.default-color2.chart-pie { -fx-pie-color: #16794a; }
+.default-color3.chart-pie { -fx-pie-color: #c0352b; }
+.default-color4.chart-pie { -fx-pie-color: #7c5cd6; }
+.default-color5.chart-pie { -fx-pie-color: #1f9bb5; }
+.default-color6.chart-pie { -fx-pie-color: #d0698a; }
+.default-color7.chart-pie { -fx-pie-color: #5d6b85; }
+
+/* ================================================================ divers */
+
+.separator .line {
+    -fx-border-color: -c-bordure;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: derive(-c-bordure, -12%);
+    -fx-background-radius: 999;
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+.context-menu {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 10;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(16, 24, 40, 0.18), 18, 0, 0, 6);
+}
+
+.context-menu .menu-item:focused {
+    -fx-background-color: -c-primaire-pale;
+    -fx-background-radius: 6;
+}
+
+.dialog-pane {
+    -fx-background-color: -c-surface;
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-padding: 4 0 0 0;
+}
+
+.tooltip {
+    -fx-background-color: -c-nuit;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-font-size: 12px;
 }

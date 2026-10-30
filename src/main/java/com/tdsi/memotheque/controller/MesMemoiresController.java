@@ -63,19 +63,7 @@ public class MesMemoiresController {
         colResultat.setCellValueFactory(c -> new SimpleStringProperty(resultat(c.getValue())));
         colSuivi.setCellValueFactory(c -> new SimpleStringProperty(suivi(c.getValue())));
 
-        colStatut.setCellFactory(colonne -> new TableCell<>() {
-            @Override
-            protected void updateItem(StatutMemoire statut, boolean vide) {
-                super.updateItem(statut, vide);
-                getStyleClass().removeAll("statut-en_attente", "statut-valide", "statut-refuse", "statut-autorise");
-                if (vide || statut == null) {
-                    setText(null);
-                    return;
-                }
-                setText(statut.getLibelle());
-                getStyleClass().add("statut-" + statut.name().toLowerCase());
-            }
-        });
+        colStatut.setCellFactory(colonne -> Libelles.cellulePastille());
 
         tableMemoires.setItems(memoires);
         tableMemoires.getSelectionModel().selectedItemProperty()

@@ -6,21 +6,51 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M2] Écran de connexion -->
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.tdsi.memotheque.controller.LoginController"
-      alignment="CENTER" spacing="12" prefWidth="480" prefHeight="420" styleClass="page">
-  <padding>
-    <Insets top="30" right="50" bottom="30" left="50"/>
-  </padding>
-  <Label text="MémoTDSI" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
-  <Label text="Connexion"/>
-  <TextField fx:id="champIdentifiant" promptText="Email ou matricule" onAction="#seConnecter"/>
-  <PasswordField fx:id="champMotDePasse" promptText="Mot de passe" onAction="#seConnecter"/>
-  <Button text="Se connecter" maxWidth="Infinity" defaultButton="true" onAction="#seConnecter"
-          styleClass="bouton-principal"/>
-  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
-  <Hyperlink text="Pas encore de compte ? S'inscrire (tdsien)" onAction="#allerInscription"/>
-</VBox>
+<!-- [M2] Écran de connexion : illustration du campus à gauche, formulaire à droite -->
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.LoginController">
+  <StackPane fx:id="panneauImage" styleClass="panneau-image" HBox.hgrow="ALWAYS" minWidth="380" prefWidth="560">
+    <VBox styleClass="voile-image" spacing="10">
+      <padding><Insets top="44" right="44" bottom="26" left="44"/></padding>
+      <Label text="UNIVERSITÉ CHEIKH ANTA DIOP DE DAKAR · FILIÈRE TDSI" styleClass="etiquette-accueil" wrapText="true"/>
+      <Label text="MémoTDSI" styleClass="titre-accueil"/>
+      <Label text="La mémothèque de la filière : déposez, évaluez, soutenez et publiez les mémoires, de la L1 au M2."
+             styleClass="texte-accueil" wrapText="true" maxWidth="400"/>
+      <Region VBox.vgrow="ALWAYS"/>
+      <Label fx:id="labelCredit" text="Illustration : le campus au crépuscule, face à l'Atlantique" styleClass="credit-image"/>
+    </VBox>
+  </StackPane>
+
+  <VBox styleClass="panneau-formulaire" alignment="CENTER_LEFT" spacing="10" minWidth="420" prefWidth="460">
+    <padding><Insets top="40" right="56" bottom="40" left="56"/></padding>
+    <ImageView fitWidth="52" fitHeight="52" preserveRatio="true">
+      <Image url="@../images/logo-128.png"/>
+    </ImageView>
+    <Region prefHeight="6"/>
+    <Label text="Bon retour parmi nous" styleClass="titre-formulaire"/>
+    <Label text="Connectez-vous avec votre e-mail universitaire ou votre matricule." styleClass="aide" wrapText="true"/>
+    <Region prefHeight="8"/>
+    <Label text="Identifiant" styleClass="champ-titre"/>
+    <TextField fx:id="champIdentifiant" promptText="prenom.nom@univ.sn ou matricule" onAction="#seConnecter"/>
+    <Label text="Mot de passe" styleClass="champ-titre"/>
+    <PasswordField fx:id="champMotDePasse" promptText="Votre mot de passe" onAction="#seConnecter"/>
+    <Region prefHeight="6"/>
+    <Button text="Se connecter" maxWidth="Infinity" defaultButton="true" onAction="#seConnecter"
+            styleClass="bouton-principal"/>
+    <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
+    <HBox alignment="CENTER_LEFT" spacing="4">
+      <Label text="Nouvel étudiant ?" styleClass="aide"/>
+      <Hyperlink text="Créer mon compte" onAction="#allerInscription"/>
+    </HBox>
+    <Region VBox.vgrow="ALWAYS"/>
+    <Label text="Connexion protégée : compte verrouillé 15 minutes après 5 essais infructueux."
+           styleClass="aide" wrapText="true"/>
+  </VBox>
+</HBox>

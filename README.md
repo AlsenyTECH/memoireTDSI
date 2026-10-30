@@ -139,6 +139,20 @@ Application autonome Windows (`target\paquet\memotdsi\memotdsi.exe`, données da
 powershell -ExecutionPolicy Bypass -File scripts\creer-paquet.ps1
 ```
 
+## Interface
+
+Barre latérale à icônes organisée par rôle, barre du haut avec le titre de l'écran, la cloche des
+notifications (badge du nombre non lu), le thème clair / sombre, le profil et la déconnexion.
+États des mémoires en pastilles colorées, tableau de bord avec bannière d'accueil.
+
+- **Illustrations** (`src/main/resources/images/`) : campus au crépuscule face à l'Atlantique,
+  dessin original généré pour le projet (aucune photo sous droits).
+- **Mettre une vraie photo de l'université** : déposer `campus.jpg` (ou `.png`) dans le dossier
+  `images/` du dossier de données (à côté de `memotdsi.db` avec `mvn javafx:run`) ; elle remplace
+  l'illustration sur l'écran de connexion et la bannière du tableau de bord.
+- **Icônes** : Material Design Icons (Google, licence Apache 2.0), dessinées en vectoriel par
+  JavaFX (`util/Icone.java`), sans dépendance supplémentaire.
+
 ## Lancer l'application
 
 ```bash

@@ -10,6 +10,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <!-- [M5] Tableau de bord -->
@@ -24,25 +25,42 @@
 
       <Label text="Tableau de bord" styleClass="titre-page"/>
 
-      <!-- À faire selon le rôle + prochaines soutenances (rempli par le contrôleur) -->
-      <VBox fx:id="blocAFaire" spacing="6" styleClass="carte">
-        <Label text="À faire" styleClass="sous-titre"/>
-      </VBox>
+      <!-- Bannière d'accueil sur l'illustration du campus -->
+      <StackPane fx:id="bandeauAccueil" styleClass="bandeau-accueil">
+        <VBox styleClass="bandeau-accueil-voile" alignment="CENTER_LEFT">
+          <Label fx:id="labelBonjour" text="Bonjour" styleClass="bonjour"/>
+          <Label fx:id="labelSousBonjour" styleClass="bonjour-sous" wrapText="true" maxWidth="560"/>
+        </VBox>
+      </StackPane>
 
       <HBox spacing="16">
-        <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
-          <Label text="Mémoires publiés" styleClass="carte-stat-titre"/>
-          <Label fx:id="labelTotalValides" text="0" styleClass="carte-stat-valeur"/>
-        </VBox>
-        <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
-          <Label text="Étudiants inscrits" styleClass="carte-stat-titre"/>
-          <Label fx:id="labelTotalEtudiants" text="0" styleClass="carte-stat-valeur"/>
-        </VBox>
-        <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
-          <Label text="En attente de l'avis encadreur" styleClass="carte-stat-titre"/>
-          <Label fx:id="labelEnAttente" text="0" styleClass="carte-stat-valeur"/>
-        </VBox>
+        <HBox styleClass="carte-stat" spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+          <StackPane fx:id="iconePublies" styleClass="pastille-icone, vert"/>
+          <VBox>
+            <Label text="Mémoires publiés" styleClass="carte-stat-titre"/>
+            <Label fx:id="labelTotalValides" text="0" styleClass="carte-stat-valeur"/>
+          </VBox>
+        </HBox>
+        <HBox styleClass="carte-stat" spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+          <StackPane fx:id="iconeEtudiants" styleClass="pastille-icone"/>
+          <VBox>
+            <Label text="Étudiants inscrits" styleClass="carte-stat-titre"/>
+            <Label fx:id="labelTotalEtudiants" text="0" styleClass="carte-stat-valeur"/>
+          </VBox>
+        </HBox>
+        <HBox styleClass="carte-stat" spacing="14" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+          <StackPane fx:id="iconeAttente" styleClass="pastille-icone, or"/>
+          <VBox>
+            <Label text="En attente de l'avis encadreur" styleClass="carte-stat-titre"/>
+            <Label fx:id="labelEnAttente" text="0" styleClass="carte-stat-valeur"/>
+          </VBox>
+        </HBox>
       </HBox>
+
+      <!-- À faire selon le rôle + prochaines soutenances (rempli par le contrôleur) -->
+      <VBox fx:id="blocAFaire" spacing="8" styleClass="carte">
+        <Label text="À faire" styleClass="sous-titre"/>
+      </VBox>
 
       <HBox spacing="16">
         <PieChart fx:id="graphiqueDomaines" title="Mémoires publiés par domaine"

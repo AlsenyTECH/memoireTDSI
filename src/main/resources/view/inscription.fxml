@@ -7,26 +7,65 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M2] Inscription d'un tdsien -->
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.tdsi.memotheque.controller.InscriptionController"
-      alignment="CENTER" spacing="9" styleClass="page">
-  <padding>
-    <Insets top="20" right="50" bottom="20" left="50"/>
-  </padding>
-  <Label text="Inscription tdsien" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
-  <Label text="Le compte sera actif après validation par l'administrateur." wrapText="true"/>
-  <TextField fx:id="champMatricule" promptText="Matricule (4 à 20 caractères)"/>
-  <TextField fx:id="champPrenom" promptText="Prénom"/>
-  <TextField fx:id="champNom" promptText="Nom"/>
-  <TextField fx:id="champEmail" promptText="Adresse e-mail"/>
-  <ComboBox fx:id="comboNiveau" promptText="Niveau" maxWidth="Infinity"/>
-  <PasswordField fx:id="champMotDePasse" promptText="Mot de passe (8 caractères minimum)"/>
-  <PasswordField fx:id="champConfirmation" promptText="Confirmer le mot de passe"/>
-  <Button text="S'inscrire" maxWidth="Infinity" defaultButton="true" onAction="#inscrire"
-          styleClass="bouton-principal"/>
-  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
-  <Hyperlink text="Déjà inscrit ? Se connecter" onAction="#retourConnexion"/>
-</VBox>
+<!-- [M2] Inscription d'un tdsien : illustration du campus à gauche, formulaire à droite -->
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.InscriptionController">
+  <StackPane styleClass="panneau-image" HBox.hgrow="ALWAYS" minWidth="340" prefWidth="480">
+    <VBox styleClass="voile-image" spacing="10">
+      <padding><Insets top="44" right="40" bottom="26" left="40"/></padding>
+      <Label text="UNIVERSITÉ CHEIKH ANTA DIOP DE DAKAR · FILIÈRE TDSI" styleClass="etiquette-accueil" wrapText="true"/>
+      <Label text="Rejoignez MémoTDSI" styleClass="titre-accueil" wrapText="true"/>
+      <Label text="Déposez votre mémoire, suivez l'avis de votre encadreur et la date de votre soutenance."
+             styleClass="texte-accueil" wrapText="true" maxWidth="380"/>
+    </VBox>
+  </StackPane>
+
+  <VBox styleClass="panneau-formulaire" alignment="CENTER_LEFT" spacing="9" minWidth="460" prefWidth="520">
+    <padding><Insets top="32" right="52" bottom="32" left="52"/></padding>
+    <Label text="Créer mon compte étudiant" styleClass="titre-formulaire"/>
+    <Label text="Votre compte sera actif après vérification de votre matricule par la scolarité."
+           styleClass="aide" wrapText="true"/>
+    <Region prefHeight="4"/>
+    <GridPane hgap="12" vgap="6">
+      <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+      </columnConstraints>
+      <Label text="Prénom" styleClass="champ-titre" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+      <Label text="Nom" styleClass="champ-titre" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+      <TextField fx:id="champPrenom" promptText="Awa" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+      <TextField fx:id="champNom" promptText="Sow" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+      <Label text="Matricule" styleClass="champ-titre" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+      <Label text="Niveau" styleClass="champ-titre" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+      <TextField fx:id="champMatricule" promptText="4 à 20 caractères" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+      <ComboBox fx:id="comboNiveau" promptText="L1 … M2" maxWidth="Infinity" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    </GridPane>
+    <Label text="Adresse e-mail" styleClass="champ-titre"/>
+    <TextField fx:id="champEmail" promptText="prenom.nom@univ.sn"/>
+    <GridPane hgap="12" vgap="6">
+      <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+      </columnConstraints>
+      <Label text="Mot de passe" styleClass="champ-titre" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+      <Label text="Confirmation" styleClass="champ-titre" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+      <PasswordField fx:id="champMotDePasse" promptText="8 caractères, lettres et chiffres" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+      <PasswordField fx:id="champConfirmation" promptText="Retapez-le" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+    </GridPane>
+    <Region prefHeight="6"/>
+    <Button text="Créer mon compte" maxWidth="Infinity" defaultButton="true" onAction="#inscrire"
+            styleClass="bouton-principal"/>
+    <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
+    <HBox alignment="CENTER_LEFT" spacing="4">
+      <Label text="Déjà inscrit ?" styleClass="aide"/>
+      <Hyperlink text="Se connecter" onAction="#retourConnexion"/>
+    </HBox>
+  </VBox>
+</HBox>

@@ -1,83 +1,42 @@
-/* Thème sombre (option « Mon profil »). Chargé APRÈS style.css : il en surcharge les couleurs.
-   -fx-base / -fx-background pilotent toutes les couleurs dérivées du thème Modena. */
+/* Thème sombre : chargé APRÈS style.css, il ne redéfinit que les jetons de couleur
+   (et la base Modena). Tous les composants suivent automatiquement. */
 
 .root {
-    -fx-base: #2b2f36;
-    -fx-background: #1e2228;
-    -fx-control-inner-background: #262a31;
-    -fx-control-inner-background-alt: #2c3038;
-    -fx-accent: #4f8ef7;
-    -fx-focus-color: #4f8ef7;
-    -fx-faint-focus-color: #4f8ef722;
-    -fx-text-base-color: #e5e7eb;
-    -fx-text-background-color: #e5e7eb;
-    -fx-prompt-text-fill: #9ca3af;
+    -c-primaire: #7d9cff;
+    -c-primaire-fonce: #a3baff;
+    -c-primaire-pale: #22305a;
+    -c-or: #f5bd5d;
+    -c-nuit: #0a1128;
+    -c-nuit-2: #1a2750;
+    -c-nuit-texte: #c3cde4;
+    -c-nuit-icone: #7a87ab;
+    -c-fond: #0f1528;
+    -c-surface: #171f36;
+    -c-surface-2: #1b2440;
+    -c-bordure: #29344f;
+    -c-texte: #e6ebf5;
+    -c-texte-doux: #9aa6c0;
+    -c-succes: #5fd39a;
+    -c-succes-pale: #163626;
+    -c-alerte: #f5bd5d;
+    -c-alerte-pale: #3a2c12;
+    -c-danger: #ff8a80;
+    -c-danger-pale: #3d1c1c;
+    -c-ombre: rgba(0, 0, 0, 0.35);
+
+    -fx-base: #232c45;
 }
 
-.page, .barre-filtres, .scroll-pane, .scroll-pane > .viewport {
-    -fx-background-color: #1e2228;
+.bouton-principal, .bouton-principal:hover {
+    -fx-text-fill: #0a1128;
 }
 
-.label {
-    -fx-text-fill: #e5e7eb;
+.bouton-principal .icone, .bouton-principal:hover .icone {
+    -fx-background-color: #0a1128;
 }
 
-.titre-page, .sous-titre {
-    -fx-text-fill: #f3f4f6;
+.check-box:selected .mark {
+    -fx-background-color: #0a1128;
 }
 
-.carte, .carte-stat {
-    -fx-background-color: #262a31;
-    -fx-border-color: #3a3f48;
-}
-
-.carte-stat-titre {
-    -fx-text-fill: #9ca3af;
-}
-
-.carte-stat-valeur {
-    -fx-text-fill: #7fb0ff;
-}
-
-.message-erreur {
-    -fx-text-fill: #f87171;
-}
-
-.info {
-    -fx-text-fill: #93c5fd;
-}
-
-.chart-title, .axis-label, .axis {
-    -fx-text-fill: #e5e7eb;
-    -fx-tick-label-fill: #e5e7eb;
-}
-
-.chart-plot-background {
-    -fx-background-color: #262a31;
-}
-
-.table-view .column-header, .table-view .filler {
-    -fx-background-color: #2f343c;
-}
-
-.statut-en_attente { -fx-text-fill: #fbbf24; }
-.statut-valide     { -fx-text-fill: #4ade80; }
-.statut-refuse     { -fx-text-fill: #f87171; }
-.statut-autorise   { -fx-text-fill: #93c5fd; }
-
-/* Bandeaux : fonds sombres teintés, texte clair (spécificité plus forte que .label). */
-.label.bandeau-succes { -fx-background-color: #14532d; -fx-text-fill: #dcfce7; -fx-border-color: #22c55e; }
-.label.bandeau-danger { -fx-background-color: #7f1d1d; -fx-text-fill: #fee2e2; -fx-border-color: #ef4444; }
-.label.bandeau-alerte { -fx-background-color: #78350f; -fx-text-fill: #fef3c7; -fx-border-color: #f59e0b; }
-
-.aide {
-    -fx-text-fill: #9ca3af;
-}
-
-.valeur-fixe {
-    -fx-text-fill: #e5e7eb;
-}
-
-.etape-en-cours {
-    -fx-text-fill: #fbbf24;
-}
+.default-color0.chart-pie { -fx-pie-color: #7d9cff; }

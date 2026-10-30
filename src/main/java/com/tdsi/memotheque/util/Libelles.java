@@ -34,4 +34,31 @@ public final class Libelles {
         String note = String.format(Locale.FRANCE, "%.2f/20", m.getNote());
         return m.getMention() == null ? note + " (ajourné)" : note + " — " + m.getMention().getLibelle();
     }
+
+    /** Étiquette arrondie et colorée pour l'état d'un mémoire. */
+    public static javafx.scene.control.Label pastille(com.tdsi.memotheque.model.StatutMemoire statut) {
+        String court = switch (statut) {
+            case EN_ATTENTE -> "Soumis";
+            case REFUSE -> "À corriger";
+            case AUTORISE -> "Autorisé";
+            case VALIDE -> "Publié";
+        };
+        javafx.scene.control.Label l = new javafx.scene.control.Label(court);
+        l.setTooltip(new javafx.scene.control.Tooltip(statut.getLibelle()));
+        l.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        l.getStyleClass().addAll("pastille", statut.name().toLowerCase(Locale.ROOT));
+        return l;
+    }
+
+    /** Cellule de tableau affichant l'état sous forme de pastille. */
+    public static <S> javafx.scene.control.TableCell<S, com.tdsi.memotheque.model.StatutMemoire> cellulePastille() {
+        return new javafx.scene.control.TableCell<>() {
+            @Override
+            protected void updateItem(com.tdsi.memotheque.model.StatutMemoire statut, boolean vide) {
+                super.updateItem(statut, vide);
+                setText(null);
+                setGraphic(vide || statut == null ? null : pastille(statut));
+            }
+        };
+    }
 }

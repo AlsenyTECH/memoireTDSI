@@ -25,6 +25,18 @@ public class LoginController {
     @FXML private TextField champIdentifiant;
     @FXML private PasswordField champMotDePasse;
     @FXML private Label labelMessage;
+    @FXML private javafx.scene.layout.StackPane panneauImage;
+    @FXML private Label labelCredit;
+
+    /** Une vraie photo du campus déposée par l'établissement remplace l'illustration. */
+    @FXML
+    private void initialize() {
+        String photo = com.tdsi.memotheque.util.Images.photoCampus();
+        if (photo != null && panneauImage != null) {
+            panneauImage.setStyle("-fx-background-image: url(\"" + photo + "\");");
+            labelCredit.setText("Photo : campus de l'université");
+        }
+    }
 
     private final AuthService authService = new AuthService();
     private final JournalService journalService = new JournalService();

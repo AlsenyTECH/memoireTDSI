@@ -34,6 +34,12 @@ public class DashboardController {
     @FXML private TableColumn<Memoire, Object> colTelechargements;
     @FXML private Label labelMessage;
     @FXML private javafx.scene.layout.VBox blocAFaire;
+    @FXML private javafx.scene.layout.StackPane bandeauAccueil;
+    @FXML private Label labelBonjour;
+    @FXML private Label labelSousBonjour;
+    @FXML private javafx.scene.layout.StackPane iconePublies;
+    @FXML private javafx.scene.layout.StackPane iconeEtudiants;
+    @FXML private javafx.scene.layout.StackPane iconeAttente;
 
     private final StatistiqueService statistiqueService = new StatistiqueService();
 
@@ -54,6 +60,7 @@ public class DashboardController {
             return ligne;
         });
 
+        accueillir();
         remplirAFaire();
 
         try {
@@ -69,6 +76,33 @@ public class DashboardController {
         } catch (SQLException | SecurityException e) {
             labelMessage.setText("Statistiques indisponibles : " + e.getMessage());
         }
+    }
+
+    /** Bannière « Bonjour Awa » sur l'illustration (ou la photo) du campus. */
+    private void accueillir() {
+        iconePublies.getChildren().add(com.tdsi.memotheque.util.Icone.VERIFIE.creer(22));
+        iconeEtudiants.getChildren().add(com.tdsi.memotheque.util.Icone.ECOLE.creer(22));
+        iconeAttente.getChildren().add(com.tdsi.memotheque.util.Icone.ATTENTE.creer(22));
+        String photo = com.tdsi.memotheque.util.Images.photoCampus();
+        if (photo != null) {
+            bandeauAccueil.setStyle("-fx-background-image: url(\"" + photo + "\"); -fx-background-position: center;");
+        }
+        com.tdsi.memotheque.model.Utilisateur u = com.tdsi.memotheque.util.SessionManager.getUtilisateur();
+        if (u == null) {
+            return;
+        }
+        int heure = java.time.LocalTime.now().getHour();
+        labelBonjour.setText((heure >= 18 || heure < 5 ? "Bonsoir " : "Bonjour ")
+                + (u.getPrenom() == null || u.getPrenom().isBlank() ? u.getNomComplet() : u.getPrenom()));
+        String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter
+                .ofPattern("EEEE d MMMM yyyy", java.util.Locale.FRENCH));
+        String role = switch (u.getRole()) {
+            case ETUDIANT -> "Espace étudiant" + (u.getNiveau() == null ? "" : " · " + u.getNiveau());
+            case ENCADREUR -> "Espace enseignant";
+            case ADMIN -> "Scolarité";
+        };
+        labelSousBonjour.setText(Character.toUpperCase(date.charAt(0)) + date.substring(1) + " · " + role
+                + " · Filière TDSI, Université Cheikh Anta Diop de Dakar");
     }
 
     /** Ce que l'utilisateur connecté doit faire maintenant, avec un lien vers l'écran concerné. */
@@ -126,7 +160,10 @@ public class DashboardController {
     }
 
     private void ajouterAction(String texte, String bouton, String vue) {
-        Label l = new Label("• " + texte);
+        Label l = new Label(texte);
+        l.setGraphic((texte.startsWith("Soutenance") ? com.tdsi.memotheque.util.Icone.CALENDRIER
+                : com.tdsi.memotheque.util.Icone.DOCUMENT).creer(16));
+        l.setGraphicTextGap(10);
         l.setWrapText(true);
         if (bouton == null) {
             blocAFaire.getChildren().add(l);

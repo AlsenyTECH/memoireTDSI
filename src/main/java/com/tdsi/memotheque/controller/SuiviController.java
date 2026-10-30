@@ -74,19 +74,7 @@ public class SuiviController {
         colSoutenance.setCellValueFactory(c -> new SimpleStringProperty(
                 Libelles.soutenance(c.getValue(), soutenances.get(c.getValue().getId()))));
         colResultat.setCellValueFactory(c -> new SimpleStringProperty(Libelles.resultat(c.getValue())));
-        colEtat.setCellFactory(colonne -> new TableCell<>() {
-            @Override
-            protected void updateItem(StatutMemoire statut, boolean vide) {
-                super.updateItem(statut, vide);
-                getStyleClass().removeAll("statut-en_attente", "statut-valide", "statut-refuse", "statut-autorise");
-                if (vide || statut == null) {
-                    setText(null);
-                    return;
-                }
-                setText(statut.getLibelle());
-                getStyleClass().add("statut-" + statut.name().toLowerCase(Locale.ROOT));
-            }
-        });
+        colEtat.setCellFactory(colonne -> Libelles.cellulePastille());
 
         comboEtat.getItems().add(TOUS);
         for (StatutMemoire s : StatutMemoire.values()) {
