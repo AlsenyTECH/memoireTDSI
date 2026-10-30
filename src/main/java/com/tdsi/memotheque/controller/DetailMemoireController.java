@@ -39,6 +39,10 @@ public class DetailMemoireController {
     @FXML private Label labelTelechargements;
     @FXML private Label labelMessage;
     @FXML private Label labelSignature;
+    @FXML private Label labelSoutenance;
+    @FXML private Label labelDiffusion;
+    @FXML private javafx.scene.control.Button boutonOuvrir;
+    @FXML private javafx.scene.control.Button boutonEnregistrer;
 
     private Memoire memoire;
     
@@ -67,8 +71,13 @@ public class DetailMemoireController {
         labelDateSoutenance.setText(memoire.getDateSoutenance() == null
                 ? "-" : memoire.getDateSoutenance().format(
                         DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        labelMention.setText(memoire.getMention() == null
-                ? "-" : memoire.getMention().toString());
+        labelMention.setText(com.tdsi.memotheque.util.Libelles.resultat(memoire));
+        labelDiffusion.setText(memoire.getNiveauDiffusion() == null ? "-"
+                : memoire.getNiveauDiffusion().getLibelle()
+                        + (memoire.getDateFinEmbargo() == null ? "" : " jusqu'au "
+                                + memoire.getDateFinEmbargo().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                        + " — " + memoire.getNiveauDiffusion().getDescription());
+        afficherSoutenanceEtAcces(memoire);
         labelDatePublication.setText(memoire.getDatePublication() == null
                 ? "-" : memoire.getDatePublication().format(
                         DateTimeFormatter.ofPattern("dd/MM/yyyy")));
@@ -79,8 +88,35 @@ public class DetailMemoireController {
         labelTelechargements.setText(
                 "Téléchargements : " + memoire.getNbTelechargements());
 
-        afficherMessage("");
         afficherSignature(memoire);
+    }
+
+    /**
+     * Soutenance programmée (si on y a accès) et boutons PDF selon les règles de diffusion :
+     * un PDF restreint ou sous embargo n'est pas proposé à qui ne peut pas le lire
+     * (le service le refuserait de toute façon).
+     */
+    private void afficherSoutenanceEtAcces(Memoire memoire) {
+        try {
+            com.tdsi.memotheque.model.Soutenance s =
+                    new com.tdsi.memotheque.service.SoutenanceService().soutenanceDe(memoire.getId());
+            labelSoutenance.setText(s == null ? "-" : com.tdsi.memotheque.util.Libelles.soutenance(memoire, s)
+                    + " — jury : " + s.getJuryLisible());
+        } catch (SQLException | SecurityException e) {
+            labelSoutenance.setText("-");
+        }
+        try {
+            com.tdsi.memotheque.service.AccesService acces = new com.tdsi.memotheque.service.AccesService();
+            boolean lisible = acces.peutLirePdf(com.tdsi.memotheque.util.SessionManager.getUtilisateur(),
+                    memoire, java.time.LocalDate.now());
+            boutonOuvrir.setDisable(!lisible);
+            boutonEnregistrer.setDisable(!lisible);
+            if (!lisible) {
+                afficherMessage(acces.raisonRefus(memoire, java.time.LocalDate.now()));
+            }
+        } catch (SQLException e) {
+            afficherMessage("Droits d'accès au PDF indisponibles : " + e.getMessage());
+        }
     }
 
     /** Vérifie la signature Ed25519 en relisant le mémoire en base. */

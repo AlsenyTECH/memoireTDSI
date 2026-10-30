@@ -73,8 +73,18 @@
             </HBox>
 
             <HBox spacing="10">
-                <Label text="Mention :" minWidth="120"/>
+                <Label text="Soutenance :" minWidth="120"/>
+                <Label fx:id="labelSoutenance" text="-" wrapText="true"/>
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Résultat :" minWidth="120"/>
                 <Label fx:id="labelMention" text="-"/>
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Diffusion :" minWidth="120"/>
+                <Label fx:id="labelDiffusion" text="-" wrapText="true"/>
             </HBox>
 
             <HBox spacing="10">

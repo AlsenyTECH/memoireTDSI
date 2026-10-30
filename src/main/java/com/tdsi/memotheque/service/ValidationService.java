@@ -56,6 +56,21 @@ public class ValidationService {
     }
 
     /**
+     * Suivi de tous les mémoires, quel que soit leur état :
+     * l'encadreur voit ceux qu'il encadre, l'administration voit tout.
+     */
+    public List<Memoire> suivi() throws SQLException {
+        Utilisateur u = exigerValidateur();
+        List<Memoire> tous = memoireDAO.findAll();
+        if (u.getRole() == Role.ADMIN) {
+            return tous;
+        }
+        return tous.stream()
+                .filter(m -> m.getEncadreur() != null && m.getEncadreur().getId() == u.getId())
+                .toList();
+    }
+
+    /**
      * Avis favorable de l'encadreur : le mémoire est autorisé à être soutenu.
      * La scolarité est prévenue pour planifier la soutenance. Le PDF doit être intègre.
      */

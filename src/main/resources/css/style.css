@@ -100,6 +100,11 @@
     -fx-font-weight: bold;
 }
 
+.statut-autorise {
+    -fx-text-fill: #1d4ed8;
+    -fx-font-weight: bold;
+}
+
 /* Bandeau d'avertissement (mot de passe temporaire, signature invalide...) */
 .bandeau-alerte {
     -fx-background-color: #fef3c7;
@@ -141,4 +146,23 @@
 
 .barre-filtres {
     -fx-background-color: #f4f6f9;
+}
+
+/* ---- Circuit universitaire ---- */
+
+/* Texte d'aide sous un champ */
+.aide {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 12px;
+}
+
+/* Valeur imposée par la scolarité, affichée mais non modifiable */
+.valeur-fixe {
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}
+
+/* Étapes du circuit dans les tableaux */
+.etape-en-cours {
+    -fx-text-fill: #b45309;
 }

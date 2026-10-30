@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Soutenances : planification et PV (scolarité), soutenances où l'on siège (enseignant) -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.SoutenancesController"
+      spacing="12" styleClass="page">
+  <padding>
+    <Insets top="22" right="25" bottom="20" left="25"/>
+  </padding>
+
+  <Label fx:id="labelTitre" text="Soutenances" styleClass="titre-page"/>
+  <Label fx:id="labelAide" wrapText="true" styleClass="aide" minHeight="-Infinity"
+         text="1. Planifiez les mémoires autorisés par leur encadreur (date, salle, jury). 2. Après la soutenance, saisissez le procès-verbal : la note donne la mention, le mémoire est publié et le PV signé."/>
+
+  <VBox fx:id="blocAPlanifier" spacing="8">
+    <Label text="À planifier (avis favorable de l'encadreur)" styleClass="sous-titre"/>
+    <TableView fx:id="tableAPlanifier" prefHeight="150">
+      <columnResizePolicy>
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+      </columnResizePolicy>
+      <columns>
+        <TableColumn fx:id="colPTitre" text="Titre" prefWidth="260"/>
+        <TableColumn fx:id="colPEtudiant" text="Étudiant" prefWidth="150"/>
+        <TableColumn fx:id="colPNiveau" text="Niveau" prefWidth="60"/>
+        <TableColumn fx:id="colPEncadreur" text="Encadreur" prefWidth="150"/>
+        <TableColumn fx:id="colPAvis" text="Avis le" prefWidth="90"/>
+      </columns>
+      <placeholder>
+        <Label text="Aucun mémoire en attente de planification."/>
+      </placeholder>
+    </TableView>
+    <HBox spacing="10">
+      <Button fx:id="boutonPlanifier" text="Planifier la soutenance..." onAction="#planifier" styleClass="bouton-principal"/>
+    </HBox>
+  </VBox>
+
+  <Label text="Calendrier des soutenances" styleClass="sous-titre"/>
+  <TableView fx:id="tableSoutenances" VBox.vgrow="ALWAYS">
+    <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+    </columnResizePolicy>
+    <columns>
+      <TableColumn fx:id="colDate" text="Date" prefWidth="130"/>
+      <TableColumn fx:id="colSalle" text="Salle" prefWidth="80"/>
+      <TableColumn fx:id="colTitre" text="Mémoire" prefWidth="200"/>
+      <TableColumn fx:id="colEtudiant" text="Étudiant" prefWidth="130"/>
+      <TableColumn fx:id="colNiveau" text="Niveau" prefWidth="90"/>
+      <TableColumn fx:id="colMonRole" text="Mon rôle" prefWidth="90"/>
+      <TableColumn fx:id="colJury" text="Jury" prefWidth="220"/>
+      <TableColumn fx:id="colEtat" text="État" prefWidth="150"/>
+    </columns>
+    <placeholder>
+      <Label text="Aucune soutenance."/>
+    </placeholder>
+  </TableView>
+
+  <HBox spacing="10">
+    <Button fx:id="boutonPv" text="Saisir le procès-verbal..." onAction="#saisirPv" styleClass="bouton-succes"/>
+    <Button fx:id="boutonReplanifier" text="Replanifier..." onAction="#replanifier"/>
+    <Button fx:id="boutonAnnuler" text="Annuler" onAction="#annuler" styleClass="bouton-danger"/>
+    <Button fx:id="boutonConvocation" text="Convocation" onAction="#imprimerConvocation"/>
+    <Button fx:id="boutonImprimerPv" text="Imprimer le PV" onAction="#imprimerPv"/>
+    <Button fx:id="boutonDetail" text="Fiche du mémoire" onAction="#voirDetail"/>
+  </HBox>
+
+  <Label fx:id="labelMessage" wrapText="true" styleClass="info"/>
+</VBox>

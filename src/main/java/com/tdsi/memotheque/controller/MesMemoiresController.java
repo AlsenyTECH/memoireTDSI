@@ -2,13 +2,21 @@ package com.tdsi.memotheque.controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.tdsi.memotheque.model.Memoire;
+import com.tdsi.memotheque.model.Soutenance;
 import com.tdsi.memotheque.model.StatutMemoire;
 import com.tdsi.memotheque.service.MemoireService;
+import com.tdsi.memotheque.service.SoutenanceService;
 import com.tdsi.memotheque.util.AlertUtil;
+import com.tdsi.memotheque.util.Impression;
+import com.tdsi.memotheque.util.Libelles;
 import com.tdsi.memotheque.util.SceneNavigator;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -19,41 +27,47 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-/** [M3] « Mes mémoires » : tableau avec statut en couleur, motif de refus, modification / suppression. */
+/**
+ * [M3] « Mes mémoires » : suivi du circuit (avis de l'encadreur, soutenance, résultat),
+ * modification / suppression tant que l'encadreur n'a pas autorisé la soutenance,
+ * attestation de dépôt imprimable.
+ */
 public class MesMemoiresController {
 
     @FXML private TableView<Memoire> tableMemoires;
     @FXML private TableColumn<Memoire, String> colTitre;
-    @FXML private TableColumn<Memoire, Object> colNiveau;
-    @FXML private TableColumn<Memoire, String> colAnnee;
-    @FXML private TableColumn<Memoire, String> colDomaine;
-    @FXML private TableColumn<Memoire, Object> colDateDepot;
+    @FXML private TableColumn<Memoire, String> colNiveau;
     @FXML private TableColumn<Memoire, StatutMemoire> colStatut;
-    @FXML private TableColumn<Memoire, String> colMotif;
+    @FXML private TableColumn<Memoire, String> colSoutenance;
+    @FXML private TableColumn<Memoire, String> colResultat;
+    @FXML private TableColumn<Memoire, String> colSuivi;
     @FXML private Button boutonModifier;
     @FXML private Button boutonSupprimer;
     @FXML private Button boutonDetail;
     @FXML private Button boutonHistorique;
+    @FXML private Button boutonAttestation;
     @FXML private Label labelMessage;
 
     private final MemoireService memoireService = new MemoireService();
+    private final SoutenanceService soutenanceService = new SoutenanceService();
     private final ObservableList<Memoire> memoires = FXCollections.observableArrayList();
+    private final Map<Integer, Soutenance> soutenances = new HashMap<>();
 
     @FXML
     private void initialize() {
         colTitre.setCellValueFactory(new PropertyValueFactory<>("titre"));
-        colNiveau.setCellValueFactory(new PropertyValueFactory<>("niveau"));
-        colAnnee.setCellValueFactory(new PropertyValueFactory<>("anneeAcademique"));
-        colDomaine.setCellValueFactory(new PropertyValueFactory<>("domaineNom"));
-        colDateDepot.setCellValueFactory(new PropertyValueFactory<>("dateDepot"));
+        colNiveau.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().getNiveau() + " " + c.getValue().getAnneeAcademique()));
         colStatut.setCellValueFactory(new PropertyValueFactory<>("statut"));
-        colMotif.setCellValueFactory(new PropertyValueFactory<>("motifRefus"));
+        colSoutenance.setCellValueFactory(c -> new SimpleStringProperty(soutenanceLisible(c.getValue())));
+        colResultat.setCellValueFactory(c -> new SimpleStringProperty(resultat(c.getValue())));
+        colSuivi.setCellValueFactory(c -> new SimpleStringProperty(suivi(c.getValue())));
 
         colStatut.setCellFactory(colonne -> new TableCell<>() {
             @Override
             protected void updateItem(StatutMemoire statut, boolean vide) {
                 super.updateItem(statut, vide);
-                getStyleClass().removeAll("statut-en_attente", "statut-valide", "statut-refuse");
+                getStyleClass().removeAll("statut-en_attente", "statut-valide", "statut-refuse", "statut-autorise");
                 if (vide || statut == null) {
                     setText(null);
                     return;
@@ -73,6 +87,10 @@ public class MesMemoiresController {
 
     private void charger() {
         try {
+            soutenances.clear();
+            for (Soutenance s : soutenanceService.soutenances()) {
+                soutenances.put(s.getIdMemoire(), s);
+            }
             memoires.setAll(memoireService.mesMemoires());
             labelMessage.setText(memoires.isEmpty() ? "Vous n'avez encore déposé aucun mémoire." : "");
         } catch (SQLException | SecurityException e) {
@@ -80,12 +98,36 @@ public class MesMemoiresController {
         }
     }
 
+    private String soutenanceLisible(Memoire m) {
+        return Libelles.soutenance(m, soutenances.get(m.getId()));
+    }
+
+    private static String resultat(Memoire m) {
+        return Libelles.resultat(m);
+    }
+
+    /** Ce qui se passe ensuite, en une phrase, comme sur un portail de scolarité. */
+    private String suivi(Memoire m) {
+        return switch (m.getStatut()) {
+            case EN_ATTENTE -> "En attente de l'avis de " + m.getEncadreurNomComplet() + ".";
+            case REFUSE -> "À corriger : " + (m.getMotifRefus() == null ? "voir le détail." : m.getMotifRefus());
+            case AUTORISE -> soutenances.containsKey(m.getId())
+                    ? "Soutenance programmée : préparez votre présentation."
+                    : "Autorisé à soutenir : la scolarité fixe la date et le jury.";
+            case VALIDE -> m.estSousEmbargo(java.time.LocalDate.now())
+                    ? "Publié, sous embargo jusqu'au " + Libelles.date(m.getDateFinEmbargo()) + "."
+                    : "Publié le " + Libelles.date(m.getDatePublication()) + ".";
+        };
+    }
+
     private void majBoutons(Memoire m) {
-        boolean modifiable = m != null && m.getStatut() != StatutMemoire.VALIDE;
+        boolean modifiable = m != null
+                && (m.getStatut() == StatutMemoire.EN_ATTENTE || m.getStatut() == StatutMemoire.REFUSE);
         boutonModifier.setDisable(!modifiable);
         boutonSupprimer.setDisable(!modifiable);
         boutonDetail.setDisable(m == null);
         boutonHistorique.setDisable(m == null);
+        boutonAttestation.setDisable(m == null);
     }
 
     @FXML
@@ -148,6 +190,30 @@ public class MesMemoiresController {
         } catch (SQLException | SecurityException | IllegalArgumentException e) {
             labelMessage.setText("Historique indisponible : " + e.getMessage());
         }
+    }
+
+    /** Attestation de dépôt : preuve horodatée avec l'empreinte SHA-256 du PDF déposé. */
+    @FXML
+    private void imprimerAttestation() {
+        Memoire m = tableMemoires.getSelectionModel().getSelectedItem();
+        if (m == null) {
+            return;
+        }
+        Impression.apercuEtImpression("Attestation de dépôt de mémoire", List.of(
+                new String[] {"Étudiant", m.getAuteurNomComplet()},
+                new String[] {"Titre", m.getTitre()},
+                new String[] {"Niveau / année", m.getNiveau() + " — " + m.getAnneeAcademique()},
+                new String[] {"Domaine", m.getDomaineNom()},
+                new String[] {"Encadreur", m.getEncadreurNomComplet()},
+                new String[] {"Déposé le", Libelles.date(m.getDateDepot())},
+                new String[] {"N° de dépôt", "#" + m.getId()},
+                new String[] {"Fichier", m.getNomOriginal()},
+                new String[] {"Empreinte SHA-256", m.getEmpreinteSha256()},
+                new String[] {"Diffusion", m.getNiveauDiffusion() == null ? "-" : m.getNiveauDiffusion().getLibelle()},
+                new String[] {"État actuel", m.getStatut().getLibelle()},
+                new String[] {"Soutenance", soutenanceLisible(m)},
+                new String[] {"Résultat", resultat(m)}),
+                "L'empreinte SHA-256 identifie de façon unique le fichier déposé : toute modification du PDF la change.");
     }
 
     @FXML

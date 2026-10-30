@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Suivi des mémoires : « Mes encadrements » (encadreur) ou pilotage de la scolarité (admin) -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tdsi.memotheque.controller.SuiviController"
+      spacing="12" styleClass="page">
+  <padding>
+    <Insets top="22" right="25" bottom="20" left="25"/>
+  </padding>
+
+  <Label fx:id="labelTitre" text="Suivi des mémoires" styleClass="titre-page"/>
+  <Label fx:id="labelResume" wrapText="true" styleClass="info"/>
+
+  <HBox spacing="10" styleClass="barre-filtres">
+    <ComboBox fx:id="comboEtat" prefWidth="200"/>
+    <TextField fx:id="champFiltre" promptText="Filtrer par titre, étudiant ou encadreur" HBox.hgrow="ALWAYS"/>
+  </HBox>
+
+  <TableView fx:id="table" VBox.vgrow="ALWAYS">
+    <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+    </columnResizePolicy>
+    <columns>
+      <TableColumn fx:id="colTitre" text="Titre" prefWidth="220"/>
+      <TableColumn fx:id="colEtudiant" text="Étudiant" prefWidth="140"/>
+      <TableColumn fx:id="colNiveau" text="Niveau" prefWidth="55"/>
+      <TableColumn fx:id="colAnnee" text="Année" prefWidth="85"/>
+      <TableColumn fx:id="colEncadreur" text="Encadreur" prefWidth="130"/>
+      <TableColumn fx:id="colEtat" text="État" prefWidth="140"/>
+      <TableColumn fx:id="colSoutenance" text="Soutenance" prefWidth="170"/>
+      <TableColumn fx:id="colResultat" text="Résultat" prefWidth="130"/>
+    </columns>
+    <placeholder>
+      <Label text="Aucun mémoire."/>
+    </placeholder>
+  </TableView>
+
+  <HBox spacing="10">
+    <Button fx:id="boutonDetail" text="Voir le détail" onAction="#voirDetail"/>
+  </HBox>
+
+  <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>
+</VBox>

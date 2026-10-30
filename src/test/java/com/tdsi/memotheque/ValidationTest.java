@@ -115,6 +115,21 @@ class ValidationTest {
     }
 
     @Test
+    void suiviParEncadreurEtParLaScolarite() throws Exception {
+        SessionManager.ouvrir(encadreur);
+        assertEquals(1, service.suivi().size());
+        service.donnerAvisFavorable(memoire.getId());
+        assertEquals(1, service.suivi().size(), "le mémoire autorisé reste suivi");
+
+        SessionManager.ouvrir(autreEncadreur);
+        assertTrue(service.suivi().isEmpty(), "on ne suit que ses propres encadrements");
+        SessionManager.ouvrir(admin);
+        assertEquals(1, service.suivi().size());
+        SessionManager.ouvrir(etudiant);
+        assertThrows(SecurityException.class, () -> service.suivi());
+    }
+
+    @Test
     void unEtudiantNePeutPasValiderNiRefuser() throws Exception {
         SessionManager.ouvrir(etudiant);
 

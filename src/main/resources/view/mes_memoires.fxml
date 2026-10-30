@@ -17,20 +17,19 @@
   </padding>
 
   <Label text="Mes mémoires" styleClass="titre-page"/>
-  <Label text="Un mémoire « En attente » ou « Refusé » peut être modifié ou supprimé. Un mémoire validé est publié." wrapText="true"/>
+  <Label text="Circuit : dépôt → avis de l'encadreur → soutenance programmée par la scolarité → procès-verbal du jury → publication. Un mémoire peut être modifié tant que la soutenance n'est pas autorisée." wrapText="true"/>
 
   <TableView fx:id="tableMemoires" VBox.vgrow="ALWAYS">
     <columnResizePolicy>
       <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
     </columnResizePolicy>
     <columns>
-      <TableColumn fx:id="colTitre" text="Titre" prefWidth="250"/>
-      <TableColumn fx:id="colNiveau" text="Niveau" prefWidth="60"/>
-      <TableColumn fx:id="colAnnee" text="Année" prefWidth="90"/>
-      <TableColumn fx:id="colDomaine" text="Domaine" prefWidth="150"/>
-      <TableColumn fx:id="colDateDepot" text="Déposé le" prefWidth="90"/>
-      <TableColumn fx:id="colStatut" text="Statut" prefWidth="90"/>
-      <TableColumn fx:id="colMotif" text="Motif du refus" prefWidth="200"/>
+      <TableColumn fx:id="colTitre" text="Titre" prefWidth="200"/>
+      <TableColumn fx:id="colNiveau" text="Niveau / année" prefWidth="110"/>
+      <TableColumn fx:id="colStatut" text="État" prefWidth="130"/>
+      <TableColumn fx:id="colSoutenance" text="Soutenance" prefWidth="190"/>
+      <TableColumn fx:id="colResultat" text="Résultat" prefWidth="130"/>
+      <TableColumn fx:id="colSuivi" text="Prochaine étape" prefWidth="240"/>
     </columns>
     <placeholder>
       <Label text="Aucun mémoire déposé."/>
@@ -41,6 +40,7 @@
     <Button text="Déposer un mémoire" onAction="#nouveauDepot" styleClass="bouton-principal"/>
     <Button fx:id="boutonDetail" text="Voir le détail" onAction="#voirDetail"/>
     <Button fx:id="boutonHistorique" text="Historique des versions" onAction="#voirHistorique"/>
+    <Button fx:id="boutonAttestation" text="Attestation de dépôt" onAction="#imprimerAttestation"/>
     <Button fx:id="boutonModifier" text="Modifier" onAction="#modifier"/>
     <Button fx:id="boutonSupprimer" text="Supprimer" onAction="#supprimer" styleClass="bouton-danger"/>
   </HBox>

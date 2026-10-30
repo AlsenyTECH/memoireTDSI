@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- [M5] Mémoires à valider -->
+<!-- [M5] Mémoires à évaluer (avis de l'encadreur avant soutenance) -->
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.ValidationController"
       spacing="12" styleClass="page">
@@ -17,7 +17,9 @@
     <Insets top="22" right="25" bottom="20" left="25"/>
   </padding>
 
-  <Label text="Mémoires à valider" styleClass="titre-page"/>
+  <Label text="Mémoires à évaluer" styleClass="titre-page"/>
+  <Label wrapText="true" styleClass="aide" minHeight="-Infinity"
+         text="Votre avis favorable autorise l'étudiant à soutenir : la scolarité fixe ensuite la date, la salle et le jury (vous en faites partie d'office). La note et la mention sont données par le jury lors de la soutenance."/>
 
   <TableView fx:id="tableMemoires" VBox.vgrow="ALWAYS" prefHeight="260">
     <columnResizePolicy>
@@ -33,20 +35,20 @@
       <TableColumn fx:id="colDateDepot" text="Déposé le" prefWidth="90"/>
     </columns>
     <placeholder>
-      <Label text="Aucun mémoire en attente."/>
+      <Label text="Aucun mémoire en attente de votre avis."/>
     </placeholder>
   </TableView>
 
   <Label fx:id="labelDetail" wrapText="true" styleClass="carte"/>
 
-  <Label text="Motif du refus (obligatoire pour refuser) :"/>
+  <Label text="Corrections à apporter (obligatoire pour demander des corrections) :"/>
   <TextArea fx:id="zoneMotif" wrapText="true" prefRowCount="3"
             promptText="Expliquez à l'étudiant ce qu'il doit corriger (5 à 500 caractères)"/>
 
   <HBox spacing="10">
     <Button fx:id="boutonOuvrir" text="Lire le PDF" onAction="#ouvrirPdf"/>
-    <Button fx:id="boutonValider" text="Valider" onAction="#valider" styleClass="bouton-succes"/>
-    <Button fx:id="boutonRefuser" text="Refuser" onAction="#refuser" styleClass="bouton-danger"/>
+    <Button fx:id="boutonValider" text="Avis favorable à la soutenance" onAction="#valider" styleClass="bouton-succes"/>
+    <Button fx:id="boutonRefuser" text="Demander des corrections" onAction="#refuser" styleClass="bouton-danger"/>
   </HBox>
 
   <Label fx:id="labelMessage" wrapText="true" styleClass="message-erreur"/>

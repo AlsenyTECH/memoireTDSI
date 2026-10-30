@@ -19,7 +19,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-/** [M5] Mémoires à valider : boutons Valider / Refuser (motif obligatoire). */
+/** [M5] Mémoires à évaluer : avis favorable à la soutenance, ou demande de corrections (motif obligatoire). */
 public class ValidationController {
 
     @FXML private TableView<Memoire> tableMemoires;

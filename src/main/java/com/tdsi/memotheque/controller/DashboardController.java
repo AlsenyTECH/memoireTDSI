@@ -33,6 +33,7 @@ public class DashboardController {
     @FXML private TableColumn<Memoire, Object> colVues;
     @FXML private TableColumn<Memoire, Object> colTelechargements;
     @FXML private Label labelMessage;
+    @FXML private javafx.scene.layout.VBox blocAFaire;
 
     private final StatistiqueService statistiqueService = new StatistiqueService();
 
@@ -53,6 +54,8 @@ public class DashboardController {
             return ligne;
         });
 
+        remplirAFaire();
+
         try {
             labelTotalValides.setText(String.valueOf(statistiqueService.totalMemoiresValides()));
             labelTotalEtudiants.setText(String.valueOf(statistiqueService.totalEtudiants()));
@@ -66,6 +69,74 @@ public class DashboardController {
         } catch (SQLException | SecurityException e) {
             labelMessage.setText("Statistiques indisponibles : " + e.getMessage());
         }
+    }
+
+    /** Ce que l'utilisateur connecté doit faire maintenant, avec un lien vers l'écran concerné. */
+    private void remplirAFaire() {
+        com.tdsi.memotheque.model.Utilisateur u = com.tdsi.memotheque.util.SessionManager.getUtilisateur();
+        if (u == null || u.getRole() == null) {
+            return;
+        }
+        try {
+            com.tdsi.memotheque.service.SoutenanceService soutenances = new com.tdsi.memotheque.service.SoutenanceService();
+            java.time.LocalDateTime maintenant = java.time.LocalDateTime.now();
+            switch (u.getRole()) {
+                case ETUDIANT -> {
+                    com.tdsi.memotheque.service.ParametreService.Campagne c =
+                            new com.tdsi.memotheque.service.ParametreService().campagne();
+                    ajouterAction(c.depotPossible(java.time.LocalDate.now())
+                            ? "Campagne de dépôt " + c.anneeCourante() + " ouverte"
+                                    + (c.dateLimite() == null ? "" : " jusqu'au " + c.dateLimite()) + "."
+                            : "Campagne de dépôt fermée.", null, null);
+                    for (Memoire m : new com.tdsi.memotheque.service.MemoireService().mesMemoires()) {
+                        if (m.getStatut() == com.tdsi.memotheque.model.StatutMemoire.REFUSE) {
+                            ajouterAction("Corrections demandées sur « " + m.getTitre() + " ».", "Corriger", "mes_memoires");
+                        }
+                    }
+                }
+                case ENCADREUR -> {
+                    int n = new com.tdsi.memotheque.service.ValidationService().listerEnAttente().size();
+                    ajouterAction(n == 0 ? "Aucun mémoire en attente de votre avis."
+                            : n + " mémoire(s) en attente de votre avis.", n == 0 ? null : "Évaluer", "validation");
+                }
+                case ADMIN -> {
+                    int aPlanifier = soutenances.aPlanifier().size();
+                    long pv = soutenances.soutenances().stream()
+                            .filter(s -> s.getStatut() == com.tdsi.memotheque.model.Soutenance.Statut.PLANIFIEE
+                                    && s.getDateHeure().isBefore(maintenant)).count();
+                    ajouterAction(aPlanifier + " soutenance(s) à planifier, " + pv + " procès-verbal(aux) à saisir.",
+                            aPlanifier + pv == 0 ? null : "Ouvrir", "soutenances");
+                    com.tdsi.memotheque.service.ParametreService.Campagne c =
+                            new com.tdsi.memotheque.service.ParametreService().campagne();
+                    ajouterAction("Année " + c.anneeCourante() + " — dépôts "
+                            + (c.depotPossible(java.time.LocalDate.now()) ? "ouverts" : "fermés") + ".",
+                            "Paramétrer", "parametres");
+                }
+            }
+            soutenances.soutenances().stream()
+                    .filter(s -> s.getStatut() == com.tdsi.memotheque.model.Soutenance.Statut.PLANIFIEE
+                            && s.getDateHeure().isAfter(maintenant))
+                    .sorted(java.util.Comparator.comparing(com.tdsi.memotheque.model.Soutenance::getDateHeure))
+                    .limit(5)
+                    .forEach(s -> ajouterAction("Soutenance le " + s.getDateHeureLisible() + " (" + s.getSalle()
+                            + ") : « " + s.getTitre() + " », " + s.getEtudiant() + ".", null, null));
+        } catch (SQLException | SecurityException e) {
+            ajouterAction("Informations indisponibles : " + e.getMessage(), null, null);
+        }
+    }
+
+    private void ajouterAction(String texte, String bouton, String vue) {
+        Label l = new Label("• " + texte);
+        l.setWrapText(true);
+        if (bouton == null) {
+            blocAFaire.getChildren().add(l);
+            return;
+        }
+        javafx.scene.control.Hyperlink lien = new javafx.scene.control.Hyperlink(bouton);
+        lien.setOnAction(e -> SceneNavigator.charger(vue));
+        javafx.scene.layout.HBox ligne = new javafx.scene.layout.HBox(6, l, lien);
+        ligne.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        blocAFaire.getChildren().add(ligne);
     }
 
     private void remplirDomaines(Map<String, Integer> donnees) {

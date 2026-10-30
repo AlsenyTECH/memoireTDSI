@@ -24,7 +24,10 @@
       <Button fx:id="btnRecherche" text="Rechercher un mémoire" maxWidth="Infinity" onAction="#allerRecherche"/>
       <Button fx:id="btnDepot" text="Déposer un mémoire" maxWidth="Infinity" onAction="#allerDepot"/>
       <Button fx:id="btnMesMemoires" text="Mes mémoires" maxWidth="Infinity" onAction="#allerMesMemoires"/>
-      <Button fx:id="btnValidation" text="Mémoires à valider" maxWidth="Infinity" onAction="#allerValidation"/>
+      <Button fx:id="btnValidation" text="Mémoires à évaluer" maxWidth="Infinity" onAction="#allerValidation"/>
+      <Button fx:id="btnSuivi" text="Mes encadrements" maxWidth="Infinity" onAction="#allerSuivi"/>
+      <Button fx:id="btnSoutenances" text="Soutenances" maxWidth="Infinity" onAction="#allerSoutenances"/>
+      <Button fx:id="btnParametres" text="Campagne de dépôt" maxWidth="Infinity" onAction="#allerParametres"/>
       <Button fx:id="btnComptes" text="Comptes" maxWidth="Infinity" onAction="#allerComptes"/>
       <Button fx:id="btnDomaines" text="Domaines" maxWidth="Infinity" onAction="#allerDomaines"/>
       <Button fx:id="btnJournal" text="Journal d'activité" maxWidth="Infinity" onAction="#allerJournal"/>

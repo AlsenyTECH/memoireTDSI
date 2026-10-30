@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
@@ -25,6 +26,7 @@
 
       <Label fx:id="labelTitreEcran" text="Déposer un mémoire" styleClass="titre-page"/>
       <Label fx:id="labelInfoModification" wrapText="true" styleClass="info"/>
+      <Label fx:id="labelCampagne" wrapText="true" styleClass="info"/>
 
       <GridPane hgap="12" vgap="12">
         <columnConstraints>
@@ -45,13 +47,13 @@
         <TextField fx:id="champMotsCles" promptText="3 à 10 mots-clés séparés par des virgules"
                    GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
-        <Label text="Année académique *" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <TextField fx:id="champAnnee" promptText="ex. 2025-2026"
-                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label text="Année académique" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <Label fx:id="labelAnnee" styleClass="valeur-fixe"
+               GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
-        <Label text="Niveau *" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="comboNiveau" maxWidth="Infinity"
-                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Label text="Niveau" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <Label fx:id="labelNiveau" styleClass="valeur-fixe"
+               GridPane.rowIndex="4" GridPane.columnIndex="1"/>
 
         <Label text="Domaine *" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
         <ComboBox fx:id="comboDomaine" maxWidth="Infinity" promptText="Choisir un domaine"
@@ -65,13 +67,15 @@
         <TextField fx:id="champCoAuteur" promptText="Facultatif"
                    GridPane.rowIndex="7" GridPane.columnIndex="1"/>
 
-        <Label text="Date de soutenance" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
-        <DatePicker fx:id="dateSoutenance" maxWidth="Infinity"
-                    GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+        <Label text="Diffusion *" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+        <VBox spacing="4" GridPane.rowIndex="8" GridPane.columnIndex="1">
+          <ComboBox fx:id="comboDiffusion" maxWidth="Infinity"/>
+          <Label fx:id="labelDiffusion" wrapText="true" styleClass="aide"/>
+        </VBox>
 
-        <Label text="Mention" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="comboMention" maxWidth="Infinity" promptText="Facultatif"
-                  GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+        <Label fx:id="labelEmbargo" text="Fin d'embargo *" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="dateFinEmbargo" maxWidth="Infinity" promptText="5 ans maximum"
+                    GridPane.rowIndex="9" GridPane.columnIndex="1"/>
 
         <Label text="Fichier PDF *" GridPane.rowIndex="10" GridPane.columnIndex="0"/>
         <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="10" GridPane.columnIndex="1">
@@ -79,6 +83,11 @@
           <Label fx:id="labelFichier" text="Aucun fichier (PDF, 20 Mo maximum)" wrapText="true"/>
         </HBox>
       </GridPane>
+
+      <Label wrapText="true" styleClass="aide" minHeight="-Infinity"
+             text="La date de soutenance, le jury, la note et la mention sont fixés par la scolarité et le jury, pas par l'étudiant."/>
+      <CheckBox fx:id="caseConsentement" wrapText="true"
+                text="Je certifie être l'auteur de ce travail et j'autorise sa diffusion selon le niveau choisi ci-dessus."/>
 
       <HBox spacing="10">
         <Button fx:id="boutonEnvoyer" text="Déposer" onAction="#envoyer" styleClass="bouton-principal"/>

@@ -63,8 +63,21 @@
 .statut-en_attente { -fx-text-fill: #fbbf24; }
 .statut-valide     { -fx-text-fill: #4ade80; }
 .statut-refuse     { -fx-text-fill: #f87171; }
+.statut-autorise   { -fx-text-fill: #93c5fd; }
 
 /* Bandeaux : fonds sombres teintés, texte clair (spécificité plus forte que .label). */
 .label.bandeau-succes { -fx-background-color: #14532d; -fx-text-fill: #dcfce7; -fx-border-color: #22c55e; }
 .label.bandeau-danger { -fx-background-color: #7f1d1d; -fx-text-fill: #fee2e2; -fx-border-color: #ef4444; }
 .label.bandeau-alerte { -fx-background-color: #78350f; -fx-text-fill: #fef3c7; -fx-border-color: #f59e0b; }
+
+.aide {
+    -fx-text-fill: #9ca3af;
+}
+
+.valeur-fixe {
+    -fx-text-fill: #e5e7eb;
+}
+
+.etape-en-cours {
+    -fx-text-fill: #fbbf24;
+}

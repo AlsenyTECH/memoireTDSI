@@ -24,6 +24,11 @@
 
       <Label text="Tableau de bord" styleClass="titre-page"/>
 
+      <!-- À faire selon le rôle + prochaines soutenances (rempli par le contrôleur) -->
+      <VBox fx:id="blocAFaire" spacing="6" styleClass="carte">
+        <Label text="À faire" styleClass="sous-titre"/>
+      </VBox>
+
       <HBox spacing="16">
         <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
           <Label text="Mémoires publiés" styleClass="carte-stat-titre"/>
@@ -34,7 +39,7 @@
           <Label fx:id="labelTotalEtudiants" text="0" styleClass="carte-stat-valeur"/>
         </VBox>
         <VBox styleClass="carte-stat" HBox.hgrow="ALWAYS">
-          <Label text="En attente de validation" styleClass="carte-stat-titre"/>
+          <Label text="En attente de l'avis encadreur" styleClass="carte-stat-titre"/>
           <Label fx:id="labelEnAttente" text="0" styleClass="carte-stat-valeur"/>
         </VBox>
       </HBox>

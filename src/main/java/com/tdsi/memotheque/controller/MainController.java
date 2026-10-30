@@ -44,6 +44,9 @@ public class MainController {
     @FXML private Button btnDepot;
     @FXML private Button btnMesMemoires;
     @FXML private Button btnValidation;
+    @FXML private Button btnSuivi;
+    @FXML private Button btnSoutenances;
+    @FXML private Button btnParametres;
     @FXML private Button btnComptes;
     @FXML private Button btnDomaines;
     @FXML private Button btnJournal;
@@ -125,11 +128,17 @@ public class MainController {
         afficher(btnDepot, etudiant);
         afficher(btnMesMemoires, etudiant);
 
-        // Encadreur et admin
-        afficher(btnValidation, SessionManager.aLeRole(Role.ENCADREUR, Role.ADMIN));
+        // Encadreur et admin (scolarité)
+        boolean enseignantOuAdmin = SessionManager.aLeRole(Role.ENCADREUR, Role.ADMIN);
+        boolean admin = SessionManager.aLeRole(Role.ADMIN);
+        afficher(btnValidation, enseignantOuAdmin);
+        afficher(btnSuivi, enseignantOuAdmin);
+        afficher(btnSoutenances, enseignantOuAdmin);
+        btnSuivi.setText(admin ? "Suivi des mémoires" : "Mes encadrements");
+        btnSoutenances.setText(admin ? "Soutenances" : "Mes soutenances (jury)");
 
         // Admin seulement
-        boolean admin = SessionManager.aLeRole(Role.ADMIN);
+        afficher(btnParametres, admin);
         afficher(btnComptes, admin);
         afficher(btnDomaines, admin);
         afficher(btnJournal, admin);
@@ -137,7 +146,8 @@ public class MainController {
 
         if (u.isDoitChangerMotDePasse()) {
             for (Button b : new Button[] {btnDashboard, btnRecherche, btnDepot, btnMesMemoires,
-                    btnValidation, btnComptes, btnDomaines, btnJournal, btnSauvegarde, btnNotifications}) {
+                    btnValidation, btnSuivi, btnSoutenances, btnParametres, btnComptes, btnDomaines, btnJournal,
+                    btnSauvegarde, btnNotifications}) {
                 b.setDisable(true);
             }
         }
@@ -163,6 +173,9 @@ public class MainController {
     @FXML private void allerDepot()         { SceneNavigator.charger("depot"); }
     @FXML private void allerMesMemoires()   { SceneNavigator.charger("mes_memoires"); }
     @FXML private void allerValidation()    { SceneNavigator.charger("validation"); }
+    @FXML private void allerSuivi()         { SceneNavigator.charger("suivi"); }
+    @FXML private void allerSoutenances()   { SceneNavigator.charger("soutenances"); }
+    @FXML private void allerParametres()    { SceneNavigator.charger("parametres"); }
     @FXML private void allerComptes()       { SceneNavigator.charger("comptes"); }
     @FXML private void allerDomaines()      { SceneNavigator.charger("domaines"); }
     @FXML private void allerJournal()       { SceneNavigator.charger("journal"); }
