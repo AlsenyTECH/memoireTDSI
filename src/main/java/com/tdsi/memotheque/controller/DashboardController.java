@@ -93,7 +93,8 @@ public class DashboardController {
         }
         int heure = java.time.LocalTime.now().getHour();
         labelBonjour.setText((heure >= 18 || heure < 5 ? "Bonsoir " : "Bonjour ")
-                + (u.getPrenom() == null || u.getPrenom().isBlank() ? u.getNomComplet() : u.getPrenom()));
+                + (u.getPrenom() == null || u.getPrenom().isBlank() || u.getPrenom().endsWith(".")
+                        ? u.getNomComplet() : u.getPrenom()));
         String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter
                 .ofPattern("EEEE d MMMM yyyy", java.util.Locale.FRENCH));
         String role = switch (u.getRole()) {
@@ -153,7 +154,9 @@ public class DashboardController {
                     .sorted(java.util.Comparator.comparing(com.tdsi.memotheque.model.Soutenance::getDateHeure))
                     .limit(5)
                     .forEach(s -> ajouterAction("Soutenance le " + s.getDateHeureLisible() + " (" + s.getSalle()
-                            + ") : « " + s.getTitre() + " », " + s.getEtudiant() + ".", null, null));
+                            + ") : « " + s.getTitre() + " », " + s.getEtudiant() + ".",
+                            u.getRole() == com.tdsi.memotheque.model.Role.ETUDIANT ? "Ma convocation" : "Convocations",
+                            u.getRole() == com.tdsi.memotheque.model.Role.ETUDIANT ? "mes_memoires" : "soutenances"));
         } catch (SQLException | SecurityException e) {
             ajouterAction("Informations indisponibles : " + e.getMessage(), null, null);
         }
@@ -169,7 +172,9 @@ public class DashboardController {
             blocAFaire.getChildren().add(l);
             return;
         }
+        l.setWrapText(true);
         javafx.scene.control.Hyperlink lien = new javafx.scene.control.Hyperlink(bouton);
+        lien.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
         lien.setOnAction(e -> SceneNavigator.charger(vue));
         javafx.scene.layout.HBox ligne = new javafx.scene.layout.HBox(6, l, lien);
         ligne.setAlignment(javafx.geometry.Pos.CENTER_LEFT);

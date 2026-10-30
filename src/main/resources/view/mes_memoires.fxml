@@ -40,6 +40,7 @@
     <Button text="Déposer un mémoire" onAction="#nouveauDepot" styleClass="bouton-principal"/>
     <Button fx:id="boutonDetail" text="Voir le détail" onAction="#voirDetail"/>
     <Button fx:id="boutonHistorique" text="Historique des versions" onAction="#voirHistorique"/>
+    <Button fx:id="boutonConvocation" text="Ma convocation" onAction="#voirConvocation" styleClass="bouton-principal"/>
     <Button fx:id="boutonAttestation" text="Attestation de dépôt" onAction="#imprimerAttestation"/>
     <Button fx:id="boutonModifier" text="Modifier" onAction="#modifier"/>
     <Button fx:id="boutonSupprimer" text="Supprimer" onAction="#supprimer" styleClass="bouton-danger"/>

@@ -2,23 +2,23 @@
    (et la base Modena). Tous les composants suivent automatiquement. */
 
 .root {
-    -c-primaire: #7d9cff;
-    -c-primaire-fonce: #a3baff;
-    -c-primaire-pale: #22305a;
-    -c-or: #f5bd5d;
-    -c-nuit: #0a1128;
-    -c-nuit-2: #1a2750;
-    -c-nuit-texte: #c3cde4;
-    -c-nuit-icone: #7a87ab;
-    -c-fond: #0f1528;
-    -c-surface: #171f36;
-    -c-surface-2: #1b2440;
-    -c-bordure: #29344f;
-    -c-texte: #e6ebf5;
-    -c-texte-doux: #9aa6c0;
+    -c-institution: #0b2244;
+    -c-institution-2: #123566;
+    -c-primaire: #7aa5ff;
+    -c-primaire-fonce: #a2c0ff;
+    -c-primaire-pale: #1d2f55;
+    -c-or: #f0b84a;
+    -c-fond: #0f1524;
+    -c-surface: #161e31;
+    -c-surface-2: #1a233a;
+    -c-bordure: #2a3550;
+    -c-texte: #e8edf6;
+    -c-texte-doux: #a1adc5;
+    -c-menu-texte: #cdd6e6;
+    -c-menu-icone: #8d9bb8;
     -c-succes: #5fd39a;
     -c-succes-pale: #163626;
-    -c-alerte: #f5bd5d;
+    -c-alerte: #f0b84a;
     -c-alerte-pale: #3a2c12;
     -c-danger: #ff8a80;
     -c-danger-pale: #3d1c1c;
@@ -27,16 +27,7 @@
     -fx-base: #232c45;
 }
 
-.bouton-principal, .bouton-principal:hover {
-    -fx-text-fill: #0a1128;
-}
-
-.bouton-principal .icone, .bouton-principal:hover .icone {
-    -fx-background-color: #0a1128;
-}
-
-.check-box:selected .mark {
-    -fx-background-color: #0a1128;
-}
-
-.default-color0.chart-pie { -fx-pie-color: #7d9cff; }
+.bouton-principal, .bouton-principal:hover { -fx-text-fill: #0b1428; }
+.bouton-principal .icone, .bouton-principal:hover .icone { -fx-background-color: #0b1428; }
+.check-box:selected .mark { -fx-background-color: #0b1428; }
+.default-color0.chart-pie { -fx-pie-color: #7aa5ff; }

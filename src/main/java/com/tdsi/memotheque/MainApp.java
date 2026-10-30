@@ -39,6 +39,15 @@ public class MainApp extends Application {
                 LOG.info(() -> "Comptes de démonstration non créés : " + e.getMessage());
             }
 
+            // Mode démonstration (mvn javafx:run) : comptes admin@mcs, samb@mcs, babs@mcs et données de test.
+            if (com.tdsi.memotheque.service.DonneesDemo.active()) {
+                try {
+                    new com.tdsi.memotheque.service.DonneesDemo().charger();
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Jeu de démonstration non créé", e);
+                }
+            }
+
             // Installation neuve sans administrateur : on le crée maintenant.
             if (!auth.adminExiste() && !creerPremierAdmin(auth)) {
                 Platform.exit();

@@ -46,6 +46,7 @@ public class MesMemoiresController {
     @FXML private Button boutonDetail;
     @FXML private Button boutonHistorique;
     @FXML private Button boutonAttestation;
+    @FXML private Button boutonConvocation;
     @FXML private Label labelMessage;
 
     private final MemoireService memoireService = new MemoireService();
@@ -116,6 +117,8 @@ public class MesMemoiresController {
         boutonDetail.setDisable(m == null);
         boutonHistorique.setDisable(m == null);
         boutonAttestation.setDisable(m == null);
+        Soutenance s = m == null ? null : soutenances.get(m.getId());
+        boutonConvocation.setDisable(s == null || s.getStatut() != Soutenance.Statut.PLANIFIEE);
     }
 
     @FXML
@@ -202,6 +205,15 @@ public class MesMemoiresController {
                 new String[] {"Soutenance", soutenanceLisible(m)},
                 new String[] {"Résultat", resultat(m)}),
                 "L'empreinte SHA-256 identifie de façon unique le fichier déposé : toute modification du PDF la change.");
+    }
+
+    /** Convocation à la soutenance programmée (lettre imprimable). */
+    @FXML
+    private void voirConvocation() {
+        Memoire m = tableMemoires.getSelectionModel().getSelectedItem();
+        if (m != null) {
+            SoutenancesController.afficherConvocations(m.getId(), labelMessage);
+        }
     }
 
     @FXML

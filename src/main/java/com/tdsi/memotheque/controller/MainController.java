@@ -211,7 +211,7 @@ public class MainController {
         afficher(btnSuivi, enseignantOuAdmin);
         afficher(btnSoutenances, enseignantOuAdmin);
         btnSuivi.setText(admin ? "Suivi des mémoires" : "Mes encadrements");
-        btnSoutenances.setText(admin ? "Soutenances" : "Mes soutenances (jury)");
+        btnSoutenances.setText(admin ? "Soutenances" : "Mes jurys");
         afficher(btnParametres, admin);
 
         afficher(lblSectionAdmin, admin);

@@ -1,33 +1,33 @@
-/* [M1 base, M6 finition] Système de design de MémoTDSI.
-   Toutes les couleurs sont des « jetons » définis sur .root : theme-sombre.css ne redéfinit que ces jetons.
-   Palette inspirée de l'illustration du campus : nuit de Dakar, or du couchant, bleu académique. */
+/* [M1 base, M6 finition] Thème « portail universitaire » de MémoTDSI.
+   Toutes les couleurs sont des jetons définis sur .root : theme-sombre.css ne redéfinit que ces jetons.
+   Textes volontairement grands (base 15 px) pour une lecture confortable. */
 
 .root {
     /* ---- jetons ---- */
-    -c-primaire: #2b59c3;
-    -c-primaire-fonce: #1f4699;
-    -c-primaire-pale: #e8eefc;
-    -c-or: #f2b24c;
-    -c-nuit: #0e1a3a;
-    -c-nuit-2: #18295a;
-    -c-nuit-texte: #c3cde4;
-    -c-nuit-icone: #8794b8;
-    -c-fond: #f4f6fb;
+    -c-institution: #0f3b78;
+    -c-institution-2: #164c96;
+    -c-primaire: #1a56b8;
+    -c-primaire-fonce: #134594;
+    -c-primaire-pale: #e7effb;
+    -c-or: #e0a526;
+    -c-fond: #f1f4f9;
     -c-surface: #ffffff;
-    -c-surface-2: #f8f9fc;
-    -c-bordure: #e2e7f0;
-    -c-texte: #18213a;
-    -c-texte-doux: #5d6b85;
+    -c-surface-2: #f8fafd;
+    -c-bordure: #dde3ec;
+    -c-texte: #142036;
+    -c-texte-doux: #55627a;
+    -c-menu-texte: #33415c;
+    -c-menu-icone: #6b7894;
     -c-succes: #16794a;
     -c-succes-pale: #e3f4eb;
-    -c-alerte: #a35a00;
-    -c-alerte-pale: #fff3dc;
-    -c-danger: #c0352b;
+    -c-alerte: #9a5800;
+    -c-alerte-pale: #fff2d9;
+    -c-danger: #b9302a;
     -c-danger-pale: #fde8e6;
     -c-ombre: rgba(16, 24, 40, 0.07);
 
     /* ---- Modena piloté par les jetons ---- */
-    -fx-base: #eef1f7;
+    -fx-base: #eef1f6;
     -fx-background: -c-fond;
     -fx-control-inner-background: -c-surface;
     -fx-control-inner-background-alt: -c-surface-2;
@@ -42,7 +42,7 @@
     -fx-prompt-text-fill: derive(-c-texte-doux, 35%);
 
     -fx-font-family: "Segoe UI", "Ubuntu", "Noto Sans", "Cantarell", "Arial";
-    -fx-font-size: 13.5px;
+    -fx-font-size: 15px;
 }
 
 .label {
@@ -62,13 +62,13 @@
 }
 
 .titre-page {
-    -fx-font-size: 24px;
+    -fx-font-size: 26px;
     -fx-font-weight: bold;
     -fx-text-fill: -c-texte;
 }
 
 .sous-titre {
-    -fx-font-size: 15.5px;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
     -fx-text-fill: -c-texte;
 }
@@ -83,7 +83,7 @@
 
 .aide {
     -fx-text-fill: -c-texte-doux;
-    -fx-font-size: 12.5px;
+    -fx-font-size: 14px;
 }
 
 .valeur-fixe {
@@ -99,63 +99,48 @@
 
 .carte {
     -fx-background-color: -c-surface;
-    -fx-background-radius: 12;
+    -fx-background-radius: 10;
     -fx-border-color: -c-bordure;
-    -fx-border-radius: 12;
-    -fx-padding: 16;
-    -fx-effect: dropshadow(gaussian, -c-ombre, 14, 0, 0, 3);
+    -fx-border-radius: 10;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, -c-ombre, 12, 0, 0, 2);
 }
 
 .carte-stat {
     -fx-background-color: -c-surface;
-    -fx-background-radius: 12;
+    -fx-background-radius: 10;
     -fx-border-color: -c-bordure;
-    -fx-border-radius: 12;
-    -fx-padding: 16 18 16 18;
+    -fx-border-radius: 10;
+    -fx-padding: 18 20 18 20;
     -fx-spacing: 4;
-    -fx-effect: dropshadow(gaussian, -c-ombre, 14, 0, 0, 3);
+    -fx-effect: dropshadow(gaussian, -c-ombre, 12, 0, 0, 2);
 }
 
 .carte-stat-titre {
     -fx-text-fill: -c-texte-doux;
-    -fx-font-size: 12.5px;
+    -fx-font-size: 14px;
 }
 
 .carte-stat-valeur {
-    -fx-font-size: 30px;
+    -fx-font-size: 32px;
     -fx-font-weight: bold;
     -fx-text-fill: -c-texte;
 }
 
-/* Pastille ronde contenant l'icône d'une carte de statistique */
 .pastille-icone {
     -fx-background-color: -c-primaire-pale;
     -fx-background-radius: 999;
-    -fx-min-width: 42;
-    -fx-min-height: 42;
-    -fx-max-width: 42;
-    -fx-max-height: 42;
+    -fx-min-width: 48;
+    -fx-min-height: 48;
+    -fx-max-width: 48;
+    -fx-max-height: 48;
 }
 
-.pastille-icone .icone {
-    -fx-background-color: -c-primaire;
-}
-
-.pastille-icone.or {
-    -fx-background-color: -c-alerte-pale;
-}
-
-.pastille-icone.or .icone {
-    -fx-background-color: -c-alerte;
-}
-
-.pastille-icone.vert {
-    -fx-background-color: -c-succes-pale;
-}
-
-.pastille-icone.vert .icone {
-    -fx-background-color: -c-succes;
-}
+.pastille-icone .icone { -fx-background-color: -c-primaire; }
+.pastille-icone.or { -fx-background-color: -c-alerte-pale; }
+.pastille-icone.or .icone { -fx-background-color: -c-alerte; }
+.pastille-icone.vert { -fx-background-color: -c-succes-pale; }
+.pastille-icone.vert .icone { -fx-background-color: -c-succes; }
 
 /* ================================================================ icônes */
 
@@ -167,11 +152,12 @@
 
 .button, .toggle-button, .menu-button {
     -fx-background-color: -c-surface;
-    -fx-background-radius: 8;
-    -fx-border-color: -c-bordure;
-    -fx-border-radius: 8;
-    -fx-padding: 7 14 7 14;
+    -fx-background-radius: 7;
+    -fx-border-color: derive(-c-bordure, -6%);
+    -fx-border-radius: 7;
+    -fx-padding: 9 16 9 16;
     -fx-text-fill: -c-texte;
+    -fx-font-size: 15px;
     -fx-cursor: hand;
     -fx-graphic-text-gap: 8;
 }
@@ -203,42 +189,19 @@
     -fx-border-color: transparent;
 }
 
-.bouton-principal {
-    -fx-background-color: -c-primaire;
-}
-
-.bouton-principal:hover {
-    -fx-background-color: -c-primaire-fonce;
-    -fx-text-fill: white;
-    -fx-border-color: transparent;
-}
-
-.bouton-succes {
-    -fx-background-color: -c-succes;
-}
-
-.bouton-succes:hover {
-    -fx-background-color: derive(-c-succes, -15%);
-    -fx-text-fill: white;
-    -fx-border-color: transparent;
-}
-
-.bouton-danger {
-    -fx-background-color: -c-danger;
-}
-
-.bouton-danger:hover {
-    -fx-background-color: derive(-c-danger, -15%);
-    -fx-text-fill: white;
-    -fx-border-color: transparent;
-}
+.bouton-principal { -fx-background-color: -c-primaire; }
+.bouton-principal:hover { -fx-background-color: -c-primaire-fonce; -fx-text-fill: white; -fx-border-color: transparent; }
+.bouton-succes { -fx-background-color: -c-succes; }
+.bouton-succes:hover { -fx-background-color: derive(-c-succes, -15%); -fx-text-fill: white; -fx-border-color: transparent; }
+.bouton-danger { -fx-background-color: -c-danger; }
+.bouton-danger:hover { -fx-background-color: derive(-c-danger, -15%); -fx-text-fill: white; -fx-border-color: transparent; }
 
 .bouton-principal .icone, .bouton-succes .icone, .bouton-danger .icone,
 .bouton-principal:hover .icone {
     -fx-background-color: white;
 }
 
-/* Bouton rond ne contenant qu'une icône (cloche, thème) */
+/* Bouton ne contenant qu'une icône (dans le bandeau bleu) */
 .bouton-icone {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -247,32 +210,46 @@
     -fx-padding: 8;
 }
 
+.bouton-icone .icone {
+    -fx-background-color: white;
+}
+
 .bouton-icone:hover {
-    -fx-background-color: -c-fond;
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-border-color: transparent;
+}
+
+.bouton-icone:hover .icone {
+    -fx-background-color: white;
+}
+
+.bouton-icone:focused, .lien-menu:focused {
     -fx-border-color: transparent;
 }
 
 .hyperlink {
     -fx-text-fill: -c-primaire;
     -fx-border-color: transparent;
+    -fx-font-size: 15px;
 }
 
 /* ================================================================ champs */
 
 .text-field, .password-field, .text-area, .combo-box, .date-picker, .spinner {
     -fx-background-color: -c-surface;
-    -fx-background-radius: 8;
-    -fx-border-color: -c-bordure;
-    -fx-border-radius: 8;
+    -fx-background-radius: 7;
+    -fx-border-color: derive(-c-bordure, -6%);
+    -fx-border-radius: 7;
+    -fx-font-size: 15px;
 }
 
 .text-field, .password-field {
-    -fx-padding: 8 10 8 10;
+    -fx-padding: 9 11 9 11;
 }
 
 .text-area .content {
     -fx-background-color: -c-surface;
-    -fx-background-radius: 8;
+    -fx-background-radius: 7;
 }
 
 .date-picker .text-field {
@@ -289,7 +266,7 @@
 .combo-box .list-cell, .combo-box .list-cell:selected, .combo-box .list-cell:odd {
     -fx-background-color: transparent;
     -fx-text-fill: -c-texte;
-    -fx-padding: 4 6 4 6;
+    -fx-padding: 5 7 5 7;
 }
 
 .combo-box-popup .list-view {
@@ -298,9 +275,13 @@
     -fx-effect: dropshadow(gaussian, rgba(16, 24, 40, 0.18), 16, 0, 0, 6);
 }
 
+.check-box {
+    -fx-font-size: 15px;
+}
+
 .check-box .box {
     -fx-background-color: -c-surface;
-    -fx-border-color: derive(-c-bordure, -15%);
+    -fx-border-color: derive(-c-bordure, -18%);
     -fx-border-radius: 4;
     -fx-background-radius: 4;
 }
@@ -318,26 +299,26 @@
 
 .table-view, .list-view {
     -fx-background-color: -c-surface;
-    -fx-background-radius: 12;
+    -fx-background-radius: 10;
     -fx-border-color: -c-bordure;
-    -fx-border-radius: 12;
+    -fx-border-radius: 10;
     -fx-padding: 2;
 }
 
 .table-view .column-header-background {
-    -fx-background-color: -c-surface;
-    -fx-background-radius: 12 12 0 0;
+    -fx-background-color: -c-surface-2;
+    -fx-background-radius: 10 10 0 0;
 }
 
 .table-view .column-header, .table-view .filler {
     -fx-background-color: transparent;
     -fx-border-color: transparent transparent -c-bordure transparent;
-    -fx-size: 38;
+    -fx-size: 42;
 }
 
 .table-view .column-header .label {
     -fx-text-fill: -c-texte-doux;
-    -fx-font-size: 12px;
+    -fx-font-size: 13.5px;
     -fx-font-weight: bold;
     -fx-alignment: center-left;
     -fx-padding: 0 8 0 8;
@@ -346,64 +327,45 @@
 .table-row-cell {
     -fx-background-color: -c-surface;
     -fx-border-color: transparent transparent derive(-c-bordure, 5%) transparent;
-    -fx-cell-size: 38;
+    -fx-cell-size: 42;
 }
 
-.table-row-cell:odd {
-    -fx-background-color: -c-surface-2;
-}
-
-.table-row-cell:hover {
-    -fx-background-color: derive(-c-primaire-pale, 30%);
-}
-
-.table-row-cell:selected {
-    -fx-background-color: -c-primaire-pale;
-}
+.table-row-cell:odd { -fx-background-color: -c-surface-2; }
+.table-row-cell:hover { -fx-background-color: derive(-c-primaire-pale, 30%); }
+.table-row-cell:selected { -fx-background-color: -c-primaire-pale; }
 
 .table-cell {
     -fx-text-fill: -c-texte;
+    -fx-font-size: 14.5px;
     -fx-padding: 0 8 0 8;
     -fx-alignment: center-left;
     -fx-border-color: transparent;
 }
 
-.table-row-cell:selected .table-cell {
-    -fx-text-fill: -c-texte;
-}
+.table-row-cell:selected .table-cell { -fx-text-fill: -c-texte; }
 
-.table-view .placeholder .label {
-    -fx-text-fill: -c-texte-doux;
-}
+.table-view .placeholder .label { -fx-text-fill: -c-texte-doux; }
 
 .list-cell {
     -fx-background-color: -c-surface;
-    -fx-padding: 10 12 10 12;
+    -fx-padding: 11 13 11 13;
     -fx-text-fill: -c-texte;
 }
 
-.list-cell:odd {
-    -fx-background-color: -c-surface-2;
-}
-
-.list-cell:selected {
-    -fx-background-color: -c-primaire-pale;
-}
+.list-cell:odd { -fx-background-color: -c-surface-2; }
+.list-cell:selected { -fx-background-color: -c-primaire-pale; }
 
 /* ================================================================ statuts */
 
-/* Texte coloré (anciennes cellules) */
 .statut-en_attente { -fx-text-fill: -c-alerte;   -fx-font-weight: bold; }
 .statut-valide     { -fx-text-fill: -c-succes;   -fx-font-weight: bold; }
 .statut-refuse     { -fx-text-fill: -c-danger;   -fx-font-weight: bold; }
 .statut-autorise   { -fx-text-fill: -c-primaire; -fx-font-weight: bold; }
 
-/* Pastilles (étiquettes arrondies) */
 .pastille {
-    -fx-min-width: -fx-pref-width;
     -fx-background-radius: 999;
-    -fx-padding: 3 10 3 10;
-    -fx-font-size: 12px;
+    -fx-padding: 3 11 3 11;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
 
@@ -413,123 +375,67 @@
 .pastille.autorise   { -fx-background-color: -c-primaire-pale; -fx-text-fill: -c-primaire; }
 .pastille.neutre     { -fx-background-color: -c-fond;          -fx-text-fill: -c-texte-doux; }
 
-/* ================================================================ bandeaux */
+/* ================================================================ bandeaux d'information */
 
 .bandeau-alerte, .bandeau-succes, .bandeau-danger {
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-padding: 10 14 10 14;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 11 15 11 15;
 }
 
-.bandeau-alerte {
-    -fx-background-color: -c-alerte-pale;
-    -fx-border-color: derive(-c-alerte, 55%);
-    -fx-text-fill: -c-alerte;
-}
-
-.bandeau-succes {
-    -fx-background-color: -c-succes-pale;
-    -fx-border-color: derive(-c-succes, 55%);
-    -fx-text-fill: -c-succes;
-}
-
-.bandeau-danger {
-    -fx-background-color: -c-danger-pale;
-    -fx-border-color: derive(-c-danger, 55%);
-    -fx-text-fill: -c-danger;
-}
-
+.bandeau-alerte  { -fx-background-color: -c-alerte-pale; -fx-border-color: derive(-c-alerte, 55%); -fx-text-fill: -c-alerte; }
+.bandeau-succes  { -fx-background-color: -c-succes-pale; -fx-border-color: derive(-c-succes, 55%); -fx-text-fill: -c-succes; }
+.bandeau-danger  { -fx-background-color: -c-danger-pale; -fx-border-color: derive(-c-danger, 55%); -fx-text-fill: -c-danger; }
 .label.bandeau-alerte { -fx-text-fill: -c-alerte; }
 .label.bandeau-succes { -fx-text-fill: -c-succes; }
 .label.bandeau-danger { -fx-text-fill: -c-danger; }
 
-.notification-non-lue {
-    -fx-font-weight: bold;
-}
+.notification-non-lue { -fx-font-weight: bold; }
 
-.barre-filtres {
-    -fx-background-color: transparent;
-}
+.barre-filtres { -fx-background-color: transparent; }
 
 /* ================================================================ cadre principal */
 
-.barre-laterale {
-    -fx-background-color: -c-nuit;
-    -fx-padding: 18 12 14 12;
-    -fx-spacing: 3;
+/* Bandeau institutionnel en haut de la fenêtre */
+.bandeau-institution {
+    -fx-background-color: -c-institution;
+    -fx-padding: 9 18 9 18;
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
 }
 
-.logo-titre {
+.bandeau-institution .label {
     -fx-text-fill: white;
+}
+
+.nom-appli {
     -fx-font-size: 19px;
     -fx-font-weight: bold;
 }
 
-.logo-sous-titre {
-    -fx-text-fill: -c-nuit-icone;
-    -fx-font-size: 11px;
+.nom-institution {
+    -fx-font-size: 13px;
+    -fx-opacity: 0.85;
 }
 
-.menu-section {
-    -fx-text-fill: -c-nuit-icone;
-    -fx-font-size: 10.5px;
-    -fx-font-weight: bold;
-    -fx-padding: 14 10 4 10;
+.separateur-bandeau {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+    -fx-min-width: 1;
+    -fx-max-width: 1;
+    -fx-pref-height: 30;
 }
 
-.lien-menu {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-background-radius: 8;
-    -fx-text-fill: -c-nuit-texte;
-    -fx-alignment: center-left;
-    -fx-padding: 9 12 9 12;
-    -fx-graphic-text-gap: 12;
-    -fx-font-size: 13.5px;
-}
-
-.lien-menu:focused, .bouton-icone:focused {
-    -fx-border-color: transparent;
-}
-
-.lien-menu .icone {
-    -fx-background-color: -c-nuit-icone;
-}
-
-.lien-menu:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.06);
-    -fx-text-fill: white;
-    -fx-border-color: transparent;
-}
-
-.lien-menu:hover .icone {
-    -fx-background-color: white;
-}
-
-.lien-menu.actif {
-    -fx-background-color: -c-nuit-2;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-}
-
-.lien-menu.actif .icone {
-    -fx-background-color: -c-or;
-}
-
-.carte-utilisateur {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 10;
-    -fx-padding: 10;
+.chip-utilisateur {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 999;
+    -fx-padding: 4 14 4 4;
     -fx-spacing: 10;
+    -fx-alignment: center-left;
 }
 
-.carte-utilisateur .label {
-    -fx-text-fill: white;
-}
-
-.carte-utilisateur .role {
-    -fx-text-fill: -c-nuit-icone;
-    -fx-font-size: 11.5px;
+.chip-utilisateur .role {
+    -fx-font-size: 12.5px;
+    -fx-opacity: 0.8;
 }
 
 .avatar {
@@ -542,53 +448,102 @@
     -fx-alignment: center;
 }
 
-.avatar .label {
-    -fx-text-fill: -c-nuit;
-    -fx-font-weight: bold;
-}
-
-.barre-haut {
-    -fx-background-color: -c-surface;
-    -fx-border-color: transparent transparent -c-bordure transparent;
-    -fx-padding: 10 22 10 26;
-    -fx-spacing: 6;
-    -fx-alignment: center-left;
-}
-
-.fil-ariane {
-    -fx-text-fill: -c-texte-doux;
-    -fx-font-size: 12.5px;
-}
-
-.titre-section {
-    -fx-text-fill: -c-texte;
-    -fx-font-size: 17px;
+.bandeau-institution .avatar .label {
+    -fx-text-fill: #1d2433;
     -fx-font-weight: bold;
 }
 
 .badge {
-    -fx-background-color: -c-danger;
+    -fx-background-color: #e5484d;
     -fx-background-radius: 999;
     -fx-text-fill: white;
-    -fx-font-size: 10px;
+    -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-padding: 1 5 1 5;
-    -fx-border-color: -c-surface;
+    -fx-border-color: -c-institution;
     -fx-border-radius: 999;
     -fx-border-width: 2;
 }
 
-/* ================================================================ connexion */
-
-.panneau-image {
-    -fx-background-color: -c-nuit;
-    -fx-background-image: url("../images/campus-connexion.png");
-    -fx-background-size: cover;
-    -fx-background-position: center bottom;
+/* Barre latérale claire */
+.barre-laterale {
+    -fx-background-color: -c-surface;
+    -fx-border-color: transparent -c-bordure transparent transparent;
+    -fx-padding: 14 12 14 12;
+    -fx-spacing: 2;
 }
 
-.voile-image {
-    -fx-background-color: linear-gradient(to bottom, rgba(14, 26, 58, 0.85) 0%, rgba(14, 26, 58, 0.15) 45%, rgba(14, 26, 58, 0) 100%);
+.menu-section {
+    -fx-text-fill: -c-texte-doux;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 16 12 6 12;
+}
+
+.lien-menu {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 7;
+    -fx-text-fill: -c-menu-texte;
+    -fx-alignment: center-left;
+    -fx-padding: 10 12 10 12;
+    -fx-graphic-text-gap: 12;
+    -fx-font-size: 15px;
+}
+
+.lien-menu .icone { -fx-background-color: -c-menu-icone; }
+
+.lien-menu:hover {
+    -fx-background-color: -c-fond;
+    -fx-text-fill: -c-texte;
+    -fx-border-color: transparent;
+}
+
+.lien-menu:hover .icone { -fx-background-color: -c-primaire; }
+
+.lien-menu.actif {
+    -fx-background-color: -c-primaire-pale;
+    -fx-text-fill: -c-primaire;
+    -fx-font-weight: bold;
+}
+
+.lien-menu.actif .icone { -fx-background-color: -c-primaire; }
+
+.version-appli {
+    -fx-text-fill: -c-texte-doux;
+    -fx-font-size: 12px;
+    -fx-padding: 0 12 0 12;
+}
+
+/* En-tête de l'écran (fil d'Ariane + titre) */
+.entete-page {
+    -fx-background-color: -c-surface;
+    -fx-border-color: transparent transparent -c-bordure transparent;
+    -fx-padding: 14 28 14 28;
+}
+
+.fil-ariane {
+    -fx-text-fill: -c-texte-doux;
+    -fx-font-size: 13.5px;
+}
+
+.titre-section {
+    -fx-text-fill: -c-texte;
+    -fx-font-size: 23px;
+    -fx-font-weight: bold;
+}
+
+/* ================================================================ connexion */
+
+.fond-photo {
+    -fx-background-color: -c-institution;
+    -fx-background-image: url("../images/photo-campus.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+
+.voile-photo {
+    -fx-background-color: linear-gradient(to bottom right, rgba(15, 59, 120, 0.82) 0%, rgba(15, 59, 120, 0.55) 55%, rgba(10, 30, 60, 0.75) 100%);
 }
 
 .titre-accueil {
@@ -598,22 +553,27 @@
 }
 
 .texte-accueil {
-    -fx-text-fill: #dfe5f3;
-    -fx-font-size: 14px;
+    -fx-text-fill: #e6edf8;
+    -fx-font-size: 16px;
 }
 
 .etiquette-accueil {
     -fx-text-fill: -c-or;
-    -fx-font-size: 11.5px;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
 
 .credit-image {
-    -fx-text-fill: rgba(255, 255, 255, 0.85);
-    -fx-font-size: 10.5px;
-    -fx-background-color: rgba(10, 17, 40, 0.6);
-    -fx-background-radius: 999;
-    -fx-padding: 3 10 3 10;
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
+    -fx-font-size: 12px;
+}
+
+.carte-connexion {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 14;
+    -fx-padding: 34 38 30 38;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 30, 0, 0, 10);
 }
 
 .panneau-formulaire {
@@ -621,112 +581,109 @@
 }
 
 .titre-formulaire {
-    -fx-font-size: 24px;
+    -fx-font-size: 25px;
     -fx-font-weight: bold;
     -fx-text-fill: -c-texte;
 }
 
 .champ-titre {
     -fx-text-fill: -c-texte;
-    -fx-font-size: 12.5px;
+    -fx-font-size: 14.5px;
     -fx-font-weight: bold;
+}
+
+.encart-demo {
+    -fx-background-color: -c-primaire-pale;
+    -fx-background-radius: 8;
+    -fx-padding: 10 12 10 12;
+    -fx-spacing: 4;
+}
+
+.encart-demo .hyperlink {
+    -fx-padding: 0;
+    -fx-font-size: 14px;
 }
 
 /* ================================================================ tableau de bord */
 
 .bandeau-accueil {
-    -fx-background-color: -c-nuit;
-    -fx-background-image: url("../images/campus-bandeau.png");
+    -fx-background-color: -c-institution;
+    -fx-background-image: url("../images/photo-bibliotheque.jpg");
     -fx-background-size: cover;
-    -fx-background-position: right center;
-    -fx-background-radius: 14;
+    -fx-background-position: center;
+    -fx-background-radius: 12;
     -fx-min-height: 150;
     -fx-pref-height: 150;
 }
 
 .bandeau-accueil-voile {
-    -fx-background-color: linear-gradient(to right, rgba(14, 26, 58, 0.92) 0%, rgba(14, 26, 58, 0.55) 50%, rgba(14, 26, 58, 0) 80%);
-    -fx-background-radius: 14;
-    -fx-padding: 22 28 22 28;
-    -fx-spacing: 4;
+    -fx-background-color: linear-gradient(to right, rgba(15, 59, 120, 0.94) 0%, rgba(15, 59, 120, 0.7) 55%, rgba(15, 59, 120, 0.25) 100%);
+    -fx-background-radius: 12;
+    -fx-padding: 22 30 22 30;
+    -fx-spacing: 6;
 }
 
 .bonjour {
     -fx-text-fill: white;
-    -fx-font-size: 24px;
+    -fx-font-size: 27px;
     -fx-font-weight: bold;
 }
 
 .bonjour-sous {
-    -fx-text-fill: #dfe5f3;
-    -fx-font-size: 13.5px;
+    -fx-text-fill: #e6edf8;
+    -fx-font-size: 15px;
 }
 
 /* ================================================================ graphiques */
 
 .chart {
     -fx-background-color: -c-surface;
-    -fx-background-radius: 12;
+    -fx-background-radius: 10;
     -fx-border-color: -c-bordure;
-    -fx-border-radius: 12;
-    -fx-padding: 12;
+    -fx-border-radius: 10;
+    -fx-padding: 14;
 }
 
 .chart-title {
     -fx-text-fill: -c-texte;
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
 }
 
-.chart-plot-background {
-    -fx-background-color: transparent;
-}
-
-.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
-    -fx-stroke: -c-bordure;
-}
+.chart-plot-background { -fx-background-color: transparent; }
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: -c-bordure; }
 
 .axis, .axis-label {
     -fx-tick-label-fill: -c-texte-doux;
     -fx-text-fill: -c-texte-doux;
+    -fx-tick-label-font-size: 13px;
 }
 
-.chart-legend {
-    -fx-background-color: transparent;
-}
+.chart-legend { -fx-background-color: transparent; }
+.chart-legend-item { -fx-text-fill: -c-texte-doux; -fx-font-size: 14px; }
 
-.chart-legend-item {
-    -fx-text-fill: -c-texte-doux;
-}
-
-.default-color0.chart-bar { -fx-bar-fill: -c-primaire; -fx-background-radius: 6 6 0 0; }
-.default-color0.chart-pie { -fx-pie-color: #2b59c3; }
-.default-color1.chart-pie { -fx-pie-color: #f2b24c; }
+.default-color0.chart-bar { -fx-bar-fill: -c-primaire; -fx-background-radius: 5 5 0 0; }
+.default-color0.chart-pie { -fx-pie-color: #1a56b8; }
+.default-color1.chart-pie { -fx-pie-color: #e0a526; }
 .default-color2.chart-pie { -fx-pie-color: #16794a; }
-.default-color3.chart-pie { -fx-pie-color: #c0352b; }
-.default-color4.chart-pie { -fx-pie-color: #7c5cd6; }
-.default-color5.chart-pie { -fx-pie-color: #1f9bb5; }
-.default-color6.chart-pie { -fx-pie-color: #d0698a; }
-.default-color7.chart-pie { -fx-pie-color: #5d6b85; }
+.default-color3.chart-pie { -fx-pie-color: #b9302a; }
+.default-color4.chart-pie { -fx-pie-color: #6d4fc7; }
+.default-color5.chart-pie { -fx-pie-color: #1f8fa8; }
+.default-color6.chart-pie { -fx-pie-color: #c85d84; }
+.default-color7.chart-pie { -fx-pie-color: #55627a; }
 
 /* ================================================================ divers */
 
-.separator .line {
-    -fx-border-color: -c-bordure;
-}
+.separator .line { -fx-border-color: -c-bordure; }
 
-.scroll-bar {
-    -fx-background-color: transparent;
-}
+.scroll-bar { -fx-background-color: transparent; }
 
 .scroll-bar .thumb {
     -fx-background-color: derive(-c-bordure, -12%);
     -fx-background-radius: 999;
 }
 
-.scroll-bar .increment-button, .scroll-bar .decrement-button {
-    -fx-padding: 0;
-}
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; }
 
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
     -fx-shape: " ";
@@ -745,17 +702,29 @@
     -fx-background-radius: 6;
 }
 
-.dialog-pane {
-    -fx-background-color: -c-surface;
-}
-
-.dialog-pane > .button-bar > .container {
-    -fx-padding: 4 0 0 0;
-}
+.dialog-pane { -fx-background-color: -c-surface; }
+.dialog-pane .header-panel { -fx-background-color: -c-surface-2; }
+.dialog-pane .header-panel .label { -fx-font-size: 16px; -fx-font-weight: bold; }
+.dialog-pane > .content { -fx-font-size: 15px; }
 
 .tooltip {
-    -fx-background-color: -c-nuit;
+    -fx-background-color: #1d2433;
     -fx-text-fill: white;
     -fx-background-radius: 6;
-    -fx-font-size: 12px;
+    -fx-font-size: 13px;
 }
+
+/* ================================================================ convocation (lettre imprimable) */
+
+.lettre {
+    -fx-background-color: white;
+    -fx-padding: 40 46 40 46;
+    -fx-spacing: 12;
+}
+
+.lettre .label { -fx-text-fill: #1a1a1a; -fx-font-size: 14px; }
+.lettre .lettre-entete { -fx-font-size: 12.5px; -fx-text-fill: #3a3a3a; }
+.lettre .lettre-objet { -fx-font-size: 15px; -fx-font-weight: bold; }
+.lettre .lettre-titre { -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0f3b78; }
+.lettre .lettre-libelle { -fx-font-weight: bold; }
+.lettre .lettre-signature { -fx-font-weight: bold; }

@@ -66,7 +66,7 @@
     <Button fx:id="boutonPv" text="Saisir le procès-verbal..." onAction="#saisirPv" styleClass="bouton-succes"/>
     <Button fx:id="boutonReplanifier" text="Replanifier..." onAction="#replanifier"/>
     <Button fx:id="boutonAnnuler" text="Annuler" onAction="#annuler" styleClass="bouton-danger"/>
-    <Button fx:id="boutonConvocation" text="Convocation" onAction="#imprimerConvocation"/>
+    <Button fx:id="boutonConvocation" text="Convocations" onAction="#imprimerConvocation"/>
     <Button fx:id="boutonImprimerPv" text="Imprimer le PV" onAction="#imprimerPv"/>
     <Button fx:id="boutonDetail" text="Fiche du mémoire" onAction="#voirDetail"/>
   </HBox>

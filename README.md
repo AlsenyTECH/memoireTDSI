@@ -141,17 +141,49 @@ powershell -ExecutionPolicy Bypass -File scripts\creer-paquet.ps1
 
 ## Interface
 
-Barre latérale à icônes organisée par rôle, barre du haut avec le titre de l'écran, la cloche des
-notifications (badge du nombre non lu), le thème clair / sombre, le profil et la déconnexion.
-États des mémoires en pastilles colorées, tableau de bord avec bannière d'accueil.
+Thème « portail universitaire » : bandeau institutionnel bleu (logo, cloche des notifications avec
+badge, thème clair / sombre, utilisateur, déconnexion), menu clair à icônes organisé par rôle,
+textes en grand (15 px) pour une lecture confortable, états des mémoires en pastilles colorées.
 
-- **Illustrations** (`src/main/resources/images/`) : campus au crépuscule face à l'Atlantique,
-  dessin original généré pour le projet (aucune photo sous droits).
+- **Images** (`src/main/resources/images/`) : photos d'illustration **générées par IA** (campus,
+  bibliothèque), utilisées floutées en arrière-plan ; aucune photo réelle sous droits.
 - **Mettre une vraie photo de l'université** : déposer `campus.jpg` (ou `.png`) dans le dossier
-  `images/` du dossier de données (à côté de `memotdsi.db` avec `mvn javafx:run`) ; elle remplace
-  l'illustration sur l'écran de connexion et la bannière du tableau de bord.
+  `images/` du dossier de données ; elle remplace l'illustration (connexion et tableau de bord).
 - **Icônes** : Material Design Icons (Google, licence Apache 2.0), dessinées en vectoriel par
   JavaFX (`util/Icone.java`), sans dépendance supplémentaire.
+
+## Convocations
+
+Pour chaque soutenance programmée, une lettre de convocation est éditée pour l'étudiant et pour
+chaque membre du jury (président, examinateur(s), encadreur) : date, heure, salle, mémoire, jury.
+
+- **Étudiant** : « Mes mémoires » → *Ma convocation* (ou le lien depuis le tableau de bord).
+- **Enseignant** : « Mes jurys » → *Convocations* (sa propre lettre).
+- **Scolarité** : « Soutenances » → *Convocations* (toutes les lettres, une page par destinataire).
+
+Chacun ne peut obtenir que la convocation qui lui est adressée (contrôle dans `ConvocationService`).
+
+## Mode démonstration (données de test)
+
+`mvn javafx:run` (ou `./mvnw javafx:run`) lance l'application en **mode démonstration** : au premier
+lancement, des comptes et des mémoires à toutes les étapes sont créés (PDF chiffrés, PV signés).
+L'écran de connexion liste les comptes ; un clic remplit le formulaire.
+
+| Rôle | Nom | Identifiant | Mot de passe |
+|---|---|---|---|
+| Scolarité (admin) | Administrateur MCS | `admin@mcs` | `admin123` |
+| Encadreur | M. SAMB | `samb@mcs` | `samb123` |
+| Étudiant (M2) | Babacar NDIAYE | `babs@mcs` | `babs123` |
+| Autres enseignants | DIOP, FAYE, SARR, GUEYE | `diop@mcs`, `faye@mcs`… | `prof123` |
+| Autres étudiants | SOW, BA, DIOP, MBAYE, NDOUR, KANE, CISSÉ, BA | `awa@mcs`, `moussa@mcs`… | `etu123` |
+
+Scénario prêt à tester : Babacar NDIAYE (encadré par M. SAMB) a une soutenance dans 7 jours avec ses
+convocations ; M. SAMB a un mémoire à évaluer ; la scolarité a une soutenance à planifier et un PV à
+saisir ; trois mémoires sont publiés avec mention.
+
+Ces mots de passe sont volontairement simples : le mode démonstration n'existe **que** pour
+`mvn javafx:run` (propriété `memotdsi.demo`) ou avec `MEMOTDSI_DEMO=1`, jamais dans l'application
+installée.
 
 ## Lancer l'application
 

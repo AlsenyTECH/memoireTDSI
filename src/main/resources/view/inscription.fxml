@@ -17,8 +17,8 @@
 <!-- [M2] Inscription d'un tdsien : illustration du campus à gauche, formulaire à droite -->
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.tdsi.memotheque.controller.InscriptionController">
-  <StackPane styleClass="panneau-image" HBox.hgrow="ALWAYS" minWidth="340" prefWidth="480">
-    <VBox styleClass="voile-image" spacing="10">
+  <StackPane styleClass="fond-photo" HBox.hgrow="ALWAYS" minWidth="340" prefWidth="480">
+    <VBox styleClass="voile-photo" spacing="10">
       <padding><Insets top="44" right="40" bottom="26" left="40"/></padding>
       <Label text="UNIVERSITÉ CHEIKH ANTA DIOP DE DAKAR · FILIÈRE TDSI" styleClass="etiquette-accueil" wrapText="true"/>
       <Label text="Rejoignez MémoTDSI" styleClass="titre-accueil" wrapText="true"/>

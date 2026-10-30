@@ -27,6 +27,7 @@ public class LoginController {
     @FXML private Label labelMessage;
     @FXML private javafx.scene.layout.StackPane panneauImage;
     @FXML private Label labelCredit;
+    @FXML private javafx.scene.layout.VBox encartDemo;
 
     /** Une vraie photo du campus déposée par l'établissement remplace l'illustration. */
     @FXML
@@ -35,6 +36,22 @@ public class LoginController {
         if (photo != null && panneauImage != null) {
             panneauImage.setStyle("-fx-background-image: url(\"" + photo + "\");");
             labelCredit.setText("Photo : campus de l'université");
+        }
+        // Mode démonstration : un clic remplit l'identifiant et le mot de passe d'un compte de test.
+        if (com.tdsi.memotheque.service.DonneesDemo.active()) {
+            for (com.tdsi.memotheque.service.DonneesDemo.Compte c : com.tdsi.memotheque.service.DonneesDemo.COMPTES) {
+                javafx.scene.control.Hyperlink lien = new javafx.scene.control.Hyperlink(
+                        c.nom() + " (" + c.role().toLowerCase() + ")\n" + c.identifiant() + "  ·  mot de passe " + c.motDePasse());
+                lien.setWrapText(true);
+                lien.setOnAction(e -> {
+                    champIdentifiant.setText(c.identifiant());
+                    champMotDePasse.setText(c.motDePasse());
+                    champMotDePasse.requestFocus();
+                });
+                encartDemo.getChildren().add(lien);
+            }
+            encartDemo.setVisible(true);
+            encartDemo.setManaged(true);
         }
     }
 

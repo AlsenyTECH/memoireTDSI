@@ -417,24 +417,26 @@ public class SoutenancesController {
 
     // ------------------------------------------------------------------ documents
 
+    /** Scolarité : une lettre pour l'étudiant et pour chaque membre du jury. Enseignant : la sienne. */
     @FXML
     private void imprimerConvocation() {
         Soutenance s = tableSoutenances.getSelectionModel().getSelectedItem();
         if (s == null) {
             return;
         }
-        List<String[]> lignes = new ArrayList<>(List.of(
-                new String[] {"Date et heure", s.getDateHeureLisible()},
-                new String[] {"Salle", s.getSalle()},
-                new String[] {"Durée", SoutenanceService.DUREE_MINUTES + " minutes"},
-                new String[] {"Candidat(e)", s.getEtudiant()},
-                new String[] {"Niveau / année", s.getNiveauAnnee()},
-                new String[] {"Mémoire", s.getTitre()}));
-        for (MembreJury j : s.getJury()) {
-            lignes.add(new String[] {j.role().getLibelle(), j.enseignant().getNomComplet()});
+        afficherConvocations(s.getIdMemoire(), labelMessage);
+    }
+
+    /** Aperçu et impression des convocations d'un mémoire (droits vérifiés par ConvocationService). */
+    static void afficherConvocations(int idMemoire, Label message) {
+        try {
+            List<com.tdsi.memotheque.service.ConvocationService.Convocation> lettres =
+                    new com.tdsi.memotheque.service.ConvocationService().convocations(idMemoire);
+            Impression.apercuEtImpressionLettres(lettres.size() > 1 ? "Convocations à la soutenance" : "Ma convocation",
+                    lettres.stream().map(Impression::lettre).toList());
+        } catch (SQLException | IllegalStateException | SecurityException e) {
+            message.setText(e.getMessage());
         }
-        Impression.apercuEtImpression("Convocation à la soutenance", lignes,
-                "Le candidat et les membres du jury sont priés de se présenter 15 minutes avant l'heure indiquée.");
     }
 
     @FXML
