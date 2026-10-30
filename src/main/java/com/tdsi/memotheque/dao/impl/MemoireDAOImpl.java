@@ -15,6 +15,7 @@ import com.tdsi.memotheque.model.Domaine;
 import com.tdsi.memotheque.model.Memoire;
 import com.tdsi.memotheque.model.Mention;
 import com.tdsi.memotheque.model.Niveau;
+import com.tdsi.memotheque.model.NiveauDiffusion;
 import com.tdsi.memotheque.model.StatutMemoire;
 import com.tdsi.memotheque.model.Utilisateur;
 import com.tdsi.memotheque.util.DatabaseConnection;
@@ -47,8 +48,9 @@ public class MemoireDAOImpl implements MemoireDAO {
                 (titre, resume, mots_cles, annee_academique, niveau, id_domaine, id_auteur,
                  co_auteur, id_encadreur, date_soutenance, mention, date_depot, date_publication,
                  chemin_fichier, nom_original, taille_octets, empreinte_sha256, statut,
-                 motif_refus, id_validateur, signature, id_cle_signature, nb_vues, nb_telechargements)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 motif_refus, id_validateur, signature, id_cle_signature, niveau_diffusion,
+                 date_fin_embargo, date_avis, note, nb_vues, nb_telechargements)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection c = DatabaseConnection.getConnection();
@@ -79,7 +81,8 @@ public class MemoireDAOImpl implements MemoireDAO {
                     date_soutenance = ?, mention = ?, date_depot = ?, date_publication = ?,
                     chemin_fichier = ?, nom_original = ?, taille_octets = ?, empreinte_sha256 = ?,
                     statut = ?, motif_refus = ?, id_validateur = ?,
-                    signature = ?, id_cle_signature = ?
+                    signature = ?, id_cle_signature = ?, niveau_diffusion = ?, date_fin_embargo = ?,
+                    date_avis = ?, note = ?
                 WHERE id = ?
                 """;
 
@@ -202,7 +205,7 @@ public class MemoireDAOImpl implements MemoireDAO {
         return memoires;
     }
 
-    /** Remplit les 22 premières colonnes communes à INSERT et UPDATE. Retourne l'index suivant. */
+    /** Remplit les 26 premières colonnes communes à INSERT et UPDATE. Retourne l'index suivant. */
     private int remplirChamps(PreparedStatement ps, Memoire m) throws SQLException {
         int i = 1;
         ps.setString(i++, m.getTitre());
@@ -230,6 +233,14 @@ public class MemoireDAOImpl implements MemoireDAO {
             ps.setNull(i++, Types.INTEGER);
         } else {
             ps.setInt(i++, m.getIdCleSignature());
+        }
+        ps.setString(i++, (m.getNiveauDiffusion() == null ? NiveauDiffusion.PUBLIC : m.getNiveauDiffusion()).name());
+        ps.setString(i++, dateOuNull(m.getDateFinEmbargo()));
+        ps.setString(i++, dateOuNull(m.getDateAvis()));
+        if (m.getNote() == null) {
+            ps.setNull(i++, Types.REAL);
+        } else {
+            ps.setDouble(i++, m.getNote());
         }
         return i;
     }
@@ -272,6 +283,11 @@ public class MemoireDAOImpl implements MemoireDAO {
         m.setSignature(rs.getString("signature"));
         int idCle = rs.getInt("id_cle_signature");
         m.setIdCleSignature(rs.wasNull() ? null : idCle);
+        m.setNiveauDiffusion(enumOuNull(NiveauDiffusion.class, rs.getString("niveau_diffusion")));
+        m.setDateFinEmbargo(dateOuNull(rs.getString("date_fin_embargo")));
+        m.setDateAvis(dateOuNull(rs.getString("date_avis")));
+        double note = rs.getDouble("note");
+        m.setNote(rs.wasNull() ? null : note);
 
         int idDomaine = rs.getInt("id_domaine");
         if (!rs.wasNull()) {

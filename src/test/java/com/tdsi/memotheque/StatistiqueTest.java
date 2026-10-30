@@ -102,7 +102,7 @@ class StatistiqueTest {
         SessionManager.ouvrir(etu1);
         assertEquals(2, service.totalMemoiresValides());
         assertEquals(1, service.totalEnAttente());
-        assertEquals(Map.of("En attente", 1, "Validé", 2), service.memoiresParStatut());
+        assertEquals(Map.of("Soumis à l'encadreur", 1, "Publié", 2), service.memoiresParStatut());
         assertEquals(2, service.plusConsultes().size());
     }
 }

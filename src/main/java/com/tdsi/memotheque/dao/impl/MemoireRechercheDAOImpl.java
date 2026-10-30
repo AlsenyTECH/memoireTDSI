@@ -174,6 +174,12 @@ public class MemoireRechercheDAOImpl implements MemoireRechercheDAO {
             parametres.add(c.getStatut().name());
         }
 
+        // Catalogue : un mémoire confidentiel reste invisible jusqu'à la fin de son embargo.
+        if (c.getStatut() == StatutMemoire.VALIDE) {
+            sql.append(" AND NOT (m.niveau_diffusion = 'CONFIDENTIEL' AND (m.date_fin_embargo IS NULL "
+                    + "OR m.date_fin_embargo > date('now', 'localtime'))) ");
+        }
+
         if (c.getIdAuteur() != null) {
             sql.append(" AND m.id_auteur = ? ");
             parametres.add(c.getIdAuteur());
@@ -255,6 +261,11 @@ public class MemoireRechercheDAOImpl implements MemoireRechercheDAO {
                 StatutMemoire.class, rs.getString("statut")));
 
         m.setMotifRefus(rs.getString("motif_refus"));
+        m.setNiveauDiffusion(enumValeur(com.tdsi.memotheque.model.NiveauDiffusion.class,
+                rs.getString("niveau_diffusion")));
+        m.setDateFinEmbargo(dateValeur(rs.getString("date_fin_embargo")));
+        double note = rs.getDouble("note");
+        m.setNote(rs.wasNull() ? null : note);
         m.setNbVues(rs.getInt("nb_vues"));
         m.setNbTelechargements(rs.getInt("nb_telechargements"));
 

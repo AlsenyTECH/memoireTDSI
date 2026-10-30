@@ -31,6 +31,10 @@ public class Memoire {
     private int nbTelechargements;
     private String signature;              // Ed25519 du validateur (Base64), null si non signé
     private Integer idCleSignature;
+    private NiveauDiffusion niveauDiffusion = NiveauDiffusion.PUBLIC;
+    private LocalDate dateFinEmbargo;      // CONFIDENTIEL : invisible au catalogue jusqu'à cette date
+    private LocalDate dateAvis;            // avis favorable de l'encadreur (autorisation de soutenir)
+    private Double note;                   // note /20 du jury (PV)
 
     public Memoire() { }
 
@@ -84,6 +88,20 @@ public class Memoire {
     public void setSignature(String signature) { this.signature = signature; }
     public Integer getIdCleSignature() { return idCleSignature; }
     public void setIdCleSignature(Integer idCleSignature) { this.idCleSignature = idCleSignature; }
+    public NiveauDiffusion getNiveauDiffusion() { return niveauDiffusion; }
+    public void setNiveauDiffusion(NiveauDiffusion niveauDiffusion) { this.niveauDiffusion = niveauDiffusion; }
+    public LocalDate getDateFinEmbargo() { return dateFinEmbargo; }
+    public void setDateFinEmbargo(LocalDate dateFinEmbargo) { this.dateFinEmbargo = dateFinEmbargo; }
+    public LocalDate getDateAvis() { return dateAvis; }
+    public void setDateAvis(LocalDate dateAvis) { this.dateAvis = dateAvis; }
+    public Double getNote() { return note; }
+    public void setNote(Double note) { this.note = note; }
+
+    /** Vrai si le mémoire est sous embargo à la date donnée (confidentiel, embargo non échu). */
+    public boolean estSousEmbargo(LocalDate aujourdhui) {
+        return niveauDiffusion == NiveauDiffusion.CONFIDENTIEL
+                && (dateFinEmbargo == null || aujourdhui.isBefore(dateFinEmbargo));
+    }
 
     // ---- Aides pour les TableView (PropertyValueFactory) : null-safe ----
 

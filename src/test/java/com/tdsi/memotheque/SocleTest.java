@@ -33,7 +33,7 @@ class SocleTest {
     void baseNeuveAToutesLesMigrations() throws Exception {
         BaseDeTest.ouvrirBaseTemporaire(dossier);
 
-        assertEquals(7, Migrations.versionCourante());
+        assertEquals(8, Migrations.versionCourante());
         assertTrue(tableExiste("memoire_fts"));
         assertTrue(tableExiste("cle_signature"));
         assertTrue(tableExiste("notification"));
@@ -49,7 +49,7 @@ class SocleTest {
         try (Connection c = DatabaseConnection.getConnection();
              Statement st = c.createStatement();
              ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM schema_version")) {
-            assertEquals(6, rs.getInt(1));
+            assertEquals(7, rs.getInt(1));
         }
     }
 
@@ -72,13 +72,56 @@ class SocleTest {
 
         DatabaseConnection.initialiser();
 
-        assertEquals(7, Migrations.versionCourante());
+        assertEquals(8, Migrations.versionCourante());
         try (Connection c = DatabaseConnection.getConnection();
              Statement st = c.createStatement();
              ResultSet rs = st.executeQuery("SELECT email, doit_changer_mdp FROM utilisateur")) {
             assertTrue(rs.next());
             assertEquals("awa@test.sn", rs.getString(1));
             assertEquals(0, rs.getInt(2));
+        }
+    }
+
+    @Test
+    void reconstructionV8SansPerteNiCascade() throws Exception {
+        BaseDeTest.ouvrirBaseTemporaire(dossier);
+        var etu = BaseDeTest.creerUtilisateur("e@test.sn", "ETU-0001", com.tdsi.memotheque.model.Role.ETUDIANT,
+                com.tdsi.memotheque.model.Niveau.M2, true);
+        var enc = BaseDeTest.creerUtilisateur("enc@test.sn", null, com.tdsi.memotheque.model.Role.ENCADREUR, null, true);
+        var m = BaseDeTest.deposer(dossier, etu, enc, "2024-2025", com.tdsi.memotheque.model.Niveau.M2);
+        new com.tdsi.memotheque.dao.impl.MemoireVersionDAOImpl().archiver(m);
+
+        // On rejoue la reconstruction V8 sur cette base remplie.
+        try (Connection c = DatabaseConnection.getConnection(); Statement st = c.createStatement()) {
+            st.executeUpdate("DELETE FROM schema_version WHERE version = 8");
+            st.executeUpdate("DROP TABLE jury_membre");
+            st.executeUpdate("DROP TABLE soutenance");
+            st.executeUpdate("DROP TABLE parametre");
+        }
+        Migrations.appliquer();
+
+        try (Connection c = DatabaseConnection.getConnection(); Statement st = c.createStatement()) {
+            try (ResultSet rs = st.executeQuery("SELECT titre, niveau_diffusion FROM memoire")) {
+                assertTrue(rs.next());
+                assertEquals(m.getTitre(), rs.getString(1));
+                assertEquals("PUBLIC", rs.getString(2));
+            }
+            try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM memoire_version")) {
+                assertEquals(1, rs.getInt(1), "pas de suppression en cascade pendant la reconstruction");
+            }
+            try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM memoire_fts WHERE memoire_fts MATCH 'homomorphe'")) {
+                assertEquals(1, rs.getInt(1), "index plein texte toujours valide");
+            }
+            try (ResultSet rs = st.executeQuery("PRAGMA foreign_keys")) {
+                assertEquals(1, rs.getInt(1), "clés étrangères réactivées");
+            }
+        }
+        // Les triggers recréés tiennent l'index à jour.
+        try (Connection c = DatabaseConnection.getConnection(); Statement st = c.createStatement()) {
+            st.executeUpdate("UPDATE memoire SET titre = 'Blockchain souveraine' WHERE id = " + m.getId());
+            try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM memoire_fts WHERE memoire_fts MATCH 'blockchain'")) {
+                assertEquals(1, rs.getInt(1));
+            }
         }
     }
 

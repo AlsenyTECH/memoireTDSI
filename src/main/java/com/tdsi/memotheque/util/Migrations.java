@@ -31,6 +31,7 @@ public final class Migrations {
         "V5__signatures.sql",
         "V6__recherche_plein_texte.sql",
         "V7__notifications.sql",
+        "V8__circuit_universitaire.sql",
     };
 
     private Migrations() { }
@@ -79,6 +80,15 @@ public final class Migrations {
             throws SQLException, IOException {
         String sql = lire("/db/migrations/" + script);
 
+        // Reconstruction de table : les clés étrangères doivent être coupées AVANT la transaction
+        // (sinon DROP TABLE déclencherait les ON DELETE CASCADE). Procédure recommandée par SQLite.
+        boolean reconstruction = sql.startsWith("-- @reconstruction");
+        if (reconstruction) {
+            try (Statement st = c.createStatement()) {
+                st.execute("PRAGMA foreign_keys = OFF");
+            }
+        }
+
         boolean autoCommit = c.getAutoCommit();
         c.setAutoCommit(false);
         try (Statement st = c.createStatement();
@@ -93,12 +103,25 @@ public final class Migrations {
             ps.setString(3, LocalDateTime.now().withNano(0).toString());
             ps.executeUpdate();
 
+            if (reconstruction) {
+                try (ResultSet rs = st.executeQuery("PRAGMA foreign_key_check")) {
+                    if (rs.next()) {
+                        throw new SQLException("Clé étrangère invalide après reconstruction (table "
+                                + rs.getString(1) + ")");
+                    }
+                }
+            }
             c.commit();
         } catch (SQLException e) {
             c.rollback();
             throw new SQLException("Échec de la migration " + script + " : " + e.getMessage(), e);
         } finally {
             c.setAutoCommit(autoCommit);
+            if (reconstruction) {
+                try (Statement st = c.createStatement()) {
+                    st.execute("PRAGMA foreign_keys = ON");
+                }
+            }
         }
     }
 
