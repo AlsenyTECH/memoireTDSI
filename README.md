@@ -5,14 +5,55 @@ Plateforme de dépôt, de validation et de recherche des mémoires de la L1 au M
 
 Java 21 · JavaFX 21 · SQLite · Maven · Architecture MVC + Service + DAO · aucune dépendance cryptographique externe (JDK uniquement)
 
-## Fonctionnalités
+## Circuit d'un mémoire
+
+Inspiré des pratiques des universités (LMD) et des archives ouvertes de mémoires (DUMAS, theses.fr) :
+chacun ne fait que ce qui relève de son rôle.
+
+```
+Étudiant            Encadreur              Scolarité (admin)                    Jury / Scolarité
+dépose le PDF  ──►  avis favorable  ──►   planifie la soutenance  ──►         PV : note /20
+(diffusion,         ou corrections         (date, salle, président,             → mention calculée
+ consentement)      demandées (motif)      examinateur(s), encadreur d'office)  → admis : publié + PV signé
+      ▲                    │                                                    → ajourné : retour à l'étudiant
+      └──── corrige ◄──────┘◄───────────────────────────────────────────────────────────┘
+```
+
+| État | Signification |
+|---|---|
+| Soumis à l'encadreur | Déposé, en attente de l'avis de l'encadreur (modifiable par l'étudiant) |
+| Corrections demandées | Refus motivé de l'encadreur, ou ajournement en soutenance (note < 10) |
+| Autorisé à soutenir | Avis favorable : la scolarité planifie la soutenance |
+| Publié | PV enregistré : note, mention et date de soutenance fixées, PV signé (Ed25519) |
+
+**L'étudiant ne fixe ni l'année, ni le niveau, ni la date de soutenance, ni la mention** :
+l'année vient de la campagne ouverte par la scolarité, le niveau de son inscription,
+la date et le jury de la planification, la mention de la note du jury.
+
+Barème des mentions : < 10 ajourné · 10–12 Passable · 12–14 Assez bien · 14–16 Bien · ≥ 16 Très bien.
+
+Diffusion (choisie par l'étudiant au dépôt, ajustable au PV) : **libre** (notice et PDF pour tous) ·
+**restreinte** (notice visible, PDF réservé aux enseignants et à l'administration) ·
+**confidentielle** (invisible au catalogue jusqu'à la fin d'un embargo de 5 ans maximum).
+L'auteur, l'encadreur et les membres du jury gardent toujours l'accès.
+
+## Fonctionnalités par rôle
 
 | Rôle | Ce qu'il peut faire |
 |---|---|
-| **Étudiant** | S'inscrire (compte activé par l'admin), déposer un mémoire (PDF ≤ 20 Mo), suivre son statut, corriger après un refus, consulter l'historique des versions |
-| **Encadreur** | Lire les PDF des mémoires qu'il encadre, valider (avec **signature numérique**) ou refuser avec un motif |
-| **Administrateur** | Comptes (activer, désactiver, déverrouiller, réinitialiser un mot de passe, créer un encadreur), domaines, journal d'activité (vérification d'intégrité, export CSV), sauvegarde chiffrée |
-| **Tous** | Tableau de bord, recherche plein texte (insensible aux accents, tri par pertinence, filtres, export CSV), fiche détaillée avec vérification de la signature, citation APA / BibTeX, notifications, profil, thème sombre |
+| **Étudiant** | S'inscrire (compte activé par l'admin) ou être inscrit par la scolarité ; déposer pendant la campagne (PDF ≤ 20 Mo, niveau de diffusion, déclaration d'auteur) ; suivre son mémoire (état, soutenance, résultat, prochaine étape) ; corriger après une demande de corrections ; historique des versions ; **attestation de dépôt** imprimable (avec l'empreinte SHA-256) |
+| **Enseignant (encadreur)** | **Mémoires à évaluer** : lire le PDF, avis favorable ou corrections demandées ; **Mes encadrements** : suivi de ses étudiants à toutes les étapes ; **Mes soutenances (jury)** : son rôle (président, examinateur, encadreur) et sa convocation |
+| **Scolarité (administrateur)** | **Campagne de dépôt** (année en cours, ouverture, date limite) ; **Soutenances** : planification avec jury et contrôle des conflits de salle et de membres, annulation, **saisie du PV** (note → mention, diffusion, signature), convocations et PV imprimables ; **Suivi des mémoires** ; comptes (activation, verrouillage, mot de passe temporaire, création d'encadreurs, **inscription des étudiants par CSV**) ; domaines ; journal d'activité vérifiable ; sauvegarde chiffrée |
+| **Tous** | Tableau de bord avec **« À faire »** selon le rôle et prochaines soutenances ; recherche plein texte (insensible aux accents, tri par pertinence, filtres, export CSV) ; fiche détaillée (soutenance, résultat, diffusion, vérification de la signature) ; citation APA / BibTeX ; notifications à chaque étape ; profil ; thème sombre |
+
+Inscription des étudiants par la scolarité : fichier CSV UTF-8, une ligne par étudiant
+(séparateur `;` ou `,`, en-tête facultatif). Un étudiant déjà inscrit (même matricule et même e-mail)
+est **réinscrit** à son nouveau niveau ; un nouveau reçoit un mot de passe temporaire à changer à la première connexion.
+
+```
+matricule;nom;prenom;email;niveau
+TDSI-2026-001;Sow;Awa;awa.sow@exemple.sn;M1
+```
 
 Raccourcis : `Ctrl+D` tableau de bord · `Ctrl+F` recherche · `Ctrl+N` notifications · `Ctrl+P` profil · `Ctrl+Q` déconnexion.
 
@@ -23,7 +64,8 @@ Raccourcis : `Ctrl+D` tableau de bord · `Ctrl+F` recherche · `Ctrl+N` notifica
 | Vol de la base | Mots de passe **PBKDF2-HMAC-SHA256, 600 000 itérations**, sel de 16 octets, format versionné (`pbkdf2-sha256$n$hash`) et re-hachage automatique des anciens hashes |
 | Vol du dossier `storage/` | PDF **chiffrés AES-256-GCM** (clé dans un coffre PKCS12 hors de la base, nom du fichier en données associées) |
 | Fichier modifié ou échangé | Tag GCM + SHA-256 vérifiés à chaque ouverture ; validation impossible si le PDF a changé |
-| Falsification d'un mémoire publié | **Signature Ed25519** du validateur sur (id, SHA-256, titre, auteur, année, niveau, validateur, date) ; clé privée chiffrée par son mot de passe ; vérifiée sur la fiche |
+| Falsification d'un résultat | **PV signé en Ed25519** par la scolarité sur (id, SHA-256 du PDF, titre, auteur, année, niveau, mention, note, date de soutenance, signataire, date de publication) ; clé privée chiffrée par son mot de passe ; vérifiée sur la fiche |
+| Accès à un mémoire confidentiel | Niveau de diffusion et embargo contrôlés **dans les services** (catalogue, ouverture et téléchargement du PDF) |
 | Effacement de traces | **Journal chaîné HMAC-SHA256** + ancre authentifiée : toute ligne modifiée, insérée ou supprimée (même les dernières) est détectée |
 | Force brute / énumération | Verrouillage 15 min après 5 échecs, message d'échec unique, temps de réponse constant (PBKDF2 factice), politique de mot de passe |
 | Injection SQL | `PreparedStatement` partout, `ORDER BY` issu d'une liste fermée, requêtes plein texte construites mot par mot |

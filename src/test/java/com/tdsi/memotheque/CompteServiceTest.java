@@ -152,4 +152,39 @@ class CompteServiceTest {
         assertNotNull(auth.connecter("e2@test.sn", "NouveauMdp456"));
         assertEquals(1, Journal.compter("CHANGEMENT_MOT_DE_PASSE"));
     }
+
+    @Test
+    void importCsvDesEtudiantsParLaScolarite() throws Exception {
+        SessionManager.ouvrir(admin);
+        java.util.List<CompteService.LigneImport> r = service.importerEtudiants(java.util.List.of(
+                "\uFEFFmatricule;nom;prenom;email;niveau",
+                "ETU-0100;Sow;Awa;awa.sow@test.sn;M1",
+                "ETU-0101;Ba;Moussa;MOUSSA.BA@test.sn;l3",
+                "ETU-0001;NomETUDIANT;Prenom;etu@test.sn;M2",
+                "ETU-0102;Fall;Ibou;pas-un-email;L1",
+                "ETU-0103;Diop;Fatou;fatou@test.sn;M3",
+                "ETU-0104;Ka;Ali;awa.sow@test.sn;L1",
+                "ETU-0105;Sy;Omar;admin@test.sn;L2",
+                "ligne;incomplete"));
+
+        assertEquals(8, r.size());
+        assertEquals("CREE", r.get(0).resultat());
+        assertEquals("CREE", r.get(1).resultat());
+        assertEquals("REINSCRIT", r.get(2).resultat(), "même matricule et même e-mail : niveau mis à jour");
+        for (int i = 3; i < 8; i++) {
+            assertEquals("ERREUR", r.get(i).resultat(), r.get(i).toString());
+        }
+
+        Utilisateur awa = dao.findByEmailOuMatricule("awa.sow@test.sn");
+        assertEquals(Niveau.M1, awa.getNiveau());
+        assertTrue(awa.isActif() && awa.isDoitChangerMotDePasse());
+        assertNotNull(new AuthService().connecter("awa.sow@test.sn", r.get(0).detail()), "mot de passe temporaire");
+        assertEquals(Niveau.L3, dao.findByEmailOuMatricule("moussa.ba@test.sn").getNiveau());
+        assertEquals(Niveau.M2, dao.findById(etudiant.getId()).getNiveau());
+        assertEquals(Role.ADMIN, dao.findByEmailOuMatricule("admin@test.sn").getRole(), "un admin n'est jamais écrasé");
+        assertEquals(1, Journal.compter("IMPORT_ETUDIANTS"));
+
+        SessionManager.ouvrir(etudiant);
+        assertThrows(SecurityException.class, () -> service.importerEtudiants(java.util.List.of()));
+    }
 }

@@ -41,6 +41,7 @@ public class ComptesController {
     @FXML private TextField champEmail;
     @FXML private PasswordField champMotDePasse;
     @FXML private Label labelMessage;
+    @FXML private Button boutonImporter;
 
     private final CompteService compteService = new CompteService();
     private final ObservableList<Utilisateur> comptes = FXCollections.observableArrayList();
@@ -191,6 +192,57 @@ public class ComptesController {
             labelMessage.setText(e.getMessage());
         } catch (SQLException e) {
             labelMessage.setText("Erreur : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Inscription en masse par la scolarité : fichier « matricule;nom;prénom;email;niveau ».
+     * Les mots de passe temporaires sont affichés une seule fois et peuvent être enregistrés
+     * dans un CSV à remettre aux étudiants (à détruire ensuite).
+     */
+    @FXML
+    private void importerEtudiants() {
+        javafx.stage.FileChooser choix = new javafx.stage.FileChooser();
+        choix.setTitle("Fichier des étudiants (matricule;nom;prénom;email;niveau)");
+        choix.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV", "*.csv", "*.txt"));
+        java.io.File fichier = choix.showOpenDialog(labelMessage.getScene().getWindow());
+        if (fichier == null) {
+            return;
+        }
+        labelMessage.setText("Import en cours (hachage des mots de passe)...");
+        com.tdsi.memotheque.util.TacheFond.executer(() -> compteService.importerEtudiants(fichier.toPath()), r -> {
+            charger();
+            long crees = r.stream().filter(l -> l.resultat().equals("CREE")).count();
+            long erreurs = r.stream().filter(l -> l.resultat().equals("ERREUR")).count();
+            labelMessage.setText(crees + " compte(s) créé(s), " + (r.size() - crees - erreurs)
+                    + " réinscription(s), " + erreurs + " ligne(s) en erreur.");
+            com.tdsi.memotheque.util.AlertUtil.afficherTableau("Résultat de l'import",
+                    new String[] {"Ligne", "Étudiant", "Résultat", "Mot de passe temporaire / détail"},
+                    r.stream().map(l -> new String[] {String.valueOf(l.numero()), l.identifiant(), l.resultat(),
+                            l.detail()}).toList());
+            if (crees > 0 && com.tdsi.memotheque.util.AlertUtil.confirmer("Mots de passe temporaires",
+                    "Enregistrer les identifiants des " + crees + " nouveaux comptes dans un fichier CSV "
+                            + "à remettre aux étudiants ?\nIls ne pourront plus être affichés ensuite.")) {
+                enregistrerIdentifiants(r);
+            }
+        }, e -> labelMessage.setText(com.tdsi.memotheque.util.TacheFond.message(e)), boutonImporter);
+    }
+
+    private void enregistrerIdentifiants(java.util.List<CompteService.LigneImport> r) {
+        javafx.stage.FileChooser choix = new javafx.stage.FileChooser();
+        choix.setInitialFileName("identifiants-etudiants.csv");
+        java.io.File f = choix.showSaveDialog(labelMessage.getScene().getWindow());
+        if (f == null) {
+            return;
+        }
+        try {
+            com.tdsi.memotheque.util.CsvUtil.ecrire(f.toPath(), new Object[] {"email", "mot_de_passe_temporaire"},
+                    r.stream().filter(l -> l.resultat().equals("CREE"))
+                            .map(l -> new Object[] {l.identifiant(), l.detail()}).toList());
+            labelMessage.setText("Identifiants enregistrés dans " + f.getName()
+                    + " : à remettre aux étudiants puis à supprimer.");
+        } catch (java.io.IOException e) {
+            labelMessage.setText("Enregistrement impossible : " + e.getMessage());
         }
     }
 }

@@ -111,6 +111,110 @@ public class CompteService {
         return u;
     }
 
+    /** Résultat d'une ligne d'import : CREE (avec mot de passe temporaire), REINSCRIT ou ERREUR. */
+    public record LigneImport(int numero, String identifiant, String resultat, String detail) { }
+
+    public static final int IMPORT_MAX_LIGNES = 2000;
+
+    /** Lit le fichier CSV (UTF-8) exporté du tableur de la scolarité. */
+    public List<LigneImport> importerEtudiants(java.nio.file.Path csv) throws SQLException, java.io.IOException {
+        exigerAdmin();
+        if (java.nio.file.Files.size(csv) > 1_000_000) {
+            throw new IllegalArgumentException("Fichier trop volumineux (1 Mo maximum).");
+        }
+        return importerEtudiants(java.nio.file.Files.readAllLines(csv, java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Inscription en masse par la scolarité, comme dans un système d'information universitaire :
+     * une ligne « matricule;nom;prénom;email;niveau » par étudiant (séparateur ; ou ,, en-tête facultatif).
+     * Nouvel étudiant : compte actif, mot de passe temporaire à changer à la première connexion.
+     * Étudiant déjà inscrit (même matricule et même e-mail) : réinscription, son niveau est mis à jour.
+     * Chaque ligne est traitée indépendamment : une ligne invalide n'empêche pas les autres.
+     */
+    public List<LigneImport> importerEtudiants(List<String> lignes) throws SQLException {
+        Utilisateur admin = exigerAdmin();
+        if (lignes.size() > IMPORT_MAX_LIGNES + 1) {
+            throw new IllegalArgumentException("Import limité à " + IMPORT_MAX_LIGNES + " étudiants par fichier.");
+        }
+        List<LigneImport> resultats = new java.util.ArrayList<>();
+        java.util.Set<String> vus = new java.util.HashSet<>();
+        int crees = 0;
+        int reinscrits = 0;
+        for (int i = 0; i < lignes.size(); i++) {
+            String brute = lignes.get(i).replace("\uFEFF", "").trim();
+            if (brute.isEmpty() || (i == 0 && brute.toLowerCase(Locale.ROOT).startsWith("matricule"))) {
+                continue;
+            }
+            String[] c = brute.split(brute.contains(";") ? ";" : ",", -1);
+            String id = c.length > 3 ? c[3].trim() : brute;
+            try {
+                if (c.length != 5) {
+                    throw new IllegalArgumentException("5 colonnes attendues : matricule;nom;prénom;email;niveau.");
+                }
+                String matricule = c[0].trim().toUpperCase(Locale.ROOT);
+                String nom = c[1].trim();
+                String prenom = c[2].trim();
+                String email = c[3].trim().toLowerCase(Locale.ROOT);
+                com.tdsi.memotheque.model.Niveau niveau;
+                try {
+                    niveau = com.tdsi.memotheque.model.Niveau.valueOf(c[4].trim().toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Niveau inconnu « " + c[4].trim() + " » (L1, L2, L3, M1 ou M2).");
+                }
+                if (!Validator.matriculeValide(matricule)) {
+                    throw new IllegalArgumentException("Matricule invalide.");
+                }
+                if (!Validator.emailValide(email)) {
+                    throw new IllegalArgumentException("Adresse e-mail invalide.");
+                }
+                if (!Validator.longueurEntre(nom, 1, 80) || !Validator.longueurEntre(prenom, 1, 80)) {
+                    throw new IllegalArgumentException("Nom et prénom obligatoires (80 caractères maximum).");
+                }
+                if (!vus.add(email) || !vus.add("#" + matricule)) {
+                    throw new IllegalArgumentException("Doublon dans le fichier.");
+                }
+
+                Utilisateur parEmail = utilisateurDAO.existeEmail(email) ? utilisateurDAO.findByEmailOuMatricule(email) : null;
+                boolean matriculePris = utilisateurDAO.existeMatricule(matricule);
+                if (parEmail != null || matriculePris) {
+                    if (parEmail == null || parEmail.getRole() != Role.ETUDIANT
+                            || !matricule.equals(parEmail.getMatricule())) {
+                        throw new IllegalArgumentException("E-mail ou matricule déjà utilisé par un autre compte.");
+                    }
+                    parEmail.setNiveau(niveau);
+                    utilisateurDAO.update(parEmail);
+                    reinscrits++;
+                    resultats.add(new LigneImport(i + 1, email, "REINSCRIT", "Niveau " + niveau));
+                    continue;
+                }
+
+                String temporaire = PasswordUtil.genererMotDePasseTemporaire();
+                String sel = PasswordUtil.genererSel();
+                Utilisateur u = new Utilisateur();
+                u.setMatricule(matricule);
+                u.setNom(nom);
+                u.setPrenom(prenom);
+                u.setEmail(email);
+                u.setSel(sel);
+                u.setMotDePasseHash(PasswordUtil.hasher(temporaire, sel));
+                u.setRole(Role.ETUDIANT);
+                u.setNiveau(niveau);
+                u.setActif(true);
+                u.setDoitChangerMotDePasse(true);
+                u.setDateCreation(LocalDate.now());
+                utilisateurDAO.insert(u);
+                crees++;
+                resultats.add(new LigneImport(i + 1, email, "CREE", temporaire));
+            } catch (IllegalArgumentException e) {
+                resultats.add(new LigneImport(i + 1, id, "ERREUR", e.getMessage()));
+            }
+        }
+        journalService.log(admin.getId(), "IMPORT_ETUDIANTS", crees + " compte(s) créé(s), " + reinscrits
+                + " réinscription(s), " + (resultats.size() - crees - reinscrits) + " ligne(s) en erreur");
+        return resultats;
+    }
+
     /**
      * L'admin pose un mot de passe temporaire (compte oublié ou compromis).
      * Le compte est déverrouillé et devra changer ce mot de passe à la prochaine connexion.
