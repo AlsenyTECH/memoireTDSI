@@ -88,12 +88,66 @@ final class BaseDeTest {
         MemoireService service = new MemoireService(new MemoireDAOImpl(), new DomaineDAOImpl(),
                 new UtilisateurDAOImpl(), new FichierService(dossier.resolve("storage")),
                 new JournalService());
+        preparerCampagne(etudiant, annee, niveau);
         SessionManager.ouvrir(etudiant);
         try {
             return service.deposer(memoireValide(premierDomaine(), encadreur, annee, niveau),
                     creerPdf(dossier, "depot-" + System.nanoTime() + ".pdf"));
         } finally {
             SessionManager.fermer();
+        }
+    }
+
+    /**
+     * L'année vient de la scolarité et le niveau de l'inscription de l'étudiant :
+     * on positionne les deux pour que le dépôt corresponde au scénario du test.
+     */
+    static void preparerCampagne(Utilisateur etudiant, String annee, Niveau niveau) throws Exception {
+        new com.tdsi.memotheque.dao.impl.ParametreDAOImpl().ecrire("annee_courante", annee);
+        UtilisateurDAOImpl dao = new UtilisateurDAOImpl();
+        Utilisateur u = dao.findById(etudiant.getId());
+        u.setNiveau(niveau);
+        dao.update(u);
+        etudiant.setNiveau(niveau);
+    }
+
+    /**
+     * Fait parcourir tout le circuit à un mémoire déposé : avis favorable de l'encadreur,
+     * soutenance planifiée par l'admin (président + examinateur créés au besoin), soutenance
+     * ramenée dans le passé, PV avec la note donnée. Retourne le mémoire relu en base.
+     */
+    static Memoire publier(Memoire m, Utilisateur encadreur, Utilisateur admin, double note) throws Exception {
+        SessionManager.ouvrir(encadreur);
+        new com.tdsi.memotheque.service.ValidationService().donnerAvisFavorable(m.getId());
+
+        UtilisateurDAOImpl dao = new UtilisateurDAOImpl();
+        Utilisateur president = dao.findByEmailOuMatricule("president.jury@test.sn");
+        if (president == null) {
+            president = creerUtilisateur("president.jury@test.sn", null, Role.ENCADREUR, null, true);
+        }
+        Utilisateur examinateur = dao.findByEmailOuMatricule("examinateur.jury@test.sn");
+        if (examinateur == null) {
+            examinateur = creerUtilisateur("examinateur.jury@test.sn", null, Role.ENCADREUR, null, true);
+        }
+
+        SessionManager.ouvrir(admin);
+        com.tdsi.memotheque.service.SoutenanceService soutenances = new com.tdsi.memotheque.service.SoutenanceService();
+        soutenances.planifier(m.getId(), java.time.LocalDateTime.now().plusDays(1).withHour(10).withMinute(0)
+                .plusMinutes(m.getId() * 90L % 600), "Salle " + m.getId(), president.getId(),
+                java.util.List.of(examinateur.getId()));
+        soutenanceDansLePasse(m.getId());
+        Memoire publie = soutenances.enregistrerProcesVerbal(m.getId(), note, "RAS", null, null, MOT_DE_PASSE);
+        SessionManager.fermer();
+        return publie;
+    }
+
+    /** La soutenance « a eu lieu » : on la ramène une heure en arrière pour pouvoir saisir le PV. */
+    static void soutenanceDansLePasse(int idMemoire) throws Exception {
+        try (var c = DatabaseConnection.getConnection();
+             var ps = c.prepareStatement("UPDATE soutenance SET date_heure = ? WHERE id_memoire = ?")) {
+            ps.setString(1, java.time.LocalDateTime.now().minusHours(1).withSecond(0).withNano(0).toString());
+            ps.setInt(2, idMemoire);
+            ps.executeUpdate();
         }
     }
 

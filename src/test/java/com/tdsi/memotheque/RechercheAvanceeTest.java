@@ -74,6 +74,7 @@ class RechercheAvanceeTest {
         m.setTitre(titre);
         m.setResume(resume);
         m.setMotsCles(motsCles);
+        BaseDeTest.preparerCampagne(etu, "2024-2025", Niveau.M2);
         SessionManager.ouvrir(etu);
         service.deposer(m, BaseDeTest.creerPdf(dossier, login + ".pdf"));
         SessionManager.fermer();

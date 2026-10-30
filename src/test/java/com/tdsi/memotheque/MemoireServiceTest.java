@@ -131,10 +131,6 @@ class MemoireServiceTest {
         peuDeMots.setMotsCles("crypto, , ");
         assertThrows(IllegalArgumentException.class, () -> service.deposer(peuDeMots, pdf));
 
-        Memoire anneeInvalide = valide();
-        anneeInvalide.setAnneeAcademique("2024-2026");
-        assertThrows(IllegalArgumentException.class, () -> service.deposer(anneeInvalide, pdf));
-
         Memoire sansDomaine = valide();
         sansDomaine.setDomaine(null);
         assertThrows(IllegalArgumentException.class, () -> service.deposer(sansDomaine, pdf));
@@ -193,6 +189,73 @@ class MemoireServiceTest {
         assertEquals(ancienFichier, versions.get(0).getCheminFichier());
         assertEquals(StatutMemoire.REFUSE, versions.get(0).getStatut());
         assertEquals("Résumé à revoir", versions.get(0).getMotifRefus());
+    }
+
+    @Test
+    void lEtudiantNeFixeNiAnneeNiNiveauNiMentionNiDate() throws Exception {
+        new com.tdsi.memotheque.dao.impl.ParametreDAOImpl().ecrire("annee_courante", "2025-2026");
+        SessionManager.ouvrir(etudiant);
+
+        Memoire m = valide();
+        m.setAnneeAcademique("1999-2000");
+        m.setNiveau(Niveau.L1);
+        m.setMention(com.tdsi.memotheque.model.Mention.TRES_BIEN);
+        m.setDateSoutenance(LocalDate.of(2020, 1, 1));
+        m.setNote(20.0);
+        service.deposer(m, pdf);
+
+        Memoire lu = memoireDAO.findById(m.getId());
+        assertEquals("2025-2026", lu.getAnneeAcademique(), "année de la campagne de la scolarité");
+        assertEquals(Niveau.M2, lu.getNiveau(), "niveau d'inscription de l'étudiant");
+        assertNull(lu.getMention());
+        assertNull(lu.getDateSoutenance());
+        assertNull(lu.getNote());
+    }
+
+    @Test
+    void campagneFermeeOuDateLimiteDepassee() throws Exception {
+        var param = new com.tdsi.memotheque.dao.impl.ParametreDAOImpl();
+        SessionManager.ouvrir(etudiant);
+
+        param.ecrire("depot_ouvert", "0");
+        assertThrows(IllegalStateException.class, () -> service.deposer(valide(), pdf));
+
+        param.ecrire("depot_ouvert", "1");
+        param.ecrire("date_limite_depot", LocalDate.now().minusDays(1).toString());
+        assertThrows(IllegalStateException.class, () -> service.deposer(valide(), pdf));
+
+        param.ecrire("date_limite_depot", LocalDate.now().toString());
+        assertNotNull(service.deposer(valide(), pdf), "le jour de la date limite, le dépôt est encore accepté");
+    }
+
+    @Test
+    void diffusionConfidentielleExigeUnEmbargoValide() throws Exception {
+        SessionManager.ouvrir(etudiant);
+        Memoire m = valide();
+        m.setNiveauDiffusion(com.tdsi.memotheque.model.NiveauDiffusion.CONFIDENTIEL);
+        assertThrows(IllegalArgumentException.class, () -> service.deposer(m, pdf), "embargo absent");
+        m.setDateFinEmbargo(LocalDate.now().plusYears(6));
+        assertThrows(IllegalArgumentException.class, () -> service.deposer(m, pdf), "plus de 5 ans");
+        m.setDateFinEmbargo(LocalDate.now().plusYears(2));
+        service.deposer(m, pdf);
+        assertEquals(LocalDate.now().plusYears(2), memoireDAO.findById(m.getId()).getDateFinEmbargo());
+
+        assertThrows(IllegalArgumentException.class, () -> service.deposer(valide(), pdf, false),
+                "autorisation de diffusion obligatoire");
+    }
+
+    @Test
+    void unMemoireAutoriseNestPlusModifiable() throws Exception {
+        SessionManager.ouvrir(etudiant);
+        Memoire m = service.deposer(valide(), pdf);
+        SessionManager.ouvrir(encadreur);
+        new com.tdsi.memotheque.service.ValidationService().donnerAvisFavorable(m.getId());
+
+        SessionManager.ouvrir(etudiant);
+        Memoire saisie = valide();
+        saisie.setId(m.getId());
+        assertThrows(IllegalStateException.class, () -> service.modifier(saisie, null));
+        assertThrows(IllegalStateException.class, () -> service.supprimer(m.getId()));
     }
 
     @Test

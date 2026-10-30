@@ -22,6 +22,7 @@ public class RechercheService {
 
     private final MemoireRechercheDAO rechercheDAO;
     private final FichierService fichierService;
+    private final AccesService acces = new AccesService();
 
     public RechercheService() {
         this(new MemoireRechercheDAOImpl());
@@ -87,11 +88,20 @@ public class RechercheService {
             throw new IllegalArgumentException("Aucun mémoire sélectionné.");
         }
 
-        if (memoire.getStatut() != StatutMemoire.VALIDE) {
-            throw new SecurityException("Ce mémoire n'est pas validé.");
+        // Droits relus en base : rôle, étape du circuit, niveau de diffusion, embargo.
+        try {
+            Memoire enBase = new com.tdsi.memotheque.dao.impl.MemoireDAOImpl().findById(memoire.getId());
+            if (enBase == null) {
+                throw new IllegalArgumentException("Mémoire introuvable.");
+            }
+            java.time.LocalDate aujourdhui = java.time.LocalDate.now();
+            if (!acces.peutLirePdf(com.tdsi.memotheque.util.SessionManager.getUtilisateur(), enBase, aujourdhui)) {
+                throw new SecurityException(acces.raisonRefus(enBase, aujourdhui));
+            }
+            return fichierService.extraireVersTemporaire(enBase);
+        } catch (SQLException e) {
+            throw new IOException("Base inaccessible : " + e.getMessage(), e);
         }
-
-        return fichierService.extraireVersTemporaire(memoire);
     }
 
     /**
@@ -106,7 +116,9 @@ public class RechercheService {
 
         Path fichier = verifierIntegritePdf(memoire);
 
-        rechercheDAO.incrementerVues(memoire.getId());
+        if (memoire.getStatut() == StatutMemoire.VALIDE) {
+            rechercheDAO.incrementerVues(memoire.getId());   // statistiques du catalogue seulement
+        }
 
         return fichier;
     }
@@ -119,7 +131,9 @@ public class RechercheService {
 
         Path fichier = verifierIntegritePdf(memoire);
 
-        rechercheDAO.incrementerTelechargements(memoire.getId());
+        if (memoire.getStatut() == StatutMemoire.VALIDE) {
+            rechercheDAO.incrementerTelechargements(memoire.getId());
+        }
 
         return fichier;
     }

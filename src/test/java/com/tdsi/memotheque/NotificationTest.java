@@ -58,7 +58,7 @@ class NotificationTest {
 
         List<Notification> pourEncadreur = de(encadreur);
         assertEquals(1, pourEncadreur.size());
-        assertTrue(pourEncadreur.get(0).getMessage().startsWith("Nouveau mémoire à valider"));
+        assertTrue(pourEncadreur.get(0).getMessage().startsWith("Nouveau mémoire à évaluer"));
         assertTrue(de(etudiant).isEmpty(), "chacun ne voit que ses notifications");
 
         SessionManager.ouvrir(encadreur);
@@ -68,10 +68,15 @@ class NotificationTest {
 
         Utilisateur etu2 = BaseDeTest.creerUtilisateur("etu2@test.sn", "ETU-0002", Role.ETUDIANT, Niveau.L3, true);
         Memoire m2 = BaseDeTest.deposer(dossier, etu2, encadreur, "2024-2025", Niveau.L3);
-        SessionManager.ouvrir(encadreur);
-        new ValidationService().valider(m2.getId(), BaseDeTest.MOT_DE_PASSE);
-        SessionManager.fermer();
-        assertTrue(de(etu2).get(0).getMessage().startsWith("Félicitations"));
+        BaseDeTest.publier(m2, encadreur, admin, 16);
+        List<Notification> etapes = de(etu2);
+        assertTrue(etapes.stream().anyMatch(n -> n.getMessage().startsWith("Bonne nouvelle")), "avis favorable");
+        assertTrue(etapes.stream().anyMatch(n -> n.getMessage().contains("soutenance") && n.getMessage().contains("programmée")),
+                "date de soutenance");
+        assertTrue(etapes.stream().anyMatch(n -> n.getMessage().startsWith("Félicitations")
+                && n.getMessage().contains("Très bien")), "résultat avec mention");
+        assertTrue(de(admin).stream().anyMatch(n -> n.getMessage().startsWith("Soutenance à planifier")),
+                "la scolarité est prévenue");
     }
 
     @Test

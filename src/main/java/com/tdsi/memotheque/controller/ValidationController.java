@@ -111,26 +111,22 @@ public class ValidationController {
         }
     }
 
+    /** Avis favorable : le mémoire est autorisé à être soutenu (la scolarité planifiera la soutenance). */
     @FXML
     private void valider() {
         Memoire m = tableMemoires.getSelectionModel().getSelectedItem();
-        if (m == null) {
+        if (m == null || !AlertUtil.confirmer("Avis favorable",
+                "Autoriser « " + m.getTitre() + " » à être soutenu ?\n"
+                + "L'étudiant et la scolarité seront prévenus.")) {
             return;
         }
-        java.util.Optional<String> motDePasse = AlertUtil.demanderMotDePasse("Valider et signer",
-                "Valider, publier et signer numériquement « " + m.getTitre() + " ».\n"
-                + "Confirmez votre mot de passe (il déverrouille votre clé de signature Ed25519).");
-        if (motDePasse.isEmpty()) {
-            return;
-        }
-        labelMessage.setText("Vérification du PDF et signature en cours...");
-        // PBKDF2 (600 000 itérations), déchiffrement et signature : en tâche de fond.
+        labelMessage.setText("Contrôle d'intégrité du PDF en cours...");
         com.tdsi.memotheque.util.TacheFond.executer(() -> {
-            validationService.valider(m.getId(), motDePasse.get());
+            validationService.donnerAvisFavorable(m.getId());
             return null;
         }, ok -> {
             charger();
-            labelMessage.setText("Mémoire validé, publié et signé numériquement.");
+            labelMessage.setText("Avis favorable enregistré : la scolarité va planifier la soutenance.");
         }, e -> labelMessage.setText(com.tdsi.memotheque.util.TacheFond.message(e)),
                 boutonValider, boutonRefuser, boutonOuvrir);
     }
@@ -144,7 +140,7 @@ public class ValidationController {
         try {
             validationService.refuser(m.getId(), zoneMotif.getText());
             charger();
-            labelMessage.setText("Mémoire refusé. L'étudiant verra le motif dans « Mes mémoires ».");
+            labelMessage.setText("Corrections demandées : l'étudiant verra le motif dans « Mes mémoires ».");
         } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             labelMessage.setText(e.getMessage());
         } catch (SQLException e) {

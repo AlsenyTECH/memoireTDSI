@@ -66,6 +66,46 @@ public class ValidationDAOImpl implements ValidationDAO {
     }
 
     @Override
+    public void autoriser(int idMemoire, LocalDate dateAvis) throws SQLException {
+        executer("UPDATE memoire SET statut = 'AUTORISE', date_avis = ?, motif_refus = NULL "
+                + "WHERE id = ? AND statut = 'EN_ATTENTE'", dateAvis.toString(), idMemoire);
+    }
+
+    @Override
+    public void publier(Memoire m, String signature, int idCle) throws SQLException {
+        String sql = """
+                UPDATE memoire
+                SET statut = 'VALIDE', id_validateur = ?, date_publication = ?, date_soutenance = ?,
+                    mention = ?, note = ?, niveau_diffusion = ?, date_fin_embargo = ?,
+                    signature = ?, id_cle_signature = ?, motif_refus = NULL
+                WHERE id = ? AND statut = 'AUTORISE'
+                """;
+        executer(sql, m.getValidateur().getId(), m.getDatePublication().toString(),
+                m.getDateSoutenance().toString(), m.getMention().name(), m.getNote(),
+                m.getNiveauDiffusion().name(),
+                m.getDateFinEmbargo() == null ? null : m.getDateFinEmbargo().toString(),
+                signature, idCle, m.getId());
+    }
+
+    @Override
+    public void ajourner(int idMemoire, int idValidateur, String motif, Double note) throws SQLException {
+        executer("UPDATE memoire SET statut = 'REFUSE', id_validateur = ?, motif_refus = ?, note = ? "
+                + "WHERE id = ? AND statut = 'AUTORISE'", idValidateur, motif, note, idMemoire);
+    }
+
+    private void executer(String sql, Object... params) throws SQLException {
+        try (Connection c = DatabaseConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+            if (ps.executeUpdate() == 0) {
+                throw new SQLException("Mémoire introuvable ou pas à la bonne étape.");
+            }
+        }
+    }
+
+    @Override
     public void validerEtSigner(int idMemoire, int idValidateur, LocalDate datePublication,
             String signature, int idCle) throws SQLException {
         String sql = """

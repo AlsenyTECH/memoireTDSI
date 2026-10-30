@@ -2,9 +2,14 @@ package com.tdsi.memotheque;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.time.LocalDate;
 import java.util.Base64;
 
 import org.junit.jupiter.api.AfterEach;
@@ -17,6 +22,7 @@ import com.tdsi.memotheque.dao.impl.MemoireDAOImpl;
 import com.tdsi.memotheque.dao.impl.ValidationDAOImpl;
 import com.tdsi.memotheque.model.CleSignature;
 import com.tdsi.memotheque.model.Memoire;
+import com.tdsi.memotheque.model.Mention;
 import com.tdsi.memotheque.model.Niveau;
 import com.tdsi.memotheque.model.Role;
 import com.tdsi.memotheque.model.StatutMemoire;
@@ -24,17 +30,17 @@ import com.tdsi.memotheque.model.Utilisateur;
 import com.tdsi.memotheque.service.CompteService;
 import com.tdsi.memotheque.service.SignatureService;
 import com.tdsi.memotheque.service.SignatureService.Etat;
+import com.tdsi.memotheque.service.SoutenanceService;
 import com.tdsi.memotheque.service.ValidationService;
 import com.tdsi.memotheque.util.DatabaseConnection;
 import com.tdsi.memotheque.util.SessionManager;
 
-/** Signature Ed25519 des mémoires validés. */
+/** Signature Ed25519 du procès-verbal de soutenance (apposée par la scolarité à la publication). */
 class SignatureTest {
 
     @TempDir
     Path dossier;
 
-    private ValidationService validation;
     private SignatureService signatures;
     private MemoireDAOImpl memoireDAO;
     private CleSignatureDAOImpl cleDAO;
@@ -46,7 +52,6 @@ class SignatureTest {
     @BeforeEach
     void preparer() throws Exception {
         BaseDeTest.ouvrirBaseTemporaire(dossier);
-        validation = new ValidationService();
         signatures = new SignatureService();
         memoireDAO = new MemoireDAOImpl();
         cleDAO = new CleSignatureDAOImpl();
@@ -61,12 +66,6 @@ class SignatureTest {
         BaseDeTest.fermer();
     }
 
-    private void validerParEncadreur(Memoire m) throws Exception {
-        SessionManager.ouvrir(encadreur);
-        validation.valider(m.getId(), BaseDeTest.MOT_DE_PASSE);
-        SessionManager.fermer();
-    }
-
     private void sql(String requete, Object... params) throws Exception {
         try (Connection c = DatabaseConnection.getConnection(); PreparedStatement ps = c.prepareStatement(requete)) {
             for (int i = 0; i < params.length; i++) {
@@ -76,97 +75,128 @@ class SignatureTest {
         }
     }
 
-    @Test
-    void validationProduitUneSignatureValide() throws Exception {
-        validerParEncadreur(memoire);
-
-        Memoire lu = memoireDAO.findById(memoire.getId());
-        assertEquals(StatutMemoire.VALIDE, lu.getStatut());
-        assertEquals(64, Base64.getDecoder().decode(lu.getSignature()).length, "signature Ed25519 = 64 octets");
-
-        SignatureService.Verification v = signatures.verifier(memoire.getId());
-        assertEquals(Etat.VALIDE, v.etat(), v.message());
-        assertEquals(encadreur.getNomComplet(), v.signataire());
-        assertTrue(v.empreinteCle().matches("[0-9a-f]{4}(:[0-9a-f]{4}){3}"));
+    private Memoire deuxiemeMemoire(String login) throws Exception {
+        Utilisateur etu = BaseDeTest.creerUtilisateur(login + "@test.sn", "ETU-" + login.toUpperCase(),
+                Role.ETUDIANT, Niveau.L3, true);
+        return BaseDeTest.deposer(dossier, etu, encadreur, "2024-2025", Niveau.L3);
     }
 
     @Test
-    void mauvaisMotDePasseNiSignatureNiValidation() throws Exception {
+    void publicationProduitUnPvSigne() throws Exception {
+        Memoire lu = BaseDeTest.publier(memoire, encadreur, admin, 15.5);
+
+        assertEquals(StatutMemoire.VALIDE, lu.getStatut());
+        assertEquals(Mention.BIEN, lu.getMention());
+        assertEquals(15.5, lu.getNote());
+        assertTrue(lu.getSignature().startsWith("v2:"));
+        assertEquals(64, Base64.getDecoder().decode(lu.getSignature().substring(3)).length);
+
+        SignatureService.Verification v = signatures.verifier(memoire.getId());
+        assertEquals(Etat.VALIDE, v.etat(), v.message());
+        assertEquals(admin.getNomComplet(), v.signataire());
+        assertTrue(v.message().contains("procès-verbal"));
+    }
+
+    @Test
+    void mauvaisMotDePasseNiSignatureNiPublication() throws Exception {
         SessionManager.ouvrir(encadreur);
-        assertThrows(SecurityException.class, () -> validation.valider(memoire.getId(), "mauvais-mdp-1"));
-        assertEquals(StatutMemoire.EN_ATTENTE, memoireDAO.findById(memoire.getId()).getStatut());
-        assertNull(cleDAO.findActive(encadreur.getId()), "aucune clé créée sans authentification");
+        new ValidationService().donnerAvisFavorable(memoire.getId());
+        Utilisateur pres = BaseDeTest.creerUtilisateur("p@test.sn", null, Role.ENCADREUR, null, true);
+        Utilisateur exa = BaseDeTest.creerUtilisateur("x@test.sn", null, Role.ENCADREUR, null, true);
+        SessionManager.ouvrir(admin);
+        SoutenanceService s = new SoutenanceService();
+        s.planifier(memoire.getId(), java.time.LocalDateTime.now().plusDays(2).withHour(9).withMinute(0), "A1",
+                pres.getId(), java.util.List.of(exa.getId()));
+        BaseDeTest.soutenanceDansLePasse(memoire.getId());
+
+        assertThrows(SecurityException.class,
+                () -> s.enregistrerProcesVerbal(memoire.getId(), 14, null, null, null, "mauvais-mdp-1"));
+        assertEquals(StatutMemoire.AUTORISE, memoireDAO.findById(memoire.getId()).getStatut());
+        assertNull(cleDAO.findActive(admin.getId()), "aucune clé créée sans authentification");
         assertEquals(1, Journal.compter("ECHEC_SIGNATURE"));
     }
 
     @Test
-    void modificationDuTitreEnBaseInvalideLaSignature() throws Exception {
-        validerParEncadreur(memoire);
+    void falsificationDuTitreDuPdfOuDuPvDetectee() throws Exception {
+        BaseDeTest.publier(memoire, encadreur, admin, 12);
+
+        sql("UPDATE memoire SET mention = 'TRES_BIEN' WHERE id = ?", memoire.getId());
+        assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat(), "mention gonflée");
+
+        sql("UPDATE memoire SET mention = 'ASSEZ_BIEN', note = 17 WHERE id = ?", memoire.getId());
+        assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat(), "note modifiée");
+
+        sql("UPDATE memoire SET note = 12, date_soutenance = '2020-01-01' WHERE id = ?", memoire.getId());
+        assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat(), "date de soutenance");
+
+        sql("UPDATE memoire SET date_soutenance = date('now', 'localtime') WHERE id = ?", memoire.getId());
+        assertEquals(Etat.VALIDE, signatures.verifier(memoire.getId()).etat(), "retour à l'original");
+
         sql("UPDATE memoire SET titre = 'Titre modifié en douce' WHERE id = ?", memoire.getId());
-        assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat());
+        assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat(), "titre");
     }
 
     @Test
-    void remplacementDuPdfInvalideLaSignature() throws Exception {
-        validerParEncadreur(memoire);
+    void remplacementDuPdfOuDuSignataireDetecte() throws Exception {
+        BaseDeTest.publier(memoire, encadreur, admin, 13);
         sql("UPDATE memoire SET empreinte_sha256 = ? WHERE id = ?", "f".repeat(64), memoire.getId());
         assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat());
-    }
 
-    @Test
-    void changementDeValidateurOuDeDateInvalideLaSignature() throws Exception {
-        validerParEncadreur(memoire);
-        sql("UPDATE memoire SET date_publication = '2020-01-01' WHERE id = ?", memoire.getId());
-        assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat());
-
-        sql("UPDATE memoire SET date_publication = date('now'), id_validateur = ? WHERE id = ?",
-                admin.getId(), memoire.getId());
-        assertEquals(Etat.INVALIDE, signatures.verifier(memoire.getId()).etat(),
-                "la clé n'appartient pas au validateur enregistré");
+        Memoire autre = deuxiemeMemoire("e2");
+        BaseDeTest.publier(autre, encadreur, admin, 14);
+        sql("UPDATE memoire SET id_validateur = ? WHERE id = ?", encadreur.getId(), autre.getId());
+        assertEquals(Etat.INVALIDE, signatures.verifier(autre.getId()).etat(),
+                "la clé n'appartient pas au signataire enregistré");
     }
 
     @Test
     void signatureRecopieeSurUnAutreMemoireRefusee() throws Exception {
-        Utilisateur etu2 = BaseDeTest.creerUtilisateur("etu2@test.sn", "ETU-0002", Role.ETUDIANT, Niveau.L3, true);
-        Memoire autre = BaseDeTest.deposer(dossier, etu2, encadreur, "2024-2025", Niveau.L3);
-        validerParEncadreur(memoire);
+        Memoire autre = deuxiemeMemoire("e2");
+        Memoire signe = BaseDeTest.publier(memoire, encadreur, admin, 15);
 
-        // L'autre mémoire est publié à la main avec la signature du premier.
-        Memoire signe = memoireDAO.findById(memoire.getId());
-        sql("UPDATE memoire SET statut = 'VALIDE', id_validateur = ?, date_publication = date('now'), "
+        sql("UPDATE memoire SET statut = 'VALIDE', id_validateur = ?, date_publication = date('now','localtime'), "
+                + "mention = 'BIEN', note = 15, date_soutenance = date('now','localtime'), "
                 + "signature = ?, id_cle_signature = ? WHERE id = ?",
-                encadreur.getId(), signe.getSignature(), signe.getIdCleSignature(), autre.getId());
+                admin.getId(), signe.getSignature(), signe.getIdCleSignature(), autre.getId());
 
         assertEquals(Etat.INVALIDE, signatures.verifier(autre.getId()).etat());
     }
 
     @Test
     void laClePriveeEstChiffreeEtReutilisee() throws Exception {
-        Utilisateur etu2 = BaseDeTest.creerUtilisateur("etu2@test.sn", "ETU-0002", Role.ETUDIANT, Niveau.L3, true);
-        Memoire autre = BaseDeTest.deposer(dossier, etu2, encadreur, "2024-2025", Niveau.L3);
-        validerParEncadreur(memoire);
-        validerParEncadreur(autre);
+        Memoire autre = deuxiemeMemoire("e2");
+        BaseDeTest.publier(memoire, encadreur, admin, 15);
+        BaseDeTest.publier(autre, encadreur, admin, 11);
 
         assertEquals(memoireDAO.findById(memoire.getId()).getIdCleSignature(),
-                memoireDAO.findById(autre.getId()).getIdCleSignature(), "une seule clé par validateur");
+                memoireDAO.findById(autre.getId()).getIdCleSignature(), "une seule clé par signataire");
 
-        CleSignature cle = cleDAO.findActive(encadreur.getId());
+        CleSignature cle = cleDAO.findActive(admin.getId());
         byte[] chiffree = Base64.getDecoder().decode(cle.getClePriveeChiffree());
         assertEquals(48 + 12 + 16, chiffree.length, "PKCS#8 Ed25519 (48 o) + IV + tag GCM");
     }
 
     @Test
     void changementDeMotDePasseRechiffreLaCle() throws Exception {
-        validerParEncadreur(memoire);
-        int idCle = cleDAO.findActive(encadreur.getId()).getId();
+        BaseDeTest.publier(memoire, encadreur, admin, 15);
+        int idCle = cleDAO.findActive(admin.getId()).getId();
 
-        SessionManager.ouvrir(encadreur);
+        SessionManager.ouvrir(admin);
         new CompteService().changerMotDePasse(BaseDeTest.MOT_DE_PASSE, "NouveauSecret2026");
+        SessionManager.fermer();
 
-        Utilisateur etu2 = BaseDeTest.creerUtilisateur("etu2@test.sn", "ETU-0002", Role.ETUDIANT, Niveau.L3, true);
-        Memoire autre = BaseDeTest.deposer(dossier, etu2, encadreur, "2024-2025", Niveau.L3);
+        // L'outil publier() utilise MOT_DE_PASSE : on publie le second mémoire à la main.
+        Memoire autre = deuxiemeMemoire("e2");
         SessionManager.ouvrir(encadreur);
-        validation.valider(autre.getId(), "NouveauSecret2026");
+        new ValidationService().donnerAvisFavorable(autre.getId());
+        SessionManager.ouvrir(admin);
+        SoutenanceService s = new SoutenanceService();
+        s.planifier(autre.getId(), java.time.LocalDateTime.now().plusDays(3).withHour(14).withMinute(0), "B2",
+                new com.tdsi.memotheque.dao.impl.UtilisateurDAOImpl().findByEmailOuMatricule("president.jury@test.sn").getId(),
+                java.util.List.of(new com.tdsi.memotheque.dao.impl.UtilisateurDAOImpl()
+                        .findByEmailOuMatricule("examinateur.jury@test.sn").getId()));
+        BaseDeTest.soutenanceDansLePasse(autre.getId());
+        s.enregistrerProcesVerbal(autre.getId(), 12, null, null, null, "NouveauSecret2026");
 
         assertEquals(idCle, memoireDAO.findById(autre.getId()).getIdCleSignature(), "même clé, re-chiffrée");
         assertEquals(Etat.VALIDE, signatures.verifier(memoire.getId()).etat());
@@ -174,29 +204,41 @@ class SignatureTest {
     }
 
     @Test
-    void reinitialisationParLadminRevoqueLaCleSansCasserLesAnciennesSignatures() throws Exception {
-        validerParEncadreur(memoire);
-        int ancienneCle = cleDAO.findActive(encadreur.getId()).getId();
+    void ancienneSignatureV1ToujoursVerifiable() throws Exception {
+        // Mémoire publié par l'ancienne version (validation signée par l'encadreur, format v1).
+        new ValidationDAOImpl().valider(memoire.getId(), encadreur.getId());
+        Memoire m = memoireDAO.findById(memoire.getId());
 
-        SessionManager.ouvrir(admin);
-        String temporaire = new CompteService().reinitialiserMotDePasse(encadreur.getId());
-        assertNull(cleDAO.findActive(encadreur.getId()));
+        KeyPair paire = KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+        CleSignature cle = new CleSignature();
+        cle.setIdUtilisateur(encadreur.getId());
+        cle.setClePublique(Base64.getEncoder().encodeToString(paire.getPublic().getEncoded()));
+        cle.setClePriveeChiffree("inutile");
+        cle.setSel("AAAAAAAAAAAAAAAAAAAAAA==");
+        cle.setIterations(10_000);
+        cleDAO.insert(cle);
 
-        Utilisateur etu2 = BaseDeTest.creerUtilisateur("etu2@test.sn", "ETU-0002", Role.ETUDIANT, Niveau.L3, true);
-        Memoire autre = BaseDeTest.deposer(dossier, etu2, encadreur, "2024-2025", Niveau.L3);
-        SessionManager.ouvrir(encadreur);
-        validation.valider(autre.getId(), temporaire);
+        Method v1 = SignatureService.class.getDeclaredMethod("message", int.class, String.class, String.class,
+                int.class, String.class, String.class, int.class, LocalDate.class);
+        v1.setAccessible(true);
+        byte[] message = (byte[]) v1.invoke(null, m.getId(), m.getEmpreinteSha256(), m.getTitre(),
+                m.getAuteur().getId(), m.getAnneeAcademique(), m.getNiveau().name(), encadreur.getId(),
+                m.getDatePublication());
+        Signature s = Signature.getInstance("Ed25519");
+        s.initSign(paire.getPrivate());
+        s.update(message);
+        sql("UPDATE memoire SET signature = ?, id_cle_signature = ? WHERE id = ?",
+                Base64.getEncoder().encodeToString(s.sign()), cle.getId(), m.getId());
 
-        assertNotEquals(ancienneCle, (int) memoireDAO.findById(autre.getId()).getIdCleSignature());
-        assertEquals(Etat.VALIDE, signatures.verifier(memoire.getId()).etat(), "ancienne clé publique conservée");
-        assertEquals(Etat.VALIDE, signatures.verifier(autre.getId()).etat());
+        SignatureService.Verification v = signatures.verifier(m.getId());
+        assertEquals(Etat.VALIDE, v.etat(), v.message());
+        assertTrue(v.message().contains("validé par"));
     }
 
     @Test
-    void memoireValideSansSignatureSignaleCommeAbsente() throws Exception {
+    void memoirePublieSansSignatureSignaleCommeAbsente() throws Exception {
         new ValidationDAOImpl().valider(memoire.getId(), encadreur.getId());
         SignatureService.Verification v = signatures.verifier(memoire.getId());
         assertEquals(Etat.ABSENTE, v.etat());
-        assertTrue(v.message().contains("avant l'activation"));
     }
 }

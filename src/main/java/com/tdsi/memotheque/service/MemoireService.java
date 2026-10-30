@@ -52,6 +52,7 @@ public class MemoireService {
     private final JournalService journalService;
     private final MemoireVersionDAO versionDAO;
     private final NotificationService notifications = new NotificationService();
+    private final ParametreService parametres = new ParametreService();
 
     private static final Logger LOG = Logger.getLogger(MemoireService.class.getName());
 
@@ -102,8 +103,31 @@ public class MemoireService {
      * L'auteur, le statut et les dates sont imposés par le service (jamais par le formulaire).
      */
     public Memoire deposer(Memoire m, Path pdf) throws SQLException, IOException {
+        return deposer(m, pdf, true);
+    }
+
+    /**
+     * Dépôt par l'étudiant. Ce que l'étudiant ne décide PAS est imposé ici :
+     * l'année (campagne de la scolarité), le niveau (son inscription), et ni date de soutenance,
+     * ni mention, ni note (fixées par la scolarité et le jury).
+     *
+     * @param autorisationDiffusion l'étudiant a accepté les conditions de diffusion choisies
+     */
+    public Memoire deposer(Memoire m, Path pdf, boolean autorisationDiffusion) throws SQLException, IOException {
         Utilisateur etudiant = exigerRole(Role.ETUDIANT);
         Objects.requireNonNull(m, "Mémoire absent.");
+        if (!autorisationDiffusion) {
+            throw new IllegalArgumentException("Vous devez accepter les conditions de diffusion pour déposer.");
+        }
+
+        parametres.verifierDepotPossible();
+        Utilisateur inscrit = utilisateurDAO.findById(etudiant.getId());
+        if (inscrit == null || inscrit.getNiveau() == null) {
+            throw new IllegalStateException("Votre niveau d'inscription n'est pas renseigné : contactez la scolarité.");
+        }
+        m.setAnneeAcademique(parametres.anneeCourante());
+        m.setNiveau(inscrit.getNiveau());
+        imposerChampsScolarite(m);
 
         normaliser(m);
         validerChamps(m);
@@ -136,8 +160,10 @@ public class MemoireService {
 
         journalService.log(etudiant.getId(), "DEPOT",
                 "Mémoire #" + m.getId() + " « " + m.getTitre() + " » (SHA-256 "
-                        + m.getEmpreinteSha256() + ")");
-        notifications.notifier(m.getEncadreur().getId(), "Nouveau mémoire à valider : « " + m.getTitre()
+                        + m.getEmpreinteSha256() + ") ; autorisation de diffusion : "
+                        + m.getNiveauDiffusion().getLibelle()
+                        + (m.getDateFinEmbargo() == null ? "" : " jusqu'au " + m.getDateFinEmbargo()));
+        notifications.notifier(m.getEncadreur().getId(), "Nouveau mémoire à évaluer : « " + m.getTitre()
                 + " » (" + etudiant.getNomComplet() + ", " + m.getNiveau() + " " + m.getAnneeAcademique() + ").");
         return m;
     }
@@ -156,28 +182,22 @@ public class MemoireService {
         Memoire existant = chargerModifiable(saisie.getId(), etudiant);
         Memoire etatAvant = copieFichier(existant);
 
+        // L'année et le niveau du dépôt ne changent pas ; mention et date restent à la scolarité.
+        saisie.setAnneeAcademique(existant.getAnneeAcademique());
+        saisie.setNiveau(existant.getNiveau());
+        imposerChampsScolarite(saisie);
+
         normaliser(saisie);
         validerChamps(saisie);
-
-        boolean changementNiveauOuAnnee = saisie.getNiveau() != existant.getNiveau()
-                || !saisie.getAnneeAcademique().equals(existant.getAnneeAcademique());
-
-        if (changementNiveauOuAnnee && memoireDAO.existePourAuteurNiveauAnnee(
-                etudiant.getId(), saisie.getNiveau(), saisie.getAnneeAcademique())) {
-            throw new IllegalArgumentException("Vous avez déjà un mémoire de niveau "
-                    + saisie.getNiveau() + " pour l'année " + saisie.getAnneeAcademique() + ".");
-        }
 
         existant.setTitre(saisie.getTitre());
         existant.setResume(saisie.getResume());
         existant.setMotsCles(saisie.getMotsCles());
-        existant.setAnneeAcademique(saisie.getAnneeAcademique());
-        existant.setNiveau(saisie.getNiveau());
         existant.setDomaine(saisie.getDomaine());
         existant.setCoAuteur(saisie.getCoAuteur());
         existant.setEncadreur(saisie.getEncadreur());
-        existant.setDateSoutenance(saisie.getDateSoutenance());
-        existant.setMention(saisie.getMention());
+        existant.setNiveauDiffusion(saisie.getNiveauDiffusion());
+        existant.setDateFinEmbargo(saisie.getDateFinEmbargo());
 
         existant.setStatut(StatutMemoire.EN_ATTENTE);
         existant.setMotifRefus(null);
@@ -185,6 +205,10 @@ public class MemoireService {
         existant.setDatePublication(null);
         existant.setSignature(null);
         existant.setIdCleSignature(null);
+        existant.setMention(null);
+        existant.setNote(null);
+        existant.setDateSoutenance(null);
+        existant.setDateAvis(null);
 
         boolean fichierRemplace = nouveauPdf != null;
 
@@ -234,8 +258,10 @@ public class MemoireService {
         if (!auteur && u.getRole() != Role.ADMIN) {
             throw new SecurityException("Vous ne pouvez supprimer que vos propres mémoires.");
         }
-        if (existant.getStatut() == StatutMemoire.VALIDE) {
-            throw new IllegalStateException("Un mémoire validé ne peut plus être supprimé.");
+        if (existant.getStatut() == StatutMemoire.VALIDE || existant.getStatut() == StatutMemoire.AUTORISE) {
+            throw new IllegalStateException(existant.getStatut() == StatutMemoire.VALIDE
+                    ? "Un mémoire publié ne peut plus être supprimé."
+                    : "Ce mémoire est autorisé à soutenir : adressez-vous à la scolarité.");
         }
 
         List<MemoireVersion> versions = versionDAO.findByMemoire(idMemoire);
@@ -341,7 +367,7 @@ public class MemoireService {
                     "Année académique invalide (format AAAA-AAAA, ex. 2025-2026).");
         }
         int debut = Integer.parseInt(m.getAnneeAcademique().substring(0, 4));
-        if (debut < 2000 || debut > LocalDate.now().getYear()) {
+        if (debut < 2000 || debut > LocalDate.now().getYear() + 1) {
             throw new IllegalArgumentException("Année académique hors période autorisée.");
         }
 
@@ -385,6 +411,18 @@ public class MemoireService {
         }
     }
 
+    /** Champs fixés par la scolarité et le jury, jamais par l'étudiant ; diffusion et embargo contrôlés. */
+    private void imposerChampsScolarite(Memoire m) {
+        m.setDateSoutenance(null);
+        m.setMention(null);
+        m.setNote(null);
+        m.setDateAvis(null);
+        if (m.getNiveauDiffusion() == null) {
+            m.setNiveauDiffusion(com.tdsi.memotheque.model.NiveauDiffusion.PUBLIC);
+        }
+        m.setDateFinEmbargo(SoutenanceService.verifierEmbargo(m.getNiveauDiffusion(), m.getDateFinEmbargo()));
+    }
+
     /** Un même PDF (même SHA-256) ne peut pas être déposé deux fois (premier niveau anti-plagiat). */
     private void refuserDoublon(FichierService.FichierPrepare fichier, int idExclu) throws SQLException {
         if (memoireDAO.existeEmpreinte(fichier.sha256(), idExclu)) {
@@ -421,7 +459,10 @@ public class MemoireService {
             throw new SecurityException("Vous ne pouvez modifier que vos propres mémoires.");
         }
         if (existant.getStatut() == StatutMemoire.VALIDE) {
-            throw new IllegalStateException("Un mémoire validé ne peut plus être modifié.");
+            throw new IllegalStateException("Un mémoire publié ne peut plus être modifié.");
+        }
+        if (existant.getStatut() == StatutMemoire.AUTORISE) {
+            throw new IllegalStateException("Ce mémoire est autorisé à soutenir : il ne peut plus être modifié.");
         }
         return existant;
     }

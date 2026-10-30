@@ -18,9 +18,10 @@ import com.tdsi.memotheque.model.Utilisateur;
 import com.tdsi.memotheque.util.SessionManager;
 
 /**
- * [M5] Validation / refus des mémoires.
- * À faire : un encadreur ne valide que SES mémoires (l'admin peut tout valider), motif obligatoire pour un refus,
- * renseigner date_publication et id_validateur, journaliser VALIDATION / REFUS.
+ * [M5] Évaluation des mémoires soumis par l'encadreur (première étape du circuit) :
+ * avis favorable (autorisé à soutenir) ou corrections demandées (motif obligatoire).
+ * Un encadreur n'évalue que SES mémoires ; l'administration peut tout évaluer.
+ * La publication (après soutenance) relève de SoutenanceService.
  *
  * Le mémoire est toujours relu en base : on ne fait pas confiance à l'objet affiché à l'écran.
  */
@@ -33,22 +34,19 @@ public class ValidationService {
     private final MemoireDAO memoireDAO;
     private final JournalService journalService;
     private final FichierService fichierService;
-    private final SignatureService signatureService;
     private final NotificationService notifications = new NotificationService();
 
     public ValidationService() {
-        this(new ValidationDAOImpl(), new MemoireDAOImpl(), new JournalService(), new FichierService(),
-                new SignatureService());
+        this(new ValidationDAOImpl(), new MemoireDAOImpl(), new JournalService(), new FichierService());
     }
 
     // Constructeur utile pour les tests.
     public ValidationService(ValidationDAO validationDAO, MemoireDAO memoireDAO,
-            JournalService journalService, FichierService fichierService, SignatureService signatureService) {
+            JournalService journalService, FichierService fichierService) {
         this.validationDAO = Objects.requireNonNull(validationDAO);
         this.memoireDAO = Objects.requireNonNull(memoireDAO);
         this.journalService = Objects.requireNonNull(journalService);
         this.fichierService = Objects.requireNonNull(fichierService);
-        this.signatureService = Objects.requireNonNull(signatureService);
     }
 
     /** Encadreur : ses mémoires en attente. Admin : tous les mémoires en attente. */
@@ -58,35 +56,23 @@ public class ValidationService {
     }
 
     /**
-     * Valide, publie et SIGNE (Ed25519) un mémoire. Le mot de passe du validateur est exigé :
-     * il re-confirme son identité et déchiffre sa clé privée de signature.
+     * Avis favorable de l'encadreur : le mémoire est autorisé à être soutenu.
+     * La scolarité est prévenue pour planifier la soutenance. Le PDF doit être intègre.
      */
-    public void valider(int idMemoire, String motDePasse) throws SQLException, IOException {
+    public void donnerAvisFavorable(int idMemoire) throws SQLException, IOException {
         Utilisateur u = exigerValidateur();
-        if (motDePasse == null || motDePasse.isEmpty()) {
-            throw new IllegalArgumentException("Confirmez votre mot de passe pour signer la validation.");
-        }
         Memoire m = chargerTraitable(idMemoire, u);
 
-        // On ne publie pas un fichier dont l'intégrité n'est pas vérifiée (tag GCM + SHA-256).
+        // On n'autorise pas la soutenance d'un fichier dont l'intégrité n'est pas vérifiée.
         fichierService.lireContenuVerifie(m);
 
-        LocalDate datePublication = LocalDate.now();
-        SignatureService.SignatureCalculee signature;
-        try {
-            signature = signatureService.signer(u, motDePasse, m, datePublication);
-        } catch (SecurityException e) {
-            journalService.log(u.getId(), "ECHEC_SIGNATURE", "Mémoire #" + idMemoire + " : mot de passe incorrect");
-            throw e;
-        }
-
-        validationDAO.validerEtSigner(idMemoire, u.getId(), datePublication,
-                signature.signature(), signature.idCle());
-        journalService.log(u.getId(), "VALIDATION",
-                "Mémoire #" + idMemoire + " « " + m.getTitre() + " » signé (clé Ed25519 "
-                        + signature.empreinteCle() + ")");
-        notifications.notifier(m.getAuteur().getId(), "Félicitations ! Votre mémoire « " + m.getTitre()
-                + " » a été validé par " + u.getNomComplet() + " et publié.");
+        validationDAO.autoriser(idMemoire, LocalDate.now());
+        journalService.log(u.getId(), "AVIS_FAVORABLE",
+                "Mémoire #" + idMemoire + " « " + m.getTitre() + " » autorisé à soutenir");
+        notifications.notifier(m.getAuteur().getId(), "Bonne nouvelle : votre mémoire « " + m.getTitre()
+                + " » est autorisé à être soutenu. La scolarité va planifier votre soutenance.");
+        notifications.notifierAdmins("Soutenance à planifier : « " + m.getTitre() + " » ("
+                + m.getAuteurNomComplet() + ", " + m.getNiveau() + "), avis favorable de " + u.getNomComplet() + ".");
     }
 
     public void refuser(int idMemoire, String motif) throws SQLException {
@@ -94,7 +80,7 @@ public class ValidationService {
 
         String motifNettoye = motif == null ? "" : motif.trim();
         if (motifNettoye.length() < MOTIF_MIN || motifNettoye.length() > MOTIF_MAX) {
-            throw new IllegalArgumentException("Le motif du refus est obligatoire ("
+            throw new IllegalArgumentException("Le motif (corrections demandées) est obligatoire ("
                     + MOTIF_MIN + " à " + MOTIF_MAX + " caractères).");
         }
 
@@ -103,8 +89,8 @@ public class ValidationService {
         validationDAO.refuser(idMemoire, u.getId(), motifNettoye);
         journalService.log(u.getId(), "REFUS",
                 "Mémoire #" + idMemoire + " « " + m.getTitre() + " » : " + motifNettoye);
-        notifications.notifier(m.getAuteur().getId(), "Votre mémoire « " + m.getTitre()
-                + " » a été refusé. Motif : " + motifNettoye + " — corrigez-le depuis « Mes mémoires ».");
+        notifications.notifier(m.getAuteur().getId(), "Corrections demandées sur « " + m.getTitre()
+                + " » : " + motifNettoye + " — corrigez-le puis re-soumettez-le depuis « Mes mémoires ».");
     }
 
     /** Retourne le PDF à lire avant décision, après contrôle des droits et de l'intégrité. */
@@ -121,7 +107,7 @@ public class ValidationService {
             throw new IllegalArgumentException("Mémoire introuvable.");
         }
         if (m.getStatut() != StatutMemoire.EN_ATTENTE) {
-            throw new IllegalStateException("Ce mémoire a déjà été traité.");
+            throw new IllegalStateException("Ce mémoire a déjà été évalué.");
         }
         if (u.getRole() == Role.ENCADREUR
                 && (m.getEncadreur() == null || m.getEncadreur().getId() != u.getId())) {

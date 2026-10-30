@@ -45,6 +45,8 @@ public class SignatureService {
 
     public static final String ALGORITHME = "Ed25519";
     private static final String DOMAINE = "MemoTDSI-signature-v1";
+    private static final String DOMAINE_V2 = "MemoTDSI-pv-v2";
+    private static final String PREFIXE_V2 = "v2:";
 
     public enum Etat { VALIDE, INVALIDE, ABSENTE }
 
@@ -101,15 +103,14 @@ public class SignatureService {
             privee = paire.getPrivate();
         }
 
-        byte[] message = message(m.getId(), m.getEmpreinteSha256(), m.getTitre(),
-                m.getAuteur() == null ? 0 : m.getAuteur().getId(), m.getAnneeAcademique(),
-                m.getNiveau() == null ? null : m.getNiveau().name(), validateur.getId(), datePublication);
+        // Format v2 : la signature couvre aussi le PV (mention, note, date de soutenance).
+        byte[] message = messageV2(m, validateur.getId(), datePublication);
 
         try {
             Signature s = Signature.getInstance(ALGORITHME);
             s.initSign(privee);
             s.update(message);
-            return new SignatureCalculee(Base64.getEncoder().encodeToString(s.sign()), cle.getId(),
+            return new SignatureCalculee(PREFIXE_V2 + Base64.getEncoder().encodeToString(s.sign()), cle.getId(),
                     empreinte(cle.getClePublique()));
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException("Signature Ed25519 impossible", e);
@@ -142,10 +143,14 @@ public class SignatureService {
         String nom = signataire == null ? "Utilisateur #" + cle.getIdUtilisateur() : signataire.getNomComplet();
         String empreinte = empreinte(cle.getClePublique());
 
-        byte[] message = message(m.getId(), m.getEmpreinteSha256(), m.getTitre(),
-                m.getAuteur() == null ? 0 : m.getAuteur().getId(), m.getAnneeAcademique(),
-                m.getNiveau() == null ? null : m.getNiveau().name(), m.getValidateur().getId(),
-                m.getDatePublication());
+        boolean v2 = m.getSignature().startsWith(PREFIXE_V2);
+        byte[] message = v2
+                ? messageV2(m, m.getValidateur().getId(), m.getDatePublication())
+                : message(m.getId(), m.getEmpreinteSha256(), m.getTitre(),
+                        m.getAuteur() == null ? 0 : m.getAuteur().getId(), m.getAnneeAcademique(),
+                        m.getNiveau() == null ? null : m.getNiveau().name(), m.getValidateur().getId(),
+                        m.getDatePublication());
+        String brute = v2 ? m.getSignature().substring(PREFIXE_V2.length()) : m.getSignature();
 
         boolean ok;
         try {
@@ -154,17 +159,18 @@ public class SignatureService {
             Signature s = Signature.getInstance(ALGORITHME);
             s.initVerify(publique);
             s.update(message);
-            ok = s.verify(Base64.getDecoder().decode(m.getSignature()));
+            ok = s.verify(Base64.getDecoder().decode(brute));
         } catch (GeneralSecurityException | IllegalArgumentException e) {
             ok = false;
         }
 
         if (!ok) {
             return new Verification(Etat.INVALIDE,
-                    "Signature INVALIDE : les informations ou le PDF ont été modifiés après la validation.",
+                    "Signature INVALIDE : les informations, le PV ou le PDF ont été modifiés après la publication.",
                     nom, empreinte);
         }
-        return new Verification(Etat.VALIDE, "Signature Ed25519 valide : validé par " + nom + " le "
+        return new Verification(Etat.VALIDE, "Signature Ed25519 valide : "
+                + (v2 ? "procès-verbal signé par " : "validé par ") + nom + " le "
                 + m.getDatePublication().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 + " (clé " + empreinte + ").", nom, empreinte);
     }
@@ -203,6 +209,18 @@ public class SignatureService {
 
     // ------------------------------------------------------------------ outils
 
+    /** Message v2 : identité du mémoire + PDF + procès-verbal de soutenance + signataire + date. */
+    static byte[] messageV2(Memoire m, int idSignataire, LocalDate datePublication) {
+        return CryptoUtil.encoder(DOMAINE_V2, Integer.toString(m.getId()), m.getEmpreinteSha256(), m.getTitre(),
+                Integer.toString(m.getAuteur() == null ? 0 : m.getAuteur().getId()), m.getAnneeAcademique(),
+                m.getNiveau() == null ? null : m.getNiveau().name(),
+                m.getMention() == null ? null : m.getMention().name(),
+                m.getNote() == null ? null : String.format(java.util.Locale.ROOT, "%.2f", m.getNote()),
+                m.getDateSoutenance() == null ? null : m.getDateSoutenance().toString(),
+                Integer.toString(idSignataire), datePublication == null ? null : datePublication.toString());
+    }
+
+    /** Message v1 (signatures produites avant le circuit de soutenance). */
     static byte[] message(int idMemoire, String sha256, String titre, int idAuteur, String annee,
             String niveau, int idValidateur, LocalDate datePublication) {
         return CryptoUtil.encoder(DOMAINE, Integer.toString(idMemoire), sha256, titre,
