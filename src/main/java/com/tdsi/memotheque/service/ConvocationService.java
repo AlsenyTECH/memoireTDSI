@@ -33,9 +33,24 @@ public class ConvocationService {
     /** Contenu d'une lettre, indépendant de l'affichage (écran ou impression). */
     public record Convocation(String reference, String lieuDate, String destinataire, String qualite,
             String objet, String formuleAppel, List<String> paragraphes, List<String[]> details,
-            String formuleFin, String signature) { }
+            String formuleFin, String signature, com.tdsi.memotheque.model.DocumentEmis document) {
+
+        /** Sans code de vérification (aperçu, tests). */
+        public Convocation(String reference, String lieuDate, String destinataire, String qualite, String objet,
+                String formuleAppel, List<String> paragraphes, List<String[]> details, String formuleFin,
+                String signature) {
+            this(reference, lieuDate, destinataire, qualite, objet, formuleAppel, paragraphes, details, formuleFin,
+                    signature, null);
+        }
+
+        Convocation avec(com.tdsi.memotheque.model.DocumentEmis d) {
+            return new Convocation(reference, lieuDate, destinataire, qualite, objet, formuleAppel, paragraphes,
+                    details, formuleFin, signature, d);
+        }
+    }
 
     private final SoutenanceDAO soutenanceDAO;
+    private final VerificationService verification;
 
     public ConvocationService() {
         this(new SoutenanceDAOImpl());
@@ -43,6 +58,7 @@ public class ConvocationService {
 
     public ConvocationService(SoutenanceDAO soutenanceDAO) {
         this.soutenanceDAO = Objects.requireNonNull(soutenanceDAO);
+        this.verification = new VerificationService();
     }
 
     /**
@@ -72,7 +88,12 @@ public class ConvocationService {
         if (lettres.isEmpty()) {
             throw new SecurityException("Cette convocation ne vous est pas adressée.");
         }
-        return lettres;
+        // Chaque lettre reçoit son code de vérification signé (QR code imprimé sur la lettre).
+        List<Convocation> signees = new ArrayList<>();
+        for (Convocation c : lettres) {
+            signees.add(c.avec(verification.convocation(s, c.destinataire(), c.qualite())));
+        }
+        return signees;
     }
 
     Convocation pourEtudiant(Soutenance s) {

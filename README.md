@@ -85,6 +85,27 @@ Raccourcis : `Ctrl+D` tableau de bord · `Ctrl+F` recherche · `Ctrl+N` notifica
 | Poste laissé ouvert | Déconnexion automatique après 15 minutes d'inactivité |
 | Perte de données | Sauvegarde **chiffrée AES-256-GCM** (clé PBKDF2), en-tête authentifié, restauration vérifiée dans un dossier neuf (anti zip slip) |
 | Plagiat grossier | Refus d'un PDF déjà déposé (même SHA-256) |
+| Mot de passe volé (hameçonnage, fuite) | **Double authentification TOTP** (RFC 6238, Google Authenticator / Aegis) : secret de 160 bits chiffré AES-256-GCM lié au compte, fenêtre ±30 s, code à usage unique (anti-rejeu), codes faux comptés dans le verrouillage ; retrait par la scolarité en cas de perte du téléphone |
+| Fausse convocation, faux PV, fausse attestation | **QR code signé Ed25519** par la clé de l'établissement (préfixe de domaine `MemoTDSI-document-v1`) contenant les informations du document : vérifiable hors ligne avec la clé publique ; code aléatoire de 80 bits imprimé ; registre des documents émis qui signale un document **périmé** (soutenance déplacée, note modifiée) ou altéré en base |
+
+### Vérifier un document
+
+Écran **Vérifier un document** (menu, ou lien sur la page de connexion, **sans compte**) : coller le texte lu
+dans le QR code avec un téléphone, ou saisir le code `XXXX-XXXX-XXXX-XXXX`. Résultats possibles :
+authentique, authentique mais plus valable, falsifié / altéré, révoqué, code inconnu.
+La clé publique de l'établissement (X.509, Base64) est affichée pour une vérification indépendante.
+
+### Export PDF
+
+Les aperçus (convocations, procès-verbal, attestation de dépôt) ont un bouton **Enregistrer en PDF** :
+une page A4 par document, rendue en haute définition, sans bibliothèque externe (PDF 1.4 écrit par
+`PdfExport`). Le texte du PDF est une image (non sélectionnable).
+
+### Encodeur QR
+
+`util/QrCode` implémente la norme ISO/IEC 18004 (mode octet UTF-8, versions 1 à 40, Reed-Solomon sur
+GF(2^8), entrelacement des blocs, choix du masque par pénalité). Les tests comparent ses matrices module
+par module à celles d'une implémentation indépendante.
 
 ## Installation sur Ubuntu
 

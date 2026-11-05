@@ -62,6 +62,7 @@
     <Button fx:id="boutonDesactiver" text="Désactiver" onAction="#desactiver" styleClass="bouton-danger"/>
     <Button fx:id="boutonDeverrouiller" text="Déverrouiller" onAction="#deverrouiller"/>
     <Button fx:id="boutonReinitialiser" text="Réinitialiser le mot de passe" onAction="#reinitialiser"/>
+    <Button fx:id="boutonRetirer2fa" text="Retirer la double authentification" onAction="#retirerDoubleFacteur"/>
   </HBox>
 
   <Label fx:id="labelMessage" wrapText="true" styleClass="info"/>

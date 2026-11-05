@@ -28,6 +28,8 @@ public class LoginController {
     @FXML private javafx.scene.layout.StackPane panneauImage;
     @FXML private Label labelCredit;
     @FXML private javafx.scene.layout.VBox encartDemo;
+    @FXML private javafx.scene.layout.VBox boiteCode;
+    @FXML private TextField champCode;
 
     /** Une vraie photo du campus déposée par l'établissement remplace l'illustration. */
     @FXML
@@ -63,19 +65,44 @@ public class LoginController {
         String identifiant = champIdentifiant.getText();
 
         try {
-            Utilisateur u = authService.connecter(identifiant, champMotDePasse.getText());
+            String code = boiteCode.isVisible() ? champCode.getText() : null;
+            Utilisateur u = authService.connecter(identifiant, champMotDePasse.getText(), code);
             champMotDePasse.clear();
+            champCode.clear();
             journalService.log(u.getId(), "CONNEXION", u.getEmail());
             SceneNavigator.afficherCadrePrincipal();
 
+        } catch (AuthService.DeuxiemeFacteurRequis e) {
+            // Mot de passe correct : on demande le code (le mot de passe reste saisi pour la seconde étape).
+            boiteCode.setVisible(true);
+            boiteCode.setManaged(true);
+            champIdentifiant.setDisable(true);
+            champMotDePasse.setDisable(true);
+            encartDemo.setVisible(false);
+            encartDemo.setManaged(false);
+            labelMessage.setText(e.getMessage());
+            champCode.requestFocus();
         } catch (IllegalArgumentException e) {
-            champMotDePasse.clear();
+            champCode.clear();
+            if (!boiteCode.isVisible() || e.getMessage().startsWith("Compte verrouillé")) {
+                // Retour à la première étape.
+                boiteCode.setVisible(false);
+                boiteCode.setManaged(false);
+                champIdentifiant.setDisable(false);
+                champMotDePasse.setDisable(false);
+                champMotDePasse.clear();
+            }
             labelMessage.setText(e.getMessage());
             journalService.log(null, "ECHEC_CONNEXION",
                     "Identifiant saisi : " + tronquer(identifiant) + " (" + e.getMessage() + ")");
         } catch (SQLException e) {
             labelMessage.setText("Erreur d'accès à la base : " + e.getMessage());
         }
+    }
+
+    @FXML
+    private void allerVerification() {
+        SceneNavigator.afficherVerificationPublique();
     }
 
     @FXML

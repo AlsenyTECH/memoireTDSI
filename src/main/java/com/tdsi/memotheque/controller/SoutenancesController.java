@@ -485,10 +485,18 @@ public class SoutenancesController {
         lignes.add(new String[] {"Observations", s.getObservations()});
         if (m.getMention() != null) {
             lignes.add(new String[] {"Diffusion", m.getNiveauDiffusion() == null ? "-" : m.getNiveauDiffusion().getLibelle()});
-            lignes.add(new String[] {"Publié le", String.valueOf(m.getDatePublication())});
+            lignes.add(new String[] {"Publié le", Libelles.date(m.getDatePublication())});
+        }
+        com.tdsi.memotheque.model.DocumentEmis code;
+        try {
+            code = new com.tdsi.memotheque.service.VerificationService().pv(m, s);
+        } catch (SQLException | IllegalStateException | SecurityException e) {
+            labelMessage.setText("Code de vérification indisponible : " + e.getMessage());
+            code = null;
         }
         Impression.apercuEtImpression("Procès-verbal de soutenance", lignes, m.getMention() == null ? null
-                : "PV signé électroniquement (Ed25519) par la scolarité ; la signature est vérifiable depuis la fiche du mémoire.");
+                : "PV signé électroniquement (Ed25519) par la scolarité ; la signature est vérifiable depuis la fiche du mémoire.",
+                code);
     }
 
     @FXML

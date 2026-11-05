@@ -28,65 +28,58 @@ public final class Impression {
 
     private Impression() { }
 
-    /** Construit la page : en-tête de l'établissement, titre, tableau libellé/valeur, mention de bas de page. */
+    /** Page officielle (attestation, procès-verbal) sans code de vérification. */
     public static VBox document(String titre, List<String[]> lignes, String basDePage) {
-        Label etablissement = new Label("Département TDSI — Mémothèque");
-        etablissement.setStyle("-fx-font-size: 11px; -fx-text-fill: #555;");
-        Label entete = new Label(titre);
-        entete.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        return document(titre, lignes, basDePage, null);
+    }
 
-        GridPane grille = new GridPane();
-        grille.setHgap(14);
-        grille.setVgap(6);
-        for (int i = 0; i < lignes.size(); i++) {
-            Label libelle = new Label(lignes.get(i)[0]);
-            libelle.setStyle("-fx-font-weight: bold;");
-            libelle.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-            Label valeur = new Label(lignes.get(i)[1] == null ? "-" : lignes.get(i)[1]);
-            valeur.setWrapText(true);
-            valeur.setMaxWidth(380);
-            grille.add(libelle, 0, i);
-            grille.add(valeur, 1, i);
+    /**
+     * Page officielle A4 : en-tête de l'UCAD, titre, tableau libellé / valeur, mention de bas de page,
+     * signature et, si le document est enregistré, son QR code de vérification signé.
+     */
+    public static VBox document(String titre, List<String[]> lignes, String basDePage,
+            com.tdsi.memotheque.model.DocumentEmis verification) {
+        Label t = classe(new Label(titre.toUpperCase(java.util.Locale.FRENCH)), "lettre-titre");
+        javafx.scene.layout.HBox cadreTitre = new javafx.scene.layout.HBox(t);
+        cadreTitre.setAlignment(javafx.geometry.Pos.CENTER);
+        cadreTitre.setPadding(new Insets(10, 0, 6, 0));
+
+        Label lieu = classe(new Label("Dakar, le " + java.time.LocalDate.now().format(
+                DateTimeFormatter.ofPattern("d MMMM yyyy", java.util.Locale.FRENCH))), "lettre-ref");
+        javafx.scene.layout.Region r1 = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(r1, javafx.scene.layout.Priority.ALWAYS);
+        Label ref = classe(new Label(verification == null ? "" : "Code de vérification : " + verification.codeLisible()),
+                "lettre-ref");
+        javafx.scene.layout.HBox ligneRef = new javafx.scene.layout.HBox(ref, r1, lieu);
+
+        VBox corps = new VBox(14, enteteUcad(), ligneRef, cadreTitre, tableau(lignes));
+        if (basDePage != null) {
+            corps.getChildren().add(enveloppe(classe(new Label(basDePage), "lettre-petit"), LETTRE_UTILE));
         }
+        Label pour = classe(new Label("Pour le Recteur, et par délégation"), "lettre-petit");
+        Label signataire = classe(new Label("Le Chef du service de la scolarité"), "lettre-signature");
+        VBox blocSignature = new VBox(6, pour, signataire, cachet());
+        blocSignature.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+        corps.getChildren().add(ligneSignature(verification, blocSignature));
 
-        Label pied = new Label((basDePage == null ? "" : basDePage + "\n")
-                + "Document édité le " + LocalDateTime.now().format(HORODATAGE) + ".");
-        pied.setWrapText(true);
-        pied.setMaxWidth(500);
-        pied.setStyle("-fx-font-size: 10px; -fx-text-fill: #555;");
-
-        VBox page = new VBox(12, etablissement, entete, new Separator(), grille, new Separator(), pied);
-        page.setPadding(new Insets(24));
-        page.setStyle("-fx-background-color: white;");
-        page.setPrefWidth(540);
+        javafx.scene.layout.Region ressort = new javafx.scene.layout.Region();
+        VBox.setVgrow(ressort, javafx.scene.layout.Priority.ALWAYS);
+        VBox page = new VBox(corps, ressort, pied());
+        page.getStyleClass().add("lettre");
+        page.setPrefWidth(LETTRE_LARGEUR);
+        page.setMinSize(LETTRE_LARGEUR, LETTRE_HAUTEUR);
+        page.setMaxWidth(LETTRE_LARGEUR);
         return page;
     }
 
-    /** Aperçu puis impression. Retourne false si l'utilisateur annule ou si aucune imprimante n'existe. */
-    public static boolean apercuEtImpression(String titre, List<String[]> lignes, String basDePage) {
-        VBox page = document(titre, lignes, basDePage);
-        ButtonType imprimer = new ButtonType("Imprimer...", ButtonBar.ButtonData.OK_DONE);
-        Dialog<ButtonType> d = new Dialog<>();
-        d.setTitle(titre);
-        d.getDialogPane().setContent(page);
-        d.getDialogPane().getButtonTypes().addAll(imprimer, FERMER);
-        if (d.showAndWait().filter(b -> b == imprimer).isEmpty()) {
-            return false;
-        }
-        PrinterJob job = PrinterJob.createPrinterJob();
-        if (job == null) {
-            AlertUtil.avertissement("Impression", "Aucune imprimante n'est configurée sur ce poste.");
-            return false;
-        }
-        // La page doit être hors de la boîte de dialogue (fermée) pour être imprimée seule.
-        d.getDialogPane().setContent(null);
-        if (!job.showPrintDialog(null)) {
-            job.cancelJob();
-            return false;
-        }
-        boolean ok = job.printPage(page);
-        job.endJob();
-        return ok;
+    /** Aperçu d'une page officielle, puis impression ou enregistrement en PDF. */
+    public static void apercuEtImpression(String titre, List<String[]> lignes, String basDePage) {
+        apercuEtImpression(titre, lignes, basDePage, null);
+    }
+
+    public static void apercuEtImpression(String titre, List<String[]> lignes, String basDePage,
+            com.tdsi.memotheque.model.DocumentEmis verification) {
+        apercuEtImpressionLettres(titre, List.of(document(titre, lignes, basDePage, verification)));
     }
 
     // ------------------------------------------------------------------ convocations
@@ -102,34 +95,6 @@ public final class Impression {
      * références, destinataire, objet, corps, tableau récapitulatif, signature et cachet, pied de page.
      */
     public static VBox lettre(com.tdsi.memotheque.service.ConvocationService.Convocation c) {
-        // ---- en-tête : sceau | université | République du Sénégal
-        javafx.scene.image.Image sceau = Images.logoUcad();
-        javafx.scene.image.ImageView logo = new javafx.scene.image.ImageView(sceau == null ? Images.logo(128) : sceau);
-        logo.setFitWidth(86);
-        logo.setFitHeight(86);
-        logo.setPreserveRatio(true);
-        logo.setSmooth(true);
-
-        Label univ = classe(new Label("UNIVERSITÉ CHEIKH ANTA DIOP DE DAKAR"), "lettre-universite");
-        Label fac = classe(new Label("Faculté des Sciences et Techniques"), "lettre-faculte");
-        Label filiere = classe(new Label("Département de Mathématiques et Informatique"), "lettre-entete");
-        Label master = classe(new Label("Master Mathématiques, Cryptographie et Sécurité — TDSI"), "lettre-entete");
-        Label scol = classe(new Label("Service de la scolarité"), "lettre-service");
-        VBox centre = new VBox(1, univ, fac, filiere, master, scol);
-        centre.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        javafx.scene.layout.HBox.setHgrow(centre, javafx.scene.layout.Priority.ALWAYS);
-        javafx.scene.layout.HBox entete = new javafx.scene.layout.HBox(18, logo, centre);
-        entete.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-        Label rep = classe(new Label("RÉPUBLIQUE DU SÉNÉGAL"), "lettre-republique");
-        Label devise = classe(new Label("Un Peuple — Un But — Une Foi"), "lettre-devise");
-        javafx.scene.layout.HBox republique = new javafx.scene.layout.HBox(10, rep, devise);
-        republique.setAlignment(javafx.geometry.Pos.CENTER);
-
-        javafx.scene.layout.Region filetBleu = classe(new javafx.scene.layout.Region(), "lettre-filet");
-        javafx.scene.layout.Region filetOr = classe(new javafx.scene.layout.Region(), "lettre-filet-or");
-        VBox filets = new VBox(2, filetBleu, filetOr);
-
         // ---- références et date
         Label ref = classe(new Label(c.reference()), "lettre-ref");
         Label lieu = classe(new Label(c.lieuDate()), "lettre-ref");
@@ -168,6 +133,66 @@ public final class Impression {
         }
 
         // ---- récapitulatif encadré
+        GridPane grille = tableau(c.details());
+
+        Label fin = enveloppe(classe(new Label(c.formuleFin()), "lettre-paragraphe"), LETTRE_UTILE);
+
+        // ---- signature et cachet
+        Label pour = classe(new Label("Pour le Recteur, et par délégation"), "lettre-petit");
+        Label signataire = classe(new Label(c.signature()), "lettre-signature");
+        VBox blocSignature = new VBox(6, pour, signataire, cachet());
+        blocSignature.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+        javafx.scene.layout.HBox ligneSignature = ligneSignature(c.document(), blocSignature);
+
+        // ---- pied de page, poussé en bas de la feuille
+        javafx.scene.layout.Region ressort = new javafx.scene.layout.Region();
+        VBox.setVgrow(ressort, javafx.scene.layout.Priority.ALWAYS);
+        VBox pied = pied();
+
+        VBox page = new VBox(enteteUcad(), ligneRef, cadreTitre, ligneDest, ligneObjet, corps, grille, fin,
+                ligneSignature, ressort, pied);
+        page.getStyleClass().add("lettre");
+        // Au moins une feuille A4 ; le pied de page est poussé en bas par le ressort.
+        page.setPrefWidth(LETTRE_LARGEUR);
+        page.setMinSize(LETTRE_LARGEUR, LETTRE_HAUTEUR);
+        page.setMaxWidth(LETTRE_LARGEUR);
+        return page;
+    }
+
+    /** En-tête officiel : République du Sénégal, sceau de l'UCAD, faculté, département, filière, scolarité. */
+    static VBox enteteUcad() {
+        javafx.scene.image.Image sceau = Images.logoUcad();
+        javafx.scene.image.ImageView logo = new javafx.scene.image.ImageView(sceau == null ? Images.logo(128) : sceau);
+        logo.setFitWidth(86);
+        logo.setFitHeight(86);
+        logo.setPreserveRatio(true);
+        logo.setSmooth(true);
+
+        Label univ = classe(new Label("UNIVERSITÉ CHEIKH ANTA DIOP DE DAKAR"), "lettre-universite");
+        Label fac = classe(new Label("Faculté des Sciences et Techniques"), "lettre-faculte");
+        Label filiere = classe(new Label("Département de Mathématiques et Informatique"), "lettre-entete");
+        Label master = classe(new Label("Master Mathématiques, Cryptographie et Sécurité — TDSI"), "lettre-entete");
+        Label scol = classe(new Label("Service de la scolarité"), "lettre-service");
+        VBox centre = new VBox(1, univ, fac, filiere, master, scol);
+        centre.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        javafx.scene.layout.HBox.setHgrow(centre, javafx.scene.layout.Priority.ALWAYS);
+        javafx.scene.layout.HBox entete = new javafx.scene.layout.HBox(18, logo, centre);
+        entete.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        Label rep = classe(new Label("RÉPUBLIQUE DU SÉNÉGAL"), "lettre-republique");
+        Label devise = classe(new Label("Un Peuple — Un But — Une Foi"), "lettre-devise");
+        javafx.scene.layout.HBox republique = new javafx.scene.layout.HBox(10, rep, devise);
+        republique.setAlignment(javafx.geometry.Pos.CENTER);
+
+        javafx.scene.layout.Region filetBleu = classe(new javafx.scene.layout.Region(), "lettre-filet");
+        javafx.scene.layout.Region filetOr = classe(new javafx.scene.layout.Region(), "lettre-filet-or");
+        VBox filets = new VBox(2, filetBleu, filetOr);
+
+        return new VBox(8, republique, entete, filets);
+    }
+
+    /** Tableau encadré libellé / valeur. */
+    static GridPane tableau(List<String[]> lignes) {
         GridPane grille = new GridPane();
         grille.getStyleClass().add("lettre-tableau");
         javafx.scene.layout.ColumnConstraints col1 = new javafx.scene.layout.ColumnConstraints();
@@ -176,11 +201,13 @@ public final class Impression {
         javafx.scene.layout.ColumnConstraints col2 = new javafx.scene.layout.ColumnConstraints();
         col2.setHgrow(javafx.scene.layout.Priority.ALWAYS);
         grille.getColumnConstraints().addAll(col1, col2);
-        for (int i = 0; i < c.details().size(); i++) {
-            Label k = classe(new Label(c.details().get(i)[0]), "lettre-cle");
-            Label v = classe(new Label(c.details().get(i)[1]), "lettre-valeur");
+        for (int i = 0; i < lignes.size(); i++) {
+            String valeur = lignes.get(i)[1];
+            Label k = classe(new Label(lignes.get(i)[0]), "lettre-cle");
+            Label v = classe(new Label(valeur == null || valeur.isBlank() ? "-" : valeur), "lettre-valeur");
             k.setMaxWidth(Double.MAX_VALUE);
             k.setMaxHeight(Double.MAX_VALUE);
+            k.setWrapText(true);
             v.setMaxWidth(Double.MAX_VALUE);
             enveloppe(v, LETTRE_UTILE - 168);
             if (i % 2 == 1) {
@@ -189,26 +216,45 @@ public final class Impression {
             grille.add(k, 0, i);
             grille.add(v, 1, i);
         }
+        return grille;
+    }
 
-        Label fin = enveloppe(classe(new Label(c.formuleFin()), "lettre-paragraphe"), LETTRE_UTILE);
-
-        // ---- signature et cachet
-        Label pour = classe(new Label("Pour le Recteur, et par délégation"), "lettre-petit");
-        Label signataire = classe(new Label(c.signature()), "lettre-signature");
-        javafx.scene.layout.StackPane cachet = new javafx.scene.layout.StackPane(classe(new Label("Cachet\net signature"), "lettre-cachet-texte"));
+    private static javafx.scene.layout.StackPane cachet() {
+        javafx.scene.layout.StackPane cachet = new javafx.scene.layout.StackPane(
+                classe(new Label("Cachet\net signature"), "lettre-cachet-texte"));
         cachet.getStyleClass().add("lettre-cachet");
         cachet.setPrefSize(118, 82);
         cachet.setMaxSize(118, 82);
-        VBox blocSignature = new VBox(6, pour, signataire, cachet);
-        blocSignature.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+        return cachet;
+    }
+
+    /** QR code de vérification à gauche (s'il existe), signature à droite. */
+    private static javafx.scene.layout.HBox ligneSignature(com.tdsi.memotheque.model.DocumentEmis d, VBox blocSignature) {
         javafx.scene.layout.Region r3 = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(r3, javafx.scene.layout.Priority.ALWAYS);
-        javafx.scene.layout.HBox ligneSignature = new javafx.scene.layout.HBox(r3, blocSignature);
-        ligneSignature.setPadding(new Insets(4, 10, 0, 0));
+        blocSignature.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        javafx.scene.layout.HBox ligne = d == null ? new javafx.scene.layout.HBox(r3, blocSignature)
+                : new javafx.scene.layout.HBox(blocVerification(d), r3, blocSignature);
+        ligne.setPadding(new Insets(4, 10, 0, 0));
+        return ligne;
+    }
 
-        // ---- pied de page, poussé en bas de la feuille
-        javafx.scene.layout.Region ressort = new javafx.scene.layout.Region();
-        VBox.setVgrow(ressort, javafx.scene.layout.Priority.ALWAYS);
+    /** QR code signé (Ed25519 de l'établissement) et code à saisir dans MémoTDSI. */
+    static javafx.scene.layout.HBox blocVerification(com.tdsi.memotheque.model.DocumentEmis d) {
+        javafx.scene.image.ImageView qr = QrCode.encoder(
+                com.tdsi.memotheque.service.VerificationService.texteQr(d)).vue(140);
+        Label titre = classe(new Label("Document vérifiable"), "lettre-verif-titre");
+        Label aide = enveloppe(classe(new Label("Scannez le QR code ou saisissez ce code dans MémoTDSI, "
+                + "rubrique « Vérifier un document »."), "lettre-petit"), 148);
+        Label code = classe(new Label(d.codeLisible()), "lettre-verif-code");
+        code.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        VBox texte = new VBox(4, titre, aide, code);
+        javafx.scene.layout.HBox h = new javafx.scene.layout.HBox(10, qr, texte);
+        h.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        return h;
+    }
+
+    private static VBox pied() {
         javafx.scene.layout.Region filetPied = classe(new javafx.scene.layout.Region(), "lettre-filet-fin");
         Label adresse = classe(new Label("Université Cheikh Anta Diop de Dakar — BP 5005 Dakar-Fann, Sénégal — www.ucad.sn"),
                 "lettre-pied");
@@ -216,15 +262,7 @@ public final class Impression {
                 + " — référence à rappeler dans toute correspondance."), "lettre-pied-petit");
         VBox pied = new VBox(2, filetPied, adresse, edition);
         pied.setAlignment(javafx.geometry.Pos.CENTER);
-
-        VBox page = new VBox(republique, entete, filets, ligneRef, cadreTitre, ligneDest, ligneObjet, corps, grille, fin,
-                ligneSignature, ressort, pied);
-        page.getStyleClass().add("lettre");
-        // Au moins une feuille A4 ; le pied de page est poussé en bas par le ressort.
-        page.setPrefWidth(LETTRE_LARGEUR);
-        page.setMinSize(LETTRE_LARGEUR, LETTRE_HAUTEUR);
-        page.setMaxWidth(LETTRE_LARGEUR);
-        return page;
+        return pied;
     }
 
     /** Texte sur plusieurs lignes, mesuré à sa largeur réelle (sinon il serait tronqué par « ... »). */
@@ -240,6 +278,36 @@ public final class Impression {
         return n;
     }
 
+    /** Choix du fichier puis export PDF (une page A4 par document). */
+    static void enregistrerPdf(String titre, List<VBox> pages, javafx.stage.Window fenetre) {
+        javafx.stage.FileChooser choix = new javafx.stage.FileChooser();
+        choix.setTitle("Enregistrer en PDF");
+        choix.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Document PDF", "*.pdf"));
+        choix.setInitialFileName(nomFichier(titre) + ".pdf");
+        java.io.File f = choix.showSaveDialog(fenetre);
+        if (f == null) {
+            return;
+        }
+        java.nio.file.Path chemin = f.toPath();
+        if (!chemin.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".pdf")) {
+            chemin = chemin.resolveSibling(chemin.getFileName() + ".pdf");
+        }
+        try {
+            PdfExport.ecrire(chemin, titre, pages);
+            AlertUtil.info("Enregistrer en PDF", pages.size() + (pages.size() > 1 ? " pages enregistrées" : " page enregistrée")
+                    + " dans :\n" + chemin);
+        } catch (java.io.IOException | RuntimeException e) {
+            AlertUtil.erreur("Enregistrer en PDF", "Impossible d'écrire le fichier : " + e.getMessage());
+        }
+    }
+
+    /** « Convocations à la soutenance » -> « convocations-a-la-soutenance-2026-11-05 ». */
+    static String nomFichier(String titre) {
+        String s = java.text.Normalizer.normalize(titre, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "")
+                .toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+        return s + "-" + java.time.LocalDate.now();
+    }
+
     /** Aperçu (défilant) de plusieurs lettres puis impression d'une page par lettre. */
     public static void apercuEtImpressionLettres(String titre, List<VBox> pages) {
         VBox pile = new VBox(18);
@@ -253,13 +321,19 @@ public final class Impression {
         defile.setFitToWidth(true);
         defile.setPrefSize(700, 620);
 
-        ButtonType imprimer = new ButtonType("Imprimer " + (pages.size() > 1 ? "les " + pages.size() + " lettres" : "la lettre")
-                + "...", ButtonBar.ButtonData.OK_DONE);
+        ButtonType imprimer = new ButtonType(pages.size() > 1 ? "Imprimer les " + pages.size() + " pages..." : "Imprimer...",
+                ButtonBar.ButtonData.OK_DONE);
+        ButtonType pdf = new ButtonType("Enregistrer en PDF...", ButtonBar.ButtonData.LEFT);
         Dialog<ButtonType> d = new Dialog<>();
         d.setTitle(titre);
-        d.setHeaderText(titre + (pages.size() > 1 ? " — " + pages.size() + " destinataires" : ""));
+        d.setHeaderText(titre + (pages.size() > 1 ? " — " + pages.size() + " pages" : ""));
         d.getDialogPane().setContent(defile);
-        d.getDialogPane().getButtonTypes().addAll(imprimer, FERMER);
+        d.getDialogPane().getButtonTypes().addAll(pdf, imprimer, FERMER);
+        // Le PDF s'enregistre sans fermer l'aperçu (on peut ensuite imprimer).
+        d.getDialogPane().lookupButton(pdf).addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+            ev.consume();
+            enregistrerPdf(titre, pages, d.getDialogPane().getScene().getWindow());
+        });
         if (d.showAndWait().filter(b -> b == imprimer).isEmpty()) {
             return;
         }

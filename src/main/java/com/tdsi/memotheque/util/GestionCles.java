@@ -36,6 +36,8 @@ public final class GestionCles {
 
     public static final String ALIAS_HMAC_JOURNAL = "journal-hmac";
     public static final String ALIAS_AES_FICHIERS = "fichiers-aes";
+    /** Chiffre les petits secrets en base : graines TOTP, clé privée de l'établissement. */
+    public static final String ALIAS_AES_SECRETS = "secrets-aes";
 
     private static final Path FICHIER_PAR_DEFAUT = Donnees.chemin("memotdsi.p12");
 
@@ -52,6 +54,10 @@ public final class GestionCles {
 
     public static synchronized SecretKey cleChiffrementFichiers() {
         return obtenir(ALIAS_AES_FICHIERS, "AES");
+    }
+
+    public static synchronized SecretKey cleChiffrementSecrets() {
+        return obtenir(ALIAS_AES_SECRETS, "AES");
     }
 
     /** Fichier du coffre (inclus dans les sauvegardes). */

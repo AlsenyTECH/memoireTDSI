@@ -190,6 +190,13 @@ public class MesMemoiresController {
         if (m == null) {
             return;
         }
+        com.tdsi.memotheque.model.DocumentEmis code;
+        try {
+            code = new com.tdsi.memotheque.service.VerificationService().attestationDepot(m);
+        } catch (java.sql.SQLException | SecurityException e) {
+            labelMessage.setText("Code de vérification indisponible : " + e.getMessage());
+            code = null;
+        }
         Impression.apercuEtImpression("Attestation de dépôt de mémoire", List.of(
                 new String[] {"Étudiant", m.getAuteurNomComplet()},
                 new String[] {"Titre", m.getTitre()},
@@ -204,7 +211,8 @@ public class MesMemoiresController {
                 new String[] {"État actuel", m.getStatut().getLibelle()},
                 new String[] {"Soutenance", soutenanceLisible(m)},
                 new String[] {"Résultat", resultat(m)}),
-                "L'empreinte SHA-256 identifie de façon unique le fichier déposé : toute modification du PDF la change.");
+                "L'empreinte SHA-256 identifie de façon unique le fichier déposé : toute modification du PDF la change.",
+                code);
     }
 
     /** Convocation à la soutenance programmée (lettre imprimable). */

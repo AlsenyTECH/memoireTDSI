@@ -62,6 +62,7 @@
         <Label text="ACCUEIL" styleClass="menu-section"/>
         <Button fx:id="btnDashboard" text="Tableau de bord" maxWidth="Infinity" onAction="#allerDashboard" styleClass="lien-menu"/>
         <Button fx:id="btnRecherche" text="Catalogue" maxWidth="Infinity" onAction="#allerRecherche" styleClass="lien-menu"/>
+        <Button fx:id="btnVerification" text="Vérifier un document" maxWidth="Infinity" onAction="#allerVerification" styleClass="lien-menu"/>
 
         <Label fx:id="lblSectionEtudiant" text="MON MÉMOIRE" styleClass="menu-section"/>
         <Button fx:id="btnDepot" text="Déposer un mémoire" maxWidth="Infinity" onAction="#allerDepot" styleClass="lien-menu"/>

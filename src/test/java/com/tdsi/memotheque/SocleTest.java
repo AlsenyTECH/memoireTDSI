@@ -33,7 +33,7 @@ class SocleTest {
     void baseNeuveAToutesLesMigrations() throws Exception {
         BaseDeTest.ouvrirBaseTemporaire(dossier);
 
-        assertEquals(9, Migrations.versionCourante());
+        assertEquals(10, Migrations.versionCourante());
         assertTrue(tableExiste("memoire_fts"));
         assertTrue(tableExiste("cle_signature"));
         assertTrue(tableExiste("notification"));
@@ -49,7 +49,7 @@ class SocleTest {
         try (Connection c = DatabaseConnection.getConnection();
              Statement st = c.createStatement();
              ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM schema_version")) {
-            assertEquals(8, rs.getInt(1));
+            assertEquals(9, rs.getInt(1));
         }
     }
 
@@ -72,7 +72,7 @@ class SocleTest {
 
         DatabaseConnection.initialiser();
 
-        assertEquals(9, Migrations.versionCourante());
+        assertEquals(10, Migrations.versionCourante());
         try (Connection c = DatabaseConnection.getConnection();
              Statement st = c.createStatement();
              ResultSet rs = st.executeQuery("SELECT email, doit_changer_mdp FROM utilisateur")) {

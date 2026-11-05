@@ -43,13 +43,20 @@ public class AuthService {
     private static String hashFactice;
 
     private final UtilisateurDAO utilisateurDAO;
+    private final DoubleFacteurService doubleFacteur;
 
     public AuthService() {
-        this(new UtilisateurDAOImpl());
+        this(new UtilisateurDAOImpl(), new DoubleFacteurService());
     }
 
+    /** DAO injecté (tests unitaires sans base) : pas de second facteur. */
     public AuthService(UtilisateurDAO utilisateurDAO) {
+        this(utilisateurDAO, null);
+    }
+
+    public AuthService(UtilisateurDAO utilisateurDAO, DoubleFacteurService doubleFacteur) {
         this.utilisateurDAO = Objects.requireNonNull(utilisateurDAO);
+        this.doubleFacteur = doubleFacteur;
     }
 
     public void inscrire(
@@ -131,7 +138,25 @@ public class AuthService {
         utilisateurDAO.insert(utilisateur);
     }
 
+    /** Le mot de passe est correct mais le compte exige le code de l'application d'authentification. */
+    public static class DeuxiemeFacteurRequis extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public DeuxiemeFacteurRequis() {
+            super("Entrez le code à 6 chiffres de votre application.");
+        }
+    }
+
     public Utilisateur connecter(String identifiant, String motDePasse)
+            throws SQLException {
+        return connecter(identifiant, motDePasse, null);
+    }
+
+    /**
+     * Connexion avec, si le compte l'a activée, la double authentification : sans code, lève
+     * DeuxiemeFacteurRequis (aucune session ouverte) ; un code faux compte comme un échec.
+     */
+    public Utilisateur connecter(String identifiant, String motDePasse, String codeTotp)
             throws SQLException {
 
         if (Validator.estVide(identifiant)
@@ -200,6 +225,21 @@ public class AuthService {
         if (!utilisateur.isActif()) {
             throw new IllegalArgumentException(
                     "Ce compte n'est pas encore activé.");
+        }
+
+        // Second facteur : contrôlé seulement après le mot de passe (sinon, on renseignerait un attaquant).
+        if (doubleFacteur != null && doubleFacteur.estActive(utilisateur.getId())) {
+            if (codeTotp == null || codeTotp.isBlank()) {
+                throw new DeuxiemeFacteurRequis();
+            }
+            if (!doubleFacteur.verifierCode(utilisateur.getId(), codeTotp, java.time.Instant.now().getEpochSecond())) {
+                int tentatives = utilisateur.getTentativesEchec() + 1;
+                boolean verrouille = tentatives >= MAX_TENTATIVES;
+                utilisateurDAO.mettreAJourTentatives(utilisateur.getId(), tentatives, verrouille);
+                throw new IllegalArgumentException(verrouille
+                        ? "Compte verrouillé après cinq échecs. Réessayez dans " + DUREE_VERROU.toMinutes() + " minutes."
+                        : "Code de vérification incorrect ou déjà utilisé.");
+            }
         }
 
         // Connexion réussie

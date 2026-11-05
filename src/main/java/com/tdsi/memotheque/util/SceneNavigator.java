@@ -85,6 +85,13 @@ public final class SceneNavigator {
         changerScene("inscription", 1040, 720, "MémoTDSI - Inscription");
     }
 
+    /** Vérification d'un document, accessible sans compte depuis l'écran de connexion. */
+    public static void afficherVerificationPublique() {
+        zoneContenu = null;
+        ecouteur = null;
+        changerScene("verification", 1040, 720, "MémoTDSI - Vérifier un document");
+    }
+
     public static void afficherCadrePrincipal() {
         changerScene("main", 1320, 820, "MémoTDSI");
     }

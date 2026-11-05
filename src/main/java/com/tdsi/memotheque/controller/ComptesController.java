@@ -64,6 +64,9 @@ public class ComptesController {
     @FXML private Button boutonDesactiver;
     @FXML private Button boutonDeverrouiller;
     @FXML private Button boutonReinitialiser;
+    @FXML private Button boutonRetirer2fa;
+    private final com.tdsi.memotheque.service.DoubleFacteurService doubleFacteur =
+            new com.tdsi.memotheque.service.DoubleFacteurService();
     @FXML private Label labelMessage;
 
     private final CompteService compteService = new CompteService();
@@ -172,6 +175,25 @@ public class ComptesController {
         boutonDesactiver.setDisable(u == null || !u.isActif());
         boutonDeverrouiller.setDisable(u == null || (!u.isVerrouille() && u.getTentativesEchec() == 0));
         boutonReinitialiser.setDisable(u == null);
+        boolean deuxFa;
+        try {
+            deuxFa = u != null && doubleFacteur.estActive(u.getId());
+        } catch (SQLException e) {
+            deuxFa = false;
+        }
+        boutonRetirer2fa.setDisable(!deuxFa);
+    }
+
+    /** Téléphone perdu ou changé : la personne pourra se connecter avec son seul mot de passe, puis réactiver. */
+    @FXML
+    private void retirerDoubleFacteur() {
+        Utilisateur u = tableComptes.getSelectionModel().getSelectedItem();
+        if (u == null || !com.tdsi.memotheque.util.AlertUtil.confirmer("Double authentification",
+                "Retirer la double authentification du compte de " + u.getNomComplet() + " ?\n"
+                + "À faire seulement après avoir vérifié l'identité de la personne (téléphone perdu).")) {
+            return;
+        }
+        executer(x -> doubleFacteur.retirer(x.getId()), "Double authentification retirée pour " + u.getEmail() + ".");
     }
 
     @FXML

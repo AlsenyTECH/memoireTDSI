@@ -33,6 +33,7 @@ public final class Migrations {
         "V7__notifications.sql",
         "V8__circuit_universitaire.sql",
         "V9__telephone.sql",
+        "V10__verification_double_facteur.sql",
     };
 
     private Migrations() { }

@@ -54,6 +54,7 @@ public class MainController {
 
     @FXML private Button btnDashboard;
     @FXML private Button btnRecherche;
+    @FXML private Button btnVerification;
     @FXML private Button btnDepot;
     @FXML private Button btnMesMemoires;
     @FXML private Button btnValidation;
@@ -118,6 +119,7 @@ public class MainController {
         Object[][] menu = {
             {btnDashboard, Icone.TABLEAU_DE_BORD, "dashboard"},
             {btnRecherche, Icone.RECHERCHE, "recherche"},
+            {btnVerification, Icone.VERIFIE, "verification"},
             {btnDepot, Icone.DEPOT, "depot"},
             {btnMesMemoires, Icone.MES_MEMOIRES, "mes_memoires"},
             {btnValidation, Icone.EVALUER, "validation"},
@@ -259,6 +261,7 @@ public class MainController {
 
     @FXML private void allerDashboard()     { SceneNavigator.charger("dashboard"); }
     @FXML private void allerRecherche()     { SceneNavigator.charger("recherche"); }
+    @FXML private void allerVerification()  { SceneNavigator.charger("verification"); }
     @FXML private void allerDepot()         { SceneNavigator.charger("depot"); }
     @FXML private void allerMesMemoires()   { SceneNavigator.charger("mes_memoires"); }
     @FXML private void allerValidation()    { SceneNavigator.charger("validation"); }

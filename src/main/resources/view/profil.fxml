@@ -7,6 +7,7 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <!-- [M2] Profil et changement de mot de passe -->
@@ -41,6 +42,15 @@
     <Label text="Compte créé le :" GridPane.rowIndex="5"/>
     <Label fx:id="labelDateCreation" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
   </GridPane>
+
+  <HBox spacing="14" alignment="CENTER_LEFT" styleClass="carte">
+    <VBox spacing="4" HBox.hgrow="ALWAYS">
+      <Label text="Double authentification (TOTP)" styleClass="sous-titre"/>
+      <Label fx:id="labelDoubleFacteur" wrapText="true" styleClass="aide" minHeight="-Infinity"/>
+    </VBox>
+    <Label fx:id="pastilleDoubleFacteur" styleClass="pastille" minWidth="-Infinity"/>
+    <Button fx:id="boutonDoubleFacteur" onAction="#doubleFacteur" minWidth="-Infinity"/>
+  </HBox>
 
   <Label text="Apparence" styleClass="sous-titre"/>
   <CheckBox fx:id="caseThemeSombre" text="Thème sombre" onAction="#changerTheme"/>
