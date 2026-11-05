@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import com.tdsi.memotheque.util.Dates;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,6 +111,16 @@ public class SoutenancesController {
         tableAPlanifier.setItems(aPlanifier);
         tableAPlanifier.getSelectionModel().selectedItemProperty()
                 .addListener((o, a, m) -> boutonPlanifier.setDisable(m == null));
+        // Double-clic sur un mémoire : ouvre directement la planification.
+        tableAPlanifier.setRowFactory(t -> {
+            javafx.scene.control.TableRow<Memoire> ligne = new javafx.scene.control.TableRow<>();
+            ligne.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !ligne.isEmpty()) {
+                    dialoguePlanification(ligne.getItem(), null);
+                }
+            });
+            return ligne;
+        });
 
         colDate.setCellValueFactory(new PropertyValueFactory<>("dateHeureLisible"));
         colSalle.setCellValueFactory(new PropertyValueFactory<>("salle"));
@@ -147,6 +158,10 @@ public class SoutenancesController {
         try {
             if (admin) {
                 aPlanifier.setAll(service.aPlanifier());
+                // Le premier mémoire est présélectionné : « Planifier » est tout de suite cliquable.
+                if (!aPlanifier.isEmpty() && tableAPlanifier.getSelectionModel().isEmpty()) {
+                    tableAPlanifier.getSelectionModel().selectFirst();
+                }
             }
             List<Soutenance> liste = new ArrayList<>(service.soutenances());
             // À venir d'abord (la plus proche en tête), puis les soutenances tenues.
@@ -201,11 +216,11 @@ public class SoutenancesController {
             return;
         }
 
-        DatePicker date = new DatePicker(existante == null ? LocalDate.now().plusDays(7)
-                : existante.getDateHeure().toLocalDate());
+        DatePicker date = Dates.preparer(new DatePicker(existante == null ? LocalDate.now().plusDays(7)
+                : existante.getDateHeure().toLocalDate()));
         TextField heure = new TextField(existante == null ? "09:00"
                 : existante.getDateHeure().toLocalTime().toString());
-        heure.setPromptText("HH:mm");
+        heure.setPromptText("ex. 09:30 ou 9h30");
         TextField salle = new TextField(existante == null ? "" : existante.getSalle());
         salle.setPromptText("ex. Amphi A, Salle 12");
         ComboBox<Utilisateur> president = new ComboBox<>(FXCollections.observableArrayList(enseignants));
@@ -254,16 +269,20 @@ public class SoutenancesController {
         // La boîte reste ouverte tant que la planification est refusée (conflit, horaire...).
         d.getDialogPane().lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION, ev -> {
             try {
-                if (date.getValue() == null || president.getValue() == null || examinateur1.getValue() == null) {
-                    throw new IllegalArgumentException("Date, président et examinateur sont obligatoires.");
+                LocalDate jour = Dates.lire(date);
+                if (jour == null) {
+                    throw new IllegalArgumentException("Indiquez la date de la soutenance (jj/mm/aaaa).");
                 }
-                LocalTime h = LocalTime.parse(heure.getText().trim());
+                if (president.getValue() == null || examinateur1.getValue() == null) {
+                    throw new IllegalArgumentException("Choisissez le président et au moins un examinateur.");
+                }
+                LocalTime h = Dates.heure(heure.getText());
                 List<Integer> examinateurs = new ArrayList<>();
                 examinateurs.add(examinateur1.getValue().getId());
                 if (examinateur2.getValue() != null) {
                     examinateurs.add(examinateur2.getValue().getId());
                 }
-                service.planifier(m.getId(), LocalDateTime.of(date.getValue(), h), salle.getText(),
+                service.planifier(m.getId(), LocalDateTime.of(jour, h), salle.getText(),
                         president.getValue().getId(), examinateurs);
             } catch (DateTimeParseException e) {
                 erreur.setText("Heure invalide : utilisez le format HH:mm (ex. 09:30).");
@@ -344,7 +363,7 @@ public class SoutenancesController {
         observations.setPromptText("Observations / réserves du jury");
         ComboBox<NiveauDiffusion> diffusion = new ComboBox<>(FXCollections.observableArrayList(NiveauDiffusion.values()));
         diffusion.setValue(m.getNiveauDiffusion() == null ? NiveauDiffusion.PUBLIC : m.getNiveauDiffusion());
-        DatePicker embargo = new DatePicker(m.getDateFinEmbargo());
+        DatePicker embargo = Dates.preparer(new DatePicker(m.getDateFinEmbargo()));
         embargo.disableProperty().bind(diffusion.valueProperty().isNotEqualTo(NiveauDiffusion.CONFIDENTIEL));
         PasswordField motDePasse = new PasswordField();
         motDePasse.setPromptText("Votre mot de passe (signature du PV)");
@@ -373,6 +392,13 @@ public class SoutenancesController {
         d.getDialogPane().setContent(g);
         d.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         d.getDialogPane().lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION, ev -> {
+            try {
+                Dates.lire(embargo);
+            } catch (IllegalArgumentException e) {
+                erreur.setText(e.getMessage());
+                ev.consume();
+                return;
+            }
             if (lireNote(note.getText()) == null) {
                 erreur.setText("Note invalide : un nombre entre 0 et 20.");
                 ev.consume();
@@ -382,7 +408,7 @@ public class SoutenancesController {
             }
         });
         d.setResultConverter(b -> b != ButtonType.OK ? null : new SaisiePv(lireNote(note.getText()),
-                observations.getText(), diffusion.getValue(), embargo.getValue(), motDePasse.getText()));
+                observations.getText(), diffusion.getValue(), Dates.lire(embargo), motDePasse.getText()));
 
         d.showAndWait().ifPresent(pv -> {
             Mention prevue = SoutenanceService.mentionPour(pv.note());

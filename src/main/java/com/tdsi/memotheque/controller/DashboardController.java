@@ -118,11 +118,12 @@ public class DashboardController {
             switch (u.getRole()) {
                 case ETUDIANT -> {
                     com.tdsi.memotheque.service.ParametreService.Campagne c =
-                            new com.tdsi.memotheque.service.ParametreService().campagne();
+                            new com.tdsi.memotheque.service.ParametreService().campagne(u.getNiveau());
                     ajouterAction(c.depotPossible(java.time.LocalDate.now())
                             ? "Campagne de dépôt " + c.anneeCourante() + " ouverte"
-                                    + (c.dateLimite() == null ? "" : " jusqu'au " + c.dateLimite()) + "."
-                            : "Campagne de dépôt fermée.", null, null);
+                                    + (c.dateLimite() == null ? "" : " jusqu'au "
+                                            + com.tdsi.memotheque.util.Dates.format(c.dateLimite())) + "."
+                            : "Campagne de dépôt fermée pour votre niveau.", null, null);
                     for (Memoire m : new com.tdsi.memotheque.service.MemoireService().mesMemoires()) {
                         if (m.getStatut() == com.tdsi.memotheque.model.StatutMemoire.REFUSE) {
                             ajouterAction("Corrections demandées sur « " + m.getTitre() + " ».", "Corriger", "mes_memoires");
@@ -141,10 +142,8 @@ public class DashboardController {
                                     && s.getDateHeure().isBefore(maintenant)).count();
                     ajouterAction(aPlanifier + " soutenance(s) à planifier, " + pv + " procès-verbal(aux) à saisir.",
                             aPlanifier + pv == 0 ? null : "Ouvrir", "soutenances");
-                    com.tdsi.memotheque.service.ParametreService.Campagne c =
-                            new com.tdsi.memotheque.service.ParametreService().campagne();
-                    ajouterAction("Année " + c.anneeCourante() + " — dépôts "
-                            + (c.depotPossible(java.time.LocalDate.now()) ? "ouverts" : "fermés") + ".",
+                    com.tdsi.memotheque.service.ParametreService ps = new com.tdsi.memotheque.service.ParametreService();
+                    ajouterAction("Année " + ps.anneeCourante() + " — " + ps.resume(java.time.LocalDate.now()) + ".",
                             "Paramétrer", "parametres");
                 }
             }

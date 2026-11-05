@@ -91,76 +91,153 @@ public final class Impression {
 
     // ------------------------------------------------------------------ convocations
 
-    /** Lettre de convocation au format page (en-tête, références, corps, détails, signature). */
+    /** Largeur et hauteur d'une lettre (proportions A4). */
+    public static final double LETTRE_LARGEUR = 640;
+    public static final double LETTRE_HAUTEUR = LETTRE_LARGEUR * 297 / 210;
+    /** Largeur du texte (page moins les marges de .lettre). */
+    private static final double LETTRE_UTILE = LETTRE_LARGEUR - 92;
+
+    /**
+     * Lettre de convocation officielle, au format A4 : en-tête de l'UCAD (sceau, université, filière),
+     * références, destinataire, objet, corps, tableau récapitulatif, signature et cachet, pied de page.
+     */
     public static VBox lettre(com.tdsi.memotheque.service.ConvocationService.Convocation c) {
-        Label etab = new Label("UNIVERSITÉ CHEIKH ANTA DIOP DE DAKAR");
-        etab.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
-        Label service = new Label("Filière TDSI — Service de la scolarité");
-        service.getStyleClass().add("lettre-entete");
-        VBox gauche = new VBox(2, etab, service);
-        javafx.scene.image.ImageView logo = new javafx.scene.image.ImageView(Images.logo(128));
-        logo.setFitWidth(46);
-        logo.setFitHeight(46);
-        javafx.scene.layout.HBox entete = new javafx.scene.layout.HBox(12, logo, gauche);
+        // ---- en-tête : sceau | université | République du Sénégal
+        javafx.scene.image.Image sceau = Images.logoUcad();
+        javafx.scene.image.ImageView logo = new javafx.scene.image.ImageView(sceau == null ? Images.logo(128) : sceau);
+        logo.setFitWidth(86);
+        logo.setFitHeight(86);
+        logo.setPreserveRatio(true);
+        logo.setSmooth(true);
+
+        Label univ = classe(new Label("UNIVERSITÉ CHEIKH ANTA DIOP DE DAKAR"), "lettre-universite");
+        Label fac = classe(new Label("Faculté des Sciences et Techniques"), "lettre-faculte");
+        Label filiere = classe(new Label("Département de Mathématiques et Informatique"), "lettre-entete");
+        Label master = classe(new Label("Master Mathématiques, Cryptographie et Sécurité — TDSI"), "lettre-entete");
+        Label scol = classe(new Label("Service de la scolarité"), "lettre-service");
+        VBox centre = new VBox(1, univ, fac, filiere, master, scol);
+        centre.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        javafx.scene.layout.HBox.setHgrow(centre, javafx.scene.layout.Priority.ALWAYS);
+        javafx.scene.layout.HBox entete = new javafx.scene.layout.HBox(18, logo, centre);
         entete.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        Label lieu = new Label(c.lieuDate());
-        Label ref = new Label(c.reference());
-        ref.getStyleClass().add("lettre-entete");
-        VBox droite = new VBox(2, lieu, ref);
-        droite.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-        javafx.scene.layout.Region vide = new javafx.scene.layout.Region();
-        javafx.scene.layout.HBox.setHgrow(vide, javafx.scene.layout.Priority.ALWAYS);
-        javafx.scene.layout.HBox ligneRef = new javafx.scene.layout.HBox(vide, droite);
+        Label rep = classe(new Label("RÉPUBLIQUE DU SÉNÉGAL"), "lettre-republique");
+        Label devise = classe(new Label("Un Peuple — Un But — Une Foi"), "lettre-devise");
+        javafx.scene.layout.HBox republique = new javafx.scene.layout.HBox(10, rep, devise);
+        republique.setAlignment(javafx.geometry.Pos.CENTER);
 
-        Label a = new Label("À l'attention de " + c.destinataire() + " — " + c.qualite());
-        a.getStyleClass().add("lettre-libelle");
-        Label titre = new Label("CONVOCATION");
-        titre.getStyleClass().add("lettre-titre");
-        Label objet = new Label("Objet : " + c.objet());
-        objet.getStyleClass().add("lettre-objet");
+        javafx.scene.layout.Region filetBleu = classe(new javafx.scene.layout.Region(), "lettre-filet");
+        javafx.scene.layout.Region filetOr = classe(new javafx.scene.layout.Region(), "lettre-filet-or");
+        VBox filets = new VBox(2, filetBleu, filetOr);
 
-        VBox corps = new VBox(10);
+        // ---- références et date
+        Label ref = classe(new Label(c.reference()), "lettre-ref");
+        Label lieu = classe(new Label(c.lieuDate()), "lettre-ref");
+        javafx.scene.layout.Region r1 = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(r1, javafx.scene.layout.Priority.ALWAYS);
+        javafx.scene.layout.HBox ligneRef = new javafx.scene.layout.HBox(ref, r1, lieu);
+
+        // ---- titre
+        Label titre = classe(new Label("CONVOCATION"), "lettre-titre");
+        javafx.scene.layout.HBox cadreTitre = new javafx.scene.layout.HBox(titre);
+        cadreTitre.setAlignment(javafx.geometry.Pos.CENTER);
+        cadreTitre.setPadding(new Insets(6, 0, 2, 0));
+
+        // ---- destinataire (à droite, comme une lettre administrative)
+        Label aLAttention = classe(new Label("À l'attention de"), "lettre-petit");
+        Label dest = classe(new Label(c.destinataire()), "lettre-destinataire");
+        Label qual = classe(new Label(c.qualite()), "lettre-petit");
+        VBox blocDest = new VBox(1, aLAttention, dest, qual);
+        blocDest.getStyleClass().add("lettre-bloc-destinataire");
+        javafx.scene.layout.Region r2 = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(r2, javafx.scene.layout.Priority.ALWAYS);
+        javafx.scene.layout.HBox ligneDest = new javafx.scene.layout.HBox(r2, blocDest);
+
+        Label objetLib = classe(new Label("Objet :"), "lettre-objet-libelle");
+        objetLib.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        Label objet = classe(new Label(c.objet()), "lettre-objet");
+        enveloppe(objet, LETTRE_UTILE - 70);
+        javafx.scene.layout.HBox ligneObjet = new javafx.scene.layout.HBox(8, objetLib, objet);
+
+        // ---- corps
+        VBox corps = new VBox(9);
         corps.getChildren().add(new Label(c.formuleAppel()));
         for (String p : c.paragraphes()) {
-            Label l = new Label(p);
-            l.setWrapText(true);
+            Label l = enveloppe(classe(new Label(p), "lettre-paragraphe"), LETTRE_UTILE);
             corps.getChildren().add(l);
         }
 
+        // ---- récapitulatif encadré
         GridPane grille = new GridPane();
-        grille.setHgap(16);
-        grille.setVgap(5);
-        grille.setStyle("-fx-background-color: #f3f6fb; -fx-padding: 12 16 12 16; -fx-background-radius: 6;");
+        grille.getStyleClass().add("lettre-tableau");
+        javafx.scene.layout.ColumnConstraints col1 = new javafx.scene.layout.ColumnConstraints();
+        col1.setMinWidth(165);
+        col1.setPrefWidth(165);
+        javafx.scene.layout.ColumnConstraints col2 = new javafx.scene.layout.ColumnConstraints();
+        col2.setHgrow(javafx.scene.layout.Priority.ALWAYS);
+        grille.getColumnConstraints().addAll(col1, col2);
         for (int i = 0; i < c.details().size(); i++) {
-            Label k = new Label(c.details().get(i)[0]);
-            k.getStyleClass().add("lettre-libelle");
-            k.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-            Label v = new Label(c.details().get(i)[1]);
-            v.setWrapText(true);
+            Label k = classe(new Label(c.details().get(i)[0]), "lettre-cle");
+            Label v = classe(new Label(c.details().get(i)[1]), "lettre-valeur");
+            k.setMaxWidth(Double.MAX_VALUE);
+            k.setMaxHeight(Double.MAX_VALUE);
+            v.setMaxWidth(Double.MAX_VALUE);
+            enveloppe(v, LETTRE_UTILE - 168);
+            if (i % 2 == 1) {
+                v.getStyleClass().add("lettre-valeur-alt");
+            }
             grille.add(k, 0, i);
             grille.add(v, 1, i);
         }
 
-        Label fin = new Label(c.formuleFin());
-        fin.setWrapText(true);
-        Label signature = new Label(c.signature());
-        signature.getStyleClass().add("lettre-signature");
-        VBox blocSignature = new VBox(signature);
-        blocSignature.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-        blocSignature.setPadding(new Insets(8, 30, 0, 0));
+        Label fin = enveloppe(classe(new Label(c.formuleFin()), "lettre-paragraphe"), LETTRE_UTILE);
 
-        Label pied = new Label("Document édité par MémoTDSI le " + LocalDateTime.now().format(HORODATAGE)
-                + ". Il ne remplace pas la notification reçue dans l'application.");
-        pied.getStyleClass().add("lettre-entete");
-        pied.setWrapText(true);
+        // ---- signature et cachet
+        Label pour = classe(new Label("Pour le Recteur, et par délégation"), "lettre-petit");
+        Label signataire = classe(new Label(c.signature()), "lettre-signature");
+        javafx.scene.layout.StackPane cachet = new javafx.scene.layout.StackPane(classe(new Label("Cachet\net signature"), "lettre-cachet-texte"));
+        cachet.getStyleClass().add("lettre-cachet");
+        cachet.setPrefSize(118, 82);
+        cachet.setMaxSize(118, 82);
+        VBox blocSignature = new VBox(6, pour, signataire, cachet);
+        blocSignature.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+        javafx.scene.layout.Region r3 = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(r3, javafx.scene.layout.Priority.ALWAYS);
+        javafx.scene.layout.HBox ligneSignature = new javafx.scene.layout.HBox(r3, blocSignature);
+        ligneSignature.setPadding(new Insets(4, 10, 0, 0));
 
-        VBox page = new VBox(entete, new Separator(), ligneRef, a, titre, objet, corps, grille, fin, blocSignature,
-                new Separator(), pied);
+        // ---- pied de page, poussé en bas de la feuille
+        javafx.scene.layout.Region ressort = new javafx.scene.layout.Region();
+        VBox.setVgrow(ressort, javafx.scene.layout.Priority.ALWAYS);
+        javafx.scene.layout.Region filetPied = classe(new javafx.scene.layout.Region(), "lettre-filet-fin");
+        Label adresse = classe(new Label("Université Cheikh Anta Diop de Dakar — BP 5005 Dakar-Fann, Sénégal — www.ucad.sn"),
+                "lettre-pied");
+        Label edition = classe(new Label("Document édité par MémoTDSI le " + LocalDateTime.now().format(HORODATAGE)
+                + " — référence à rappeler dans toute correspondance."), "lettre-pied-petit");
+        VBox pied = new VBox(2, filetPied, adresse, edition);
+        pied.setAlignment(javafx.geometry.Pos.CENTER);
+
+        VBox page = new VBox(republique, entete, filets, ligneRef, cadreTitre, ligneDest, ligneObjet, corps, grille, fin,
+                ligneSignature, ressort, pied);
         page.getStyleClass().add("lettre");
-        page.setPrefWidth(620);
-        page.setMaxWidth(620);
+        // Au moins une feuille A4 ; le pied de page est poussé en bas par le ressort.
+        page.setPrefWidth(LETTRE_LARGEUR);
+        page.setMinSize(LETTRE_LARGEUR, LETTRE_HAUTEUR);
+        page.setMaxWidth(LETTRE_LARGEUR);
         return page;
+    }
+
+    /** Texte sur plusieurs lignes, mesuré à sa largeur réelle (sinon il serait tronqué par « ... »). */
+    private static Label enveloppe(Label l, double largeur) {
+        l.setWrapText(true);
+        l.setPrefWidth(largeur);
+        l.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        return l;
+    }
+
+    private static <T extends javafx.scene.Node> T classe(T n, String classe) {
+        n.getStyleClass().add(classe);
+        return n;
     }
 
     /** Aperçu (défilant) de plusieurs lettres puis impression d'une page par lettre. */

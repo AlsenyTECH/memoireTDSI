@@ -718,16 +718,51 @@
 
 .lettre {
     -fx-background-color: white;
-    -fx-padding: 40 46 40 46;
-    -fx-spacing: 12;
+    -fx-padding: 26 46 22 46;
+    -fx-spacing: 10;
 }
 
-.lettre .label { -fx-text-fill: #1a1a1a; -fx-font-size: 14px; }
-.lettre .lettre-entete { -fx-font-size: 12.5px; -fx-text-fill: #3a3a3a; }
-.lettre .lettre-objet { -fx-font-size: 15px; -fx-font-weight: bold; }
-.lettre .lettre-titre { -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0f3b78; }
-.lettre .lettre-libelle { -fx-font-weight: bold; }
-.lettre .lettre-signature { -fx-font-weight: bold; }
+.lettre .label { -fx-text-fill: #1c1c1c; -fx-font-size: 13px; -fx-font-family: "Georgia", "DejaVu Serif", serif; }
+.lettre .lettre-universite { -fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #0b4f8a; }
+.lettre .lettre-faculte { -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: #1c1c1c; }
+.lettre .lettre-entete { -fx-font-size: 12px; -fx-text-fill: #3d3d3d; }
+.lettre .lettre-service { -fx-font-size: 12px; -fx-font-style: italic; -fx-text-fill: #0b4f8a; }
+.lettre .lettre-republique { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1c1c1c; }
+.lettre .lettre-devise { -fx-font-size: 10px; -fx-font-style: italic; -fx-text-fill: #555555; }
+.lettre .lettre-filet { -fx-background-color: #2993cd; -fx-min-height: 3; -fx-pref-height: 3; -fx-max-height: 3; }
+.lettre .lettre-filet-or { -fx-background-color: #c9a227; -fx-min-height: 1; -fx-pref-height: 1; -fx-max-height: 1; }
+.lettre .lettre-filet-fin { -fx-background-color: #2993cd; -fx-min-height: 1; -fx-pref-height: 1; -fx-max-height: 1; }
+.lettre .lettre-ref { -fx-font-size: 12.5px; -fx-text-fill: #333333; }
+.lettre .lettre-titre {
+    -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0b4f8a;
+    -fx-border-color: #0b4f8a; -fx-border-width: 2 0 2 0; -fx-padding: 4 26 4 26;
+}
+.lettre .lettre-bloc-destinataire {
+    -fx-border-color: transparent transparent transparent #2993cd; -fx-border-width: 0 0 0 3;
+    -fx-padding: 2 0 2 12; -fx-min-width: 230;
+}
+.lettre .lettre-petit { -fx-font-size: 12px; -fx-text-fill: #555555; }
+.lettre .lettre-destinataire { -fx-font-size: 15px; -fx-font-weight: bold; }
+.lettre .lettre-objet-libelle { -fx-font-weight: bold; -fx-underline: true; }
+.lettre .lettre-objet { -fx-font-weight: bold; }
+.lettre .lettre-paragraphe { -fx-line-spacing: 2; }
+.lettre .lettre-tableau { -fx-border-color: #9cc6e4; -fx-border-width: 1; }
+.lettre .lettre-cle {
+    -fx-background-color: #e8f2fa; -fx-text-fill: #0b4f8a; -fx-font-weight: bold; -fx-font-size: 12.5px;
+    -fx-padding: 5 10 5 10; -fx-border-color: transparent #9cc6e4 #d6e6f2 transparent; -fx-border-width: 0 1 1 0;
+}
+.lettre .lettre-valeur {
+    -fx-font-size: 12.5px; -fx-padding: 5 10 5 10;
+    -fx-border-color: transparent transparent #d6e6f2 transparent; -fx-border-width: 0 0 1 0;
+}
+.lettre .lettre-valeur-alt { -fx-background-color: #f7fafd; }
+.lettre .lettre-signature { -fx-font-weight: bold; -fx-font-size: 13.5px; }
+.lettre .lettre-cachet {
+    -fx-border-color: #9cc6e4; -fx-border-style: segments(5, 4); -fx-border-width: 1.2; -fx-border-radius: 41;
+}
+.lettre .lettre-cachet-texte { -fx-font-size: 10.5px; -fx-text-fill: #9aaabb; -fx-text-alignment: center; }
+.lettre .lettre-pied { -fx-font-size: 10.5px; -fx-text-fill: #0b4f8a; }
+.lettre .lettre-pied-petit { -fx-font-size: 9.5px; -fx-text-fill: #808080; }
 
 /* ================================================================ onglets (filtres par type) */
 

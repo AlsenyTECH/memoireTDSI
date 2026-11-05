@@ -24,6 +24,15 @@ public final class Images {
         }
     }
 
+    /** Sceau de l'Université Cheikh Anta Diop (fond transparent), ou null s'il manque. */
+    public static Image logoUcad() {
+        try (InputStream in = Images.class.getResourceAsStream("/images/logo-ucad.png")) {
+            return in == null ? null : new Image(in);
+        } catch (java.io.IOException e) {
+            return null;
+        }
+    }
+
     /** URL d'une photo du campus fournie par l'établissement, ou null pour garder l'illustration. */
     public static String photoCampus() {
         for (String nom : new String[] {"campus.jpg", "campus.jpeg", "campus.png"}) {

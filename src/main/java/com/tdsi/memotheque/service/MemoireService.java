@@ -120,11 +120,12 @@ public class MemoireService {
             throw new IllegalArgumentException("Vous devez accepter les conditions de diffusion pour déposer.");
         }
 
-        parametres.verifierDepotPossible();
         Utilisateur inscrit = utilisateurDAO.findById(etudiant.getId());
         if (inscrit == null || inscrit.getNiveau() == null) {
             throw new IllegalStateException("Votre niveau d'inscription n'est pas renseigné : contactez la scolarité.");
         }
+        // La campagne se règle par niveau (date limite propre, prolongée ou écourtée par la scolarité).
+        parametres.verifierDepotPossible(inscrit.getNiveau());
         m.setAnneeAcademique(parametres.anneeCourante());
         m.setNiveau(inscrit.getNiveau());
         imposerChampsScolarite(m);

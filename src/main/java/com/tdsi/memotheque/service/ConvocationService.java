@@ -87,7 +87,7 @@ public class ConvocationService {
         return new Convocation(reference(s, "E"), lieuDate(), m.getAuteurNomComplet(), "Candidat(e)",
                 "Convocation à la soutenance de votre mémoire", "Madame, Monsieur,", p, details(s),
                 "Nous vous prions d'agréer, Madame, Monsieur, l'expression de nos salutations distinguées.",
-                "Le service de la scolarité");
+                "Le Chef du service de la scolarité");
     }
 
     Convocation pourMembre(Soutenance s, MembreJury j) {
@@ -104,7 +104,7 @@ public class ConvocationService {
                 j.enseignant().getNomComplet(), qualite, "Convocation à un jury de soutenance",
                 "Madame, Monsieur,", p, details(s),
                 "Nous vous prions d'agréer, Madame, Monsieur, l'expression de notre haute considération.",
-                "Le service de la scolarité");
+                "Le Chef du service de la scolarité");
     }
 
     private static List<String[]> details(Soutenance s) {

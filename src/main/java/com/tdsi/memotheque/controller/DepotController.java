@@ -74,6 +74,7 @@ public class DepotController {
     private void initialize() {
         enModification = memoireAModifier;
         memoireAModifier = null;
+        com.tdsi.memotheque.util.Dates.preparer(dateFinEmbargo);
 
         comboDiffusion.setItems(FXCollections.observableArrayList(NiveauDiffusion.values()));
         comboDiffusion.valueProperty().addListener((obs, avant, apres) -> majDiffusion(apres));
@@ -98,15 +99,15 @@ public class DepotController {
         labelNiveau.setText(u == null || u.getNiveau() == null
                 ? "Non renseigné : contactez la scolarité" : u.getNiveau() + " (votre inscription)");
         try {
-            ParametreService.Campagne c = parametreService.campagne();
+            ParametreService.Campagne c = parametreService.campagne(u == null ? null : u.getNiveau());
             labelAnnee.setText(c.anneeCourante() + " (fixée par la scolarité)");
             if (c.depotPossible(LocalDate.now())) {
                 labelCampagne.setText("Campagne de dépôt " + c.anneeCourante() + " ouverte"
-                        + (c.dateLimite() == null ? "." : " jusqu'au " + c.dateLimite() + "."));
+                        + (c.dateLimite() == null ? "." : " jusqu'au " + com.tdsi.memotheque.util.Dates.format(c.dateLimite()) + "."));
             } else {
                 labelCampagne.setText(c.ouverte()
-                        ? "La date limite de dépôt (" + c.dateLimite() + ") est dépassée. Contactez la scolarité."
-                        : "La campagne de dépôt est fermée par la scolarité.");
+                        ? "La date limite de dépôt (" + com.tdsi.memotheque.util.Dates.format(c.dateLimite()) + ") est dépassée. Contactez la scolarité."
+                        : "La campagne de dépôt est fermée pour votre niveau.");
                 labelCampagne.getStyleClass().setAll("bandeau-danger");
                 boutonEnvoyer.setDisable(true);
             }
@@ -187,7 +188,13 @@ public class DepotController {
 
     @FXML
     private void envoyer() {
-        Memoire m = lireFormulaire();
+        Memoire m;
+        try {
+            m = lireFormulaire();
+        } catch (IllegalArgumentException e) {
+            afficherErreur("Fin d'embargo : " + e.getMessage());
+            return;
+        }
         boolean nouveau = enModification == null;
 
         if (nouveau && fichierChoisi == null) {
@@ -236,7 +243,7 @@ public class DepotController {
         m.setEncadreur(comboEncadreur.getValue());
         m.setCoAuteur(champCoAuteur.getText());
         m.setNiveauDiffusion(comboDiffusion.getValue());
-        m.setDateFinEmbargo(dateFinEmbargo.getValue());
+        m.setDateFinEmbargo(com.tdsi.memotheque.util.Dates.lire(dateFinEmbargo));
         return m;
     }
 
