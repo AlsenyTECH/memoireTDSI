@@ -189,6 +189,9 @@ public class DonneesDemo {
         u.setNom(nom);
         u.setPrenom(prenom);
         u.setEmail(email);
+        // Numéro fictif mais au format sénégalais, différent pour chaque compte.
+        u.setTelephone(String.format("+221 77 %03d %02d %02d", 100 + Math.abs(email.hashCode()) % 900,
+                Math.abs(email.hashCode() / 7) % 100, Math.abs(email.hashCode() / 13) % 100));
         u.setSel(sel);
         u.setMotDePasseHash(PasswordUtil.hasher(motDePasse, sel));
         u.setRole(role);

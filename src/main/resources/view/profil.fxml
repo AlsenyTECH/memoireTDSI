@@ -30,9 +30,11 @@
     <Label fx:id="labelNom" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
     <Label text="E-mail :" GridPane.rowIndex="1"/>
     <Label fx:id="labelEmail" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-    <Label text="Matricule :" GridPane.rowIndex="2"/>
+    <Label text="Téléphone :" GridPane.rowIndex="6"/>
+    <Label fx:id="labelTelephone" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+    <Label text="N° carte étudiant :" GridPane.rowIndex="2"/>
     <Label fx:id="labelMatricule" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-    <Label text="Rôle :" GridPane.rowIndex="3"/>
+    <Label text="Type de compte :" GridPane.rowIndex="3"/>
     <Label fx:id="labelRole" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
     <Label text="Niveau :" GridPane.rowIndex="4"/>
     <Label fx:id="labelNiveau" GridPane.rowIndex="4" GridPane.columnIndex="1"/>

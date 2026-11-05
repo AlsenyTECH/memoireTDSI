@@ -46,14 +46,25 @@ L'auteur, l'encadreur et les membres du jury gardent toujours l'accès.
 | **Scolarité (administrateur)** | **Campagne de dépôt** (année en cours, ouverture, date limite) ; **Soutenances** : planification avec jury et contrôle des conflits de salle et de membres, annulation, **saisie du PV** (note → mention, diffusion, signature), convocations et PV imprimables ; **Suivi des mémoires** ; comptes (activation, verrouillage, mot de passe temporaire, création d'encadreurs, **inscription des étudiants par CSV**) ; domaines ; journal d'activité vérifiable ; sauvegarde chiffrée |
 | **Tous** | Tableau de bord avec **« À faire »** selon le rôle et prochaines soutenances ; recherche plein texte (insensible aux accents, tri par pertinence, filtres, export CSV) ; fiche détaillée (soutenance, résultat, diffusion, vérification de la signature) ; citation APA / BibTeX ; notifications à chaque étape ; profil ; thème sombre |
 
-Inscription des étudiants par la scolarité : fichier CSV UTF-8, une ligne par étudiant
-(séparateur `;` ou `,`, en-tête facultatif). Un étudiant déjà inscrit (même matricule et même e-mail)
-est **réinscrit** à son nouveau niveau ; un nouveau reçoit un mot de passe temporaire à changer à la première connexion.
+**Comptes** (écran « Comptes » de la scolarité) : trois types — **étudiants**, **enseignants** et
+**personnel administratif** — avec onglets, compteurs et recherche. Chaque compte a un prénom, un nom,
+un e-mail, un téléphone ; un étudiant a en plus son **numéro de carte d'étudiant** et son niveau.
 
-```
-matricule;nom;prenom;email;niveau
-TDSI-2026-001;Sow;Awa;awa.sow@exemple.sn;M1
-```
+- **Nouveau compte** : formulaire adapté au type ; un mot de passe temporaire est généré et affiché une
+  seule fois (à changer à la première connexion).
+- **Importer un fichier Excel** (.xlsx, ou CSV) : choisir le type de comptes, télécharger le **modèle Excel**
+  depuis la fenêtre, le remplir, puis l'importer. Colonnes reconnues par leur en-tête (ordre libre) :
+
+| Type | Colonnes |
+|---|---|
+| Étudiants | Prénom · Nom · N° carte étudiant · Téléphone · Email · Niveau |
+| Enseignants, personnel administratif | Prénom · Nom · Téléphone · Email |
+
+  Un compte existant (même e-mail) est mis à jour (réinscription au nouveau niveau pour un étudiant) ;
+  un compte d'un autre type n'est jamais écrasé ; chaque ligne invalide est signalée sans bloquer les autres.
+  Les identifiants des nouveaux comptes peuvent être enregistrés en CSV pour être remis aux intéressés.
+- Lecteur Excel écrit sans bibliothèque (`util/Tableur.java`) et durci : taille et décompression bornées
+  (anti « bombe ZIP »), XML sans DOCTYPE ni entité externe (anti XXE).
 
 Raccourcis : `Ctrl+D` tableau de bord · `Ctrl+F` recherche · `Ctrl+N` notifications · `Ctrl+P` profil · `Ctrl+Q` déconnexion.
 

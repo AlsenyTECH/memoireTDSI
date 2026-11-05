@@ -12,6 +12,9 @@ import com.tdsi.memotheque.model.Role;
 import com.tdsi.memotheque.model.Utilisateur;
 import com.tdsi.memotheque.util.PasswordUtil;
 import com.tdsi.memotheque.util.SessionManager;
+import com.tdsi.memotheque.util.Tableur;
+import com.tdsi.memotheque.model.Niveau;
+import java.util.Map;
 import com.tdsi.memotheque.util.Validator;
 
 /**
@@ -111,108 +114,208 @@ public class CompteService {
         return u;
     }
 
-    /** Résultat d'une ligne d'import : CREE (avec mot de passe temporaire), REINSCRIT ou ERREUR. */
+    /** Résultat d'une ligne d'import : CREE (avec mot de passe temporaire), REINSCRIT / MIS_A_JOUR ou ERREUR. */
     public record LigneImport(int numero, String identifiant, String resultat, String detail) { }
 
-    public static final int IMPORT_MAX_LIGNES = 2000;
+    /** Compte créé par la scolarité, avec son mot de passe temporaire (affiché une seule fois). */
+    public record CompteCree(Utilisateur utilisateur, String motDePasseTemporaire) { }
 
-    /** Lit le fichier CSV (UTF-8) exporté du tableur de la scolarité. */
-    public List<LigneImport> importerEtudiants(java.nio.file.Path csv) throws SQLException, java.io.IOException {
-        exigerAdmin();
-        if (java.nio.file.Files.size(csv) > 1_000_000) {
-            throw new IllegalArgumentException("Fichier trop volumineux (1 Mo maximum).");
-        }
-        return importerEtudiants(java.nio.file.Files.readAllLines(csv, java.nio.charset.StandardCharsets.UTF_8));
-    }
+    public static final int IMPORT_MAX_LIGNES = Tableur.LIGNES_MAX;
 
     /**
-     * Inscription en masse par la scolarité, comme dans un système d'information universitaire :
-     * une ligne « matricule;nom;prénom;email;niveau » par étudiant (séparateur ; ou ,, en-tête facultatif).
-     * Nouvel étudiant : compte actif, mot de passe temporaire à changer à la première connexion.
-     * Étudiant déjà inscrit (même matricule et même e-mail) : réinscription, son niveau est mis à jour.
-     * Chaque ligne est traitée indépendamment : une ligne invalide n'empêche pas les autres.
+     * Crée un compte de n'importe quel type : étudiant (n° de carte et niveau obligatoires), enseignant
+     * ou personnel administratif. Mot de passe temporaire à changer à la première connexion.
      */
-    public List<LigneImport> importerEtudiants(List<String> lignes) throws SQLException {
+    public CompteCree creerCompte(Role role, String prenom, String nom, String email, String telephone,
+            String matricule, Niveau niveau) throws SQLException {
         Utilisateur admin = exigerAdmin();
-        if (lignes.size() > IMPORT_MAX_LIGNES + 1) {
-            throw new IllegalArgumentException("Import limité à " + IMPORT_MAX_LIGNES + " étudiants par fichier.");
+        Objects.requireNonNull(role, "Type de compte absent.");
+        Utilisateur u = preparer(role, prenom, nom, email, telephone, matricule, niveau);
+        if (utilisateurDAO.existeEmail(u.getEmail())) {
+            throw new IllegalArgumentException("Cette adresse e-mail est déjà utilisée.");
         }
-        List<LigneImport> resultats = new java.util.ArrayList<>();
-        java.util.Set<String> vus = new java.util.HashSet<>();
-        int crees = 0;
-        int reinscrits = 0;
+        if (u.getMatricule() != null && utilisateurDAO.existeMatricule(u.getMatricule())) {
+            throw new IllegalArgumentException("Ce numéro de carte étudiant est déjà utilisé.");
+        }
+        String temporaire = PasswordUtil.genererMotDePasseTemporaire();
+        poserMotDePasse(u, temporaire);
+        utilisateurDAO.insert(u);
+        journalService.log(admin.getId(), "CREATION_COMPTE", role.getLibelle() + " #" + u.getId() + " " + u.getEmail());
+        return new CompteCree(u, temporaire);
+    }
+
+    /** Lit un fichier Excel (.xlsx) ou CSV et importe les comptes du type choisi. */
+    public List<LigneImport> importerFichier(Role role, Niveau niveauParDefaut, java.nio.file.Path fichier)
+            throws SQLException, java.io.IOException {
+        exigerAdmin();
+        return importerComptes(role, niveauParDefaut, Tableur.lire(fichier));
+    }
+
+    /** Ancien format CSV des étudiants (matricule;nom;prénom;email;niveau), conservé. */
+    public List<LigneImport> importerEtudiants(java.nio.file.Path csv) throws SQLException, java.io.IOException {
+        return importerFichier(Role.ETUDIANT, null, csv);
+    }
+
+    /** Ancien format : lignes « matricule;nom;prénom;email;niveau », en-tête facultatif. */
+    public List<LigneImport> importerEtudiants(List<String> lignes) throws SQLException {
+        exigerAdmin();
+        List<Map<String, String>> enregistrements = new java.util.ArrayList<>();
         for (int i = 0; i < lignes.size(); i++) {
             String brute = lignes.get(i).replace("\uFEFF", "").trim();
             if (brute.isEmpty() || (i == 0 && brute.toLowerCase(Locale.ROOT).startsWith("matricule"))) {
                 continue;
             }
             String[] c = brute.split(brute.contains(";") ? ";" : ",", -1);
-            String id = c.length > 3 ? c[3].trim() : brute;
+            Map<String, String> m = new java.util.LinkedHashMap<>();
+            m.put(Tableur.LIGNE, String.valueOf(i + 1));
+            if (c.length != 5) {
+                m.put("_erreur", "5 colonnes attendues : matricule;nom;prénom;email;niveau.");
+                m.put(Tableur.EMAIL, c.length > 3 ? c[3].trim() : brute);
+            } else {
+                m.put(Tableur.MATRICULE, c[0].trim());
+                m.put(Tableur.NOM, c[1].trim());
+                m.put(Tableur.PRENOM, c[2].trim());
+                m.put(Tableur.EMAIL, c[3].trim());
+                m.put(Tableur.NIVEAU, c[4].trim());
+            }
+            enregistrements.add(m);
+        }
+        return importerComptes(Role.ETUDIANT, null, enregistrements);
+    }
+
+    /**
+     * Inscription en masse par la scolarité. Chaque ligne est traitée indépendamment : une ligne invalide
+     * n'empêche pas les autres. Nouveau compte : actif, mot de passe temporaire. Compte existant du même type
+     * (même e-mail, et même n° de carte pour un étudiant) : mis à jour (niveau, téléphone, nom).
+     * Un compte d'un autre type n'est jamais écrasé.
+     */
+    public List<LigneImport> importerComptes(Role role, Niveau niveauParDefaut, List<Map<String, String>> lignes)
+            throws SQLException {
+        Utilisateur admin = exigerAdmin();
+        Objects.requireNonNull(role, "Type de compte absent.");
+        if (lignes.size() > IMPORT_MAX_LIGNES) {
+            throw new IllegalArgumentException("Import limité à " + IMPORT_MAX_LIGNES + " comptes par fichier.");
+        }
+        List<LigneImport> resultats = new java.util.ArrayList<>();
+        java.util.Set<String> vus = new java.util.HashSet<>();
+        int crees = 0;
+        int majs = 0;
+        for (Map<String, String> l : lignes) {
+            int numero = Integer.parseInt(l.getOrDefault(Tableur.LIGNE, "0"));
+            String id = l.getOrDefault(Tableur.EMAIL, "");
             try {
-                if (c.length != 5) {
-                    throw new IllegalArgumentException("5 colonnes attendues : matricule;nom;prénom;email;niveau.");
+                if (l.containsKey("_erreur")) {
+                    throw new IllegalArgumentException(l.get("_erreur"));
                 }
-                String matricule = c[0].trim().toUpperCase(Locale.ROOT);
-                String nom = c[1].trim();
-                String prenom = c[2].trim();
-                String email = c[3].trim().toLowerCase(Locale.ROOT);
-                com.tdsi.memotheque.model.Niveau niveau;
-                try {
-                    niveau = com.tdsi.memotheque.model.Niveau.valueOf(c[4].trim().toUpperCase(Locale.ROOT));
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Niveau inconnu « " + c[4].trim() + " » (L1, L2, L3, M1 ou M2).");
+                Niveau niveau = niveauParDefaut;
+                String n = l.get(Tableur.NIVEAU);
+                if (role == Role.ETUDIANT && n != null && !n.isBlank()) {
+                    try {
+                        niveau = Niveau.valueOf(n.trim().toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Niveau inconnu « " + n.trim() + " » (L1, L2, L3, M1 ou M2).");
+                    }
                 }
-                if (!Validator.matriculeValide(matricule)) {
-                    throw new IllegalArgumentException("Matricule invalide.");
-                }
-                if (!Validator.emailValide(email)) {
-                    throw new IllegalArgumentException("Adresse e-mail invalide.");
-                }
-                if (!Validator.longueurEntre(nom, 1, 80) || !Validator.longueurEntre(prenom, 1, 80)) {
-                    throw new IllegalArgumentException("Nom et prénom obligatoires (80 caractères maximum).");
-                }
-                if (!vus.add(email) || !vus.add("#" + matricule)) {
+                Utilisateur u = preparer(role, l.get(Tableur.PRENOM), l.get(Tableur.NOM), l.get(Tableur.EMAIL),
+                        l.get(Tableur.TELEPHONE), l.get(Tableur.MATRICULE), niveau);
+                id = u.getEmail();
+                if (!vus.add(u.getEmail()) || (u.getMatricule() != null && !vus.add("#" + u.getMatricule()))) {
                     throw new IllegalArgumentException("Doublon dans le fichier.");
                 }
 
-                Utilisateur parEmail = utilisateurDAO.existeEmail(email) ? utilisateurDAO.findByEmailOuMatricule(email) : null;
-                boolean matriculePris = utilisateurDAO.existeMatricule(matricule);
+                Utilisateur parEmail = utilisateurDAO.existeEmail(u.getEmail())
+                        ? utilisateurDAO.findByEmailOuMatricule(u.getEmail()) : null;
+                boolean matriculePris = u.getMatricule() != null && utilisateurDAO.existeMatricule(u.getMatricule());
                 if (parEmail != null || matriculePris) {
-                    if (parEmail == null || parEmail.getRole() != Role.ETUDIANT
-                            || !matricule.equals(parEmail.getMatricule())) {
-                        throw new IllegalArgumentException("E-mail ou matricule déjà utilisé par un autre compte.");
+                    if (parEmail == null || parEmail.getRole() != role
+                            || (role == Role.ETUDIANT && !u.getMatricule().equals(parEmail.getMatricule()))) {
+                        throw new IllegalArgumentException("E-mail ou n° de carte déjà utilisé par un autre compte.");
                     }
-                    parEmail.setNiveau(niveau);
+                    parEmail.setPrenom(u.getPrenom());
+                    parEmail.setNom(u.getNom());
+                    if (u.getTelephone() != null) {
+                        parEmail.setTelephone(u.getTelephone());
+                    }
+                    if (role == Role.ETUDIANT) {
+                        parEmail.setNiveau(u.getNiveau());
+                    }
                     utilisateurDAO.update(parEmail);
-                    reinscrits++;
-                    resultats.add(new LigneImport(i + 1, email, "REINSCRIT", "Niveau " + niveau));
+                    majs++;
+                    resultats.add(new LigneImport(numero, u.getEmail(), role == Role.ETUDIANT ? "REINSCRIT" : "MIS_A_JOUR",
+                            role == Role.ETUDIANT ? "Niveau " + u.getNiveau() : "Coordonnées mises à jour"));
                     continue;
                 }
 
                 String temporaire = PasswordUtil.genererMotDePasseTemporaire();
-                String sel = PasswordUtil.genererSel();
-                Utilisateur u = new Utilisateur();
-                u.setMatricule(matricule);
-                u.setNom(nom);
-                u.setPrenom(prenom);
-                u.setEmail(email);
-                u.setSel(sel);
-                u.setMotDePasseHash(PasswordUtil.hasher(temporaire, sel));
-                u.setRole(Role.ETUDIANT);
-                u.setNiveau(niveau);
-                u.setActif(true);
-                u.setDoitChangerMotDePasse(true);
-                u.setDateCreation(LocalDate.now());
+                poserMotDePasse(u, temporaire);
                 utilisateurDAO.insert(u);
                 crees++;
-                resultats.add(new LigneImport(i + 1, email, "CREE", temporaire));
+                resultats.add(new LigneImport(numero, u.getEmail(), "CREE", temporaire));
             } catch (IllegalArgumentException e) {
-                resultats.add(new LigneImport(i + 1, id, "ERREUR", e.getMessage()));
+                resultats.add(new LigneImport(numero, id, "ERREUR", e.getMessage()));
             }
         }
-        journalService.log(admin.getId(), "IMPORT_ETUDIANTS", crees + " compte(s) créé(s), " + reinscrits
-                + " réinscription(s), " + (resultats.size() - crees - reinscrits) + " ligne(s) en erreur");
+        journalService.log(admin.getId(), role == Role.ETUDIANT ? "IMPORT_ETUDIANTS" : "IMPORT_COMPTES",
+                role.getLibelle() + " : " + crees + " compte(s) créé(s), " + majs + " mis à jour, "
+                        + (resultats.size() - crees - majs) + " ligne(s) en erreur");
         return resultats;
+    }
+
+    /** Modèle Excel à remplir pour l'import d'un type de compte. */
+    public static void ecrireModele(Role role, java.nio.file.Path fichier) throws java.io.IOException {
+        if (role == Role.ETUDIANT) {
+            Tableur.ecrireXlsx(fichier, List.of("Prénom", "Nom", "N° carte étudiant", "Téléphone", "Email", "Niveau"),
+                    List.of(List.of("Awa", "SOW", "MCS-2026-010", "+221 77 123 45 67", "awa.sow@ucad.edu.sn", "M2")));
+        } else {
+            Tableur.ecrireXlsx(fichier, List.of("Prénom", "Nom", "Téléphone", "Email"),
+                    List.of(List.of("Mamadou", "DIALLO", "+221 76 987 65 43",
+                            role == Role.ADMIN ? "scolarite.mcs@ucad.edu.sn" : "mamadou.diallo@ucad.edu.sn")));
+        }
+    }
+
+    /** Vérifie et normalise les champs communs à la création et à l'import. */
+    private Utilisateur preparer(Role role, String prenom, String nom, String email, String telephone,
+            String matricule, Niveau niveau) {
+        String p = prenom == null ? "" : prenom.trim();
+        String n = nom == null ? "" : nom.trim();
+        String e = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        String t = telephone == null || telephone.isBlank() ? null : telephone.trim();
+        if (!Validator.longueurEntre(p, 1, 80) || !Validator.longueurEntre(n, 1, 80)) {
+            throw new IllegalArgumentException("Prénom et nom obligatoires (80 caractères maximum).");
+        }
+        if (!Validator.emailValide(e)) {
+            throw new IllegalArgumentException("Adresse e-mail invalide.");
+        }
+        if (t != null && !Validator.telephoneValide(t)) {
+            throw new IllegalArgumentException("Numéro de téléphone invalide (ex. +221 77 123 45 67).");
+        }
+        Utilisateur u = new Utilisateur();
+        if (role == Role.ETUDIANT) {
+            String m = matricule == null ? "" : matricule.trim().toUpperCase(Locale.ROOT);
+            if (!Validator.matriculeValide(m)) {
+                throw new IllegalArgumentException("Numéro de carte étudiant invalide (4 à 20 lettres, chiffres ou tirets).");
+            }
+            if (niveau == null) {
+                throw new IllegalArgumentException("Niveau obligatoire pour un étudiant (L1 à M2).");
+            }
+            u.setMatricule(m);
+            u.setNiveau(niveau);
+        }
+        u.setPrenom(p);
+        u.setNom(n);
+        u.setEmail(e);
+        u.setTelephone(t);
+        u.setRole(role);
+        u.setActif(true);
+        u.setDoitChangerMotDePasse(true);
+        u.setDateCreation(LocalDate.now());
+        return u;
+    }
+
+    private static void poserMotDePasse(Utilisateur u, String motDePasse) {
+        String sel = PasswordUtil.genererSel();
+        u.setSel(sel);
+        u.setMotDePasseHash(PasswordUtil.hasher(motDePasse, sel));
     }
 
     /**

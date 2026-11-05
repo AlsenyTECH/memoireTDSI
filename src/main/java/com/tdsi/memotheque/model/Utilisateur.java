@@ -10,6 +10,7 @@ public class Utilisateur {
     private String nom;
     private String prenom;
     private String email;
+    private String telephone;          // facultatif
     private String motDePasseHash;
     private String sel;
     private Role role;
@@ -32,6 +33,8 @@ public class Utilisateur {
     public String getPrenom() { return prenom; }
     public void setPrenom(String prenom) { this.prenom = prenom; }
     public String getEmail() { return email; }
+    public String getTelephone() { return telephone; }
+    public void setTelephone(String telephone) { this.telephone = telephone; }
     public void setEmail(String email) { this.email = email; }
     public String getMotDePasseHash() { return motDePasseHash; }
     public void setMotDePasseHash(String motDePasseHash) { this.motDePasseHash = motDePasseHash; }

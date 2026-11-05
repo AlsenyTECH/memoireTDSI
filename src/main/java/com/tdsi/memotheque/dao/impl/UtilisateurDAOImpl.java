@@ -27,8 +27,8 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
         String sql = """
                 INSERT INTO utilisateur
                 (matricule, nom, prenom, email, mot_de_passe_hash, sel,
-                 role, niveau, actif, tentatives_echec, verrouille, date_creation, doit_changer_mdp)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 role, niveau, actif, tentatives_echec, verrouille, date_creation, doit_changer_mdp, telephone)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection c = DatabaseConnection.getConnection();
@@ -54,6 +54,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
             ps.setInt(11, u.isVerrouille() ? 1 : 0);
             ps.setString(12, u.getDateCreation().toString());
             ps.setInt(13, u.isDoitChangerMotDePasse() ? 1 : 0);
+            ps.setString(14, u.getTelephone());
 
             ps.executeUpdate();
 
@@ -75,7 +76,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
                 SET matricule = ?, nom = ?, prenom = ?, email = ?,
                     mot_de_passe_hash = ?, sel = ?, role = ?, niveau = ?,
                     actif = ?, tentatives_echec = ?, verrouille = ?,
-                    date_creation = ?, doit_changer_mdp = ?
+                    date_creation = ?, doit_changer_mdp = ?, telephone = ?
                 WHERE id = ?
                 """;
 
@@ -101,7 +102,8 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
             ps.setInt(11, u.isVerrouille() ? 1 : 0);
             ps.setString(12, u.getDateCreation().toString());
             ps.setInt(13, u.isDoitChangerMotDePasse() ? 1 : 0);
-            ps.setInt(14, u.getId());
+            ps.setString(14, u.getTelephone());
+            ps.setInt(15, u.getId());
 
             ps.executeUpdate();
         }
@@ -128,6 +130,7 @@ public class UtilisateurDAOImpl implements UtilisateurDAO {
         u.setNom(rs.getString("nom"));
         u.setPrenom(rs.getString("prenom"));
         u.setEmail(rs.getString("email"));
+        u.setTelephone(rs.getString("telephone"));
         u.setMotDePasseHash(rs.getString("mot_de_passe_hash"));
         u.setSel(rs.getString("sel"));
 

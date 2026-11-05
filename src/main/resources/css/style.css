@@ -728,3 +728,27 @@
 .lettre .lettre-titre { -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0f3b78; }
 .lettre .lettre-libelle { -fx-font-weight: bold; }
 .lettre .lettre-signature { -fx-font-weight: bold; }
+
+/* ================================================================ onglets (filtres par type) */
+
+.onglet {
+    -fx-background-color: -c-surface;
+    -fx-border-color: -c-bordure;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 7 16 7 16;
+    -fx-text-fill: -c-texte;
+    -fx-font-size: 14.5px;
+    -fx-cursor: hand;
+}
+
+.onglet:hover {
+    -fx-border-color: -c-primaire;
+}
+
+.onglet:selected {
+    -fx-background-color: -c-primaire;
+    -fx-border-color: -c-primaire;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}

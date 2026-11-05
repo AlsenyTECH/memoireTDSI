@@ -145,7 +145,13 @@ final class BaseDeTest {
     static void soutenanceDansLePasse(int idMemoire) throws Exception {
         try (var c = DatabaseConnection.getConnection();
              var ps = c.prepareStatement("UPDATE soutenance SET date_heure = ? WHERE id_memoire = ?")) {
-            ps.setString(1, java.time.LocalDateTime.now().minusHours(1).withSecond(0).withNano(0).toString());
+            // Une heure plus tôt, mais le même jour (sinon, juste après minuit, la date de soutenance change).
+            java.time.LocalDateTime maintenant = java.time.LocalDateTime.now();
+            java.time.LocalDateTime passe = maintenant.minusHours(1);
+            if (!passe.toLocalDate().equals(maintenant.toLocalDate())) {
+                passe = maintenant.toLocalDate().atStartOfDay();
+            }
+            ps.setString(1, passe.withNano(0).toString());
             ps.setInt(2, idMemoire);
             ps.executeUpdate();
         }

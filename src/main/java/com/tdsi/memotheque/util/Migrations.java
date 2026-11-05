@@ -32,6 +32,7 @@ public final class Migrations {
         "V6__recherche_plein_texte.sql",
         "V7__notifications.sql",
         "V8__circuit_universitaire.sql",
+        "V9__telephone.sql",
     };
 
     private Migrations() { }

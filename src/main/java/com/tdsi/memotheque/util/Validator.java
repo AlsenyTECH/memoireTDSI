@@ -19,6 +19,19 @@ public final class Validator {
         return !estVide(email) && EMAIL.matcher(email.trim()).matches();
     }
 
+    /** Téléphone : chiffres, espaces, points, tirets, parenthèses, « + » initial ; 7 à 15 chiffres. */
+    public static boolean telephoneValide(String telephone) {
+        if (estVide(telephone)) {
+            return false;
+        }
+        String t = telephone.trim();
+        if (!t.matches("^\\+?[0-9 .()\\-]{7,25}$")) {
+            return false;
+        }
+        long chiffres = t.chars().filter(Character::isDigit).count();
+        return chiffres >= 7 && chiffres <= 15;
+    }
+
     public static boolean matriculeValide(String matricule) {
         return !estVide(matricule) && MATRICULE.matcher(matricule.trim()).matches();
     }

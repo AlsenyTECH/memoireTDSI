@@ -3,8 +3,8 @@ package com.tdsi.memotheque.model;
 /** Profils d'utilisateurs de la plateforme. [M1] contrat gelé */
 public enum Role {
     ETUDIANT("Étudiant"),
-    ENCADREUR("Encadreur"),
-    ADMIN("Administrateur");
+    ENCADREUR("Enseignant"),
+    ADMIN("Personnel administratif");
 
     private final String libelle;
 

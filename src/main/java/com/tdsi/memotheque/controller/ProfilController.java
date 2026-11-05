@@ -17,6 +17,7 @@ public class ProfilController {
     @FXML private Label labelNom;
     @FXML private Label labelEmail;
     @FXML private Label labelMatricule;
+    @FXML private Label labelTelephone;
     @FXML private Label labelRole;
     @FXML private Label labelNiveau;
     @FXML private Label labelDateCreation;
@@ -41,6 +42,7 @@ public class ProfilController {
         labelNom.setText(u.getNomComplet());
         labelEmail.setText(u.getEmail());
         labelMatricule.setText(u.getMatricule() == null ? "-" : u.getMatricule());
+        labelTelephone.setText(u.getTelephone() == null ? "-" : u.getTelephone());
         labelRole.setText(u.getRole() == null ? "-" : u.getRole().getLibelle());
         labelNiveau.setText(u.getNiveau() == null ? "-" : u.getNiveau().name());
         labelDateCreation.setText(u.getDateCreation() == null ? "-"
